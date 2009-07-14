@@ -13,7 +13,7 @@ public class ActorTableModel extends AbstractTableModel {
 	/**
 	 * Default UID
 	 */
-	private static final long serialVersionUID = 1299863919878803030L;
+	private static final long serialVersionUID = 1L;
 
 	private static final boolean DEBUG = true;
 	
@@ -54,12 +54,67 @@ public class ActorTableModel extends AbstractTableModel {
 		actorList.get(activeActor).Active = true;
 		fireTableCellUpdated(activeActor, 0);
 	}
-         
+
+	/**
+	 * Move the actor from one slot to another
+	 * @param source : the index of the actor to move
+	 * @param dest : the index of the slot to move into (pushes current actor down one)
+	 */
+	public void moveActor(int source, int dest) {
+		if (dest == actorList.size()-1) // Don't move anything after the 'new' row
+			dest--;
+		
+		if (source == dest) // Don't do anything if nothing is necessary  
+			return;
+
+		if (source < dest) // when we remove source, it will cause all the later actors to move up one, so we need to adjust the dest#
+			dest--;
+		
+		Actor movingActor = getActor(source);
+		actorList.remove(source);
+		actorList.add(dest, movingActor);
+	}
+	
+	/**
+	 * Create a copy of an actor to another slot
+	 * @param source : the index of the actor to copy
+	 * @param dest : the index of the slot to copy into (pushes current actor down one)
+	 */
+	public void copyActor(int source, int dest) {
+		if (dest >= actorList.size()-1) // Don't put anything after the 'new' row
+			dest = actorList.size()-2;
+			
+		Actor movingActor = getActor(source);
+		actorList.add(dest, movingActor);
+	}
+	
+	/**
+	 * Add a new actor to the specified slot
+	 * @param source : the actor object to add
+	 * @param dest : the index of the slot to insert into (pushes current actor down one)
+	 */
+	public void addActor(Actor source, int dest) {
+		if (dest > actorList.size()-1) // Don't put anything after the 'new' row
+			dest = actorList.size()-1;
+			
+		actorList.add(dest, source);
+		fireTableRowsInserted(dest,dest);
+	}
+ 
+	/**
+	 * Remove an actor from the table
+	 * @param row : the actor to remove
+	 */
+	public void removeActor(int row) {
+		actorList.remove(row);
+		fireTableRowsDeleted(row, row);
+	}
+ 
 	public Actor getActor(int row) {
 		return (Actor) actorList.get(row);
 	}
 	
-	@Override
+	//@Override
 	public int getColumnCount() {
 		return 5;
 	}
@@ -69,12 +124,12 @@ public class ActorTableModel extends AbstractTableModel {
         return columnNames[col];
     }
 
-	@Override
+	//@Override
 	public int getRowCount() {
 		return actorList.size();
 	}
 
-	@Override
+	//@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		Actor actor = (Actor) actorList.get(rowIndex);
 		switch (columnIndex) {

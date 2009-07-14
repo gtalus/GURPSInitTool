@@ -60,8 +60,14 @@ public class GITApp // extends JPanel
         mainApp.actorTableModel = (ActorTableModel) initTable.getModel();
         initTable.setDefaultRenderer(new Object().getClass(), new InitTableCellRenderer());
         initTable.setDefaultRenderer(new Integer(0).getClass(), new InitTableCellRenderer());
+        initTable.setTransferHandler(new initTableTransferHandler("name"));
         initTable.setPreferredScrollableViewportSize(new Dimension(800, 270));
         initTable.setFillsViewportHeight(true);
+        //initTable.setRowSelectionAllowed(true);
+        initTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        initTable.setDragEnabled(true);
+        initTable.setDropMode(DropMode.INSERT_ROWS);
+
         JComboBox initTableStateEditor = new JComboBox();
         initTableStateEditor.addItem("Active");
         initTableStateEditor.addItem("Waiting");
@@ -118,7 +124,7 @@ public class GITApp // extends JPanel
         });
     }
     
-    @Override
+    //@Override
     public void actionPerformed(ActionEvent e) {
     	if ("nextActor".equals(e.getActionCommand())) {
     		actorTableModel.nextActor();
