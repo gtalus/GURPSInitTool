@@ -47,9 +47,24 @@ public class Actor {
 		Active = false;
 	}
 	
+	/**
+	 * Basic constructor providing default options
+	 * @param name
+	 * @param state
+	 * @param type
+	 */
 	public Actor(String name, ActorState state, ActorType type) {
 		this(name,state,type,10,10,0);
 	}
+	
+	/**
+	 * Copy constructor
+	 * @param anActor reference Actor
+	 */
+	public Actor(Actor anActor) {
+		this(anActor.Name,anActor.State,anActor.Type,anActor.HP,anActor.Health,anActor.Damage);
+	}
+
 
 	
 }

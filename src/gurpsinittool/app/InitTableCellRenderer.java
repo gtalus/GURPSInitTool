@@ -43,25 +43,45 @@ public class InitTableCellRenderer extends DefaultTableCellRenderer {
 			c.setIcon(new ImageIcon());
 		}
 		
-
-		switch (a.Type) {
-		case PC:
-			c.setBackground(new Color(200,255,200));
-			break;
-		case Ally:
-			c.setBackground(new Color(200,200,255));
-			break;
-		case Enemy:
-			c.setBackground(new Color(255,200,200));
-			break;
-		case Neutral:
-			c.setBackground(new Color(200,200,200));
-			break;
-		case Special:
-			c.setBackground(new Color(255,200,255));
-			break;
+		if (isSelected) {
+			switch (a.Type) {
+			case PC:
+				c.setBackground(new Color(128,255,128));
+				break;
+			case Ally:
+				c.setBackground(new Color(128,128,255));
+				break;
+			case Enemy:
+				c.setBackground(new Color(255,128,128));
+				break;
+			case Neutral:
+				c.setBackground(new Color(128,128,128));
+				break;
+			case Special:
+				c.setBackground(new Color(255,128,255));
+				break;
+			}
 		}
-		
+		else {
+			switch (a.Type) {
+			case PC:
+				c.setBackground(new Color(200,255,200));
+				break;
+			case Ally:
+				c.setBackground(new Color(200,200,255));
+				break;
+			case Enemy:
+				c.setBackground(new Color(255,200,200));
+				break;
+			case Neutral:
+				c.setBackground(new Color(200,200,200));
+				break;
+			case Special:
+				c.setBackground(new Color(255,200,255));
+				break;
+			}
+		}
+	
 		c.setHorizontalAlignment(SwingConstants.LEFT);
 		c.setForeground(new Color(0,0,0));
 		switch (a.State) {
@@ -78,9 +98,9 @@ public class InitTableCellRenderer extends DefaultTableCellRenderer {
 			break;
 		}
 		
-		if (hasFocus) {
+		/*if (hasFocus) {
 			c.setFont(new Font("sansserif", Font.BOLD, 12));
-		}
+		}*/
 
 		return c;
 	}

@@ -109,7 +109,20 @@ public class ActorTableModel extends AbstractTableModel {
 		actorList.remove(row);
 		fireTableRowsDeleted(row, row);
 	}
- 
+	
+	/**
+	 * Remove an actor from the table based on the reference
+	 * Removes ALL instances of that actor
+	 * @param actor : the actor to remove
+	 */
+	public void removeActor(Actor actor) {
+		while (actorList.contains(actor)) {
+			int row = actorList.indexOf(actor);
+			actorList.remove(row);
+			fireTableRowsDeleted(row, row);
+		}
+	}
+
 	public Actor getActor(int row) {
 		return (Actor) actorList.get(row);
 	}

@@ -6,6 +6,9 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
 import gurpsinittool.data.*;
 
 
@@ -26,7 +29,6 @@ public class GITApp // extends JPanel
         GITApp mainApp = new GITApp();
         //contentPanel.setOpaque(true);
         //frame.setContentPane(contentPanel);
-        
         
         // The main menu bar
         JMenuBar menubar = new JMenuBar();
@@ -85,6 +87,14 @@ public class GITApp // extends JPanel
         initTable.getColumnModel().getColumn(4).setCellEditor(new InitTableComboCellEditor(initTableTypeEditor));
         ((DefaultCellEditor) initTable.getColumnModel().getColumn(4).getCellEditor()).setClickCountToStart(2);
          JScrollPane tableScrollPane = new JScrollPane(initTable);
+         
+        // Table popup menu
+        JPopupMenu initPopup = new JPopupMenu();
+        JMenuItem menuItem = new JMenuItem("Delete");
+        menuItem.addActionListener(mainApp);
+        initPopup.add(menuItem);
+        MousePopupListener popupListener = mainApp.new MousePopupListener(initPopup);
+        initTable.addMouseListener(popupListener);
 
         JSplitPane over_frame = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tableScrollPane, actorDetailsPane);
         over_frame.setDividerLocation(600);
@@ -131,5 +141,20 @@ public class GITApp // extends JPanel
     	}
     }
 
-    
+    // An inner class to check whether mouse events are the pop-up trigger
+    class MousePopupListener extends MouseAdapter {
+    	private JPopupMenu popup;
+    	
+    	public MousePopupListener(JPopupMenu popup) { this.popup = popup; }
+    	
+        public void mousePressed(MouseEvent e) { checkPopup(e); }
+        public void mouseClicked(MouseEvent e) { checkPopup(e); }
+        public void mouseReleased(MouseEvent e) { checkPopup(e); }
+ 
+        private void checkPopup(MouseEvent e) {
+            if (e.isPopupTrigger(  )) {
+                popup.show(e.getComponent(), e.getX(  ), e.getY(  ));
+            }
+        }
+    }
 }

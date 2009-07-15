@@ -14,9 +14,9 @@ public class TransferableActor implements Transferable {
 		actorFlavor
 	};
 	
-	Actor actor;
+	Actor[] actors;
 	
-	public TransferableActor(Actor actor) { this.actor = actor; }
+	public TransferableActor(Actor[] actors) { this.actors = actors; }
 	  
 	/** Return a list of DataFlavors we can support */
 	public DataFlavor[] getTransferDataFlavors() { return supportedFlavors; }
@@ -29,7 +29,7 @@ public class TransferableActor implements Transferable {
 	public Object getTransferData(DataFlavor flavor) 
 	       throws UnsupportedFlavorException, IOException
 	  {
-	    if (flavor.equals(actorFlavor)) return actor;
+	    if (flavor.equals(actorFlavor)) return actors;
 	    else throw new UnsupportedFlavorException(flavor);
 	  }
 

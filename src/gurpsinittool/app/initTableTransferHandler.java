@@ -40,14 +40,14 @@ public class initTableTransferHandler extends TransferHandler {
         }
         
         JTable.DropLocation dl = (JTable.DropLocation) support.getDropLocation();
-        int row = dl.getRow();
+        int row = dl.getRow(); 
         int col = dl.getColumn();
         
         Transferable t = support.getTransferable();
         
-        Actor actor;
+        Actor[] actors;
         try {
-        	actor = (Actor) t.getTransferData(TransferableActor.actorFlavor);
+        	actors = (Actor[]) t.getTransferData(TransferableActor.actorFlavor);
         } catch (UnsupportedFlavorException e) {
         	return false;
         } catch (IOException e) {
@@ -55,8 +55,14 @@ public class initTableTransferHandler extends TransferHandler {
         }
 
         JTable table = (JTable) support.getComponent();
-        ((ActorTableModel) table.getModel()).addActor(actor, row);
-
+        // Don't try to put items after the 'new' row
+        if (row >= ((ActorTableModel) table.getModel()).getRowCount()) { row = ((ActorTableModel) table.getModel()).getRowCount() - 1; }
+        for (int i = actors.length-1; i >= 0; i--) { // Actors added to same 'row', so go from bottom up to preserve order
+        	if (DEBUG) { System.out.println("Adding actor @ row: " + row); }
+        	// When importing data, make copies of the actors instead of accepting the references
+        	((ActorTableModel) table.getModel()).addActor(new Actor(actors[i]), row);
+        }
+        
         if (DEBUG) {
 			System.out.println("Getting import data request: " + row + "," + col
                  + " String " + dl.toString()
@@ -85,26 +91,46 @@ public class initTableTransferHandler extends TransferHandler {
 	protected Transferable createTransferable(JComponent c) {
 		JTable table = (JTable) c;
 		
-		// TODO: reduce dependancy on selected row
-		int row = table.getSelectedRow();
-		Actor actor = ((ActorTableModel) table.getModel()).getActor(row);
+		// Allows multiple selection rows
+		int[] rows = table.getSelectedRows();
+		java.util.Arrays.sort(rows);
+		Actor[] actors = new Actor[rows.length];
+		for (int i = 0; i < rows.length; i++) {
+			if (DEBUG) { System.out.println("Creating transferable component: adding row " + rows[i] + "..."); }
+			actors[i] = ((ActorTableModel) table.getModel()).getActor(rows[i]);
+		}
 		if (DEBUG) {
-			System.out.println("Creating transferable component for row: " + row + ", Item = " + c.toString());
+			System.out.println("Done Creating transferable component Item = " + c.toString());
 		}
 		
-		return new TransferableActor(actor);
+		return new TransferableActor(actors);
 	}
 	
 	@Override
 	protected void exportDone(JComponent source, Transferable data, int action) {
 		if (action == MOVE) {
 			JTable table = (JTable) source;
-			// TODO: reduce dependancy on selected row
-			int row = table.getSelectedRow();
-			((ActorTableModel) table.getModel()).removeActor(row);
-			if (DEBUG) {
-				System.out.println("Move done on row: " + row + ", action was " + action);
-			}
+			
+			// TODO: reduce dependency on selected row
+			Actor[] actors;
+	        try {
+	        	actors = (Actor[]) data.getTransferData(TransferableActor.actorFlavor);
+	        } catch (UnsupportedFlavorException e) {
+	        	return;
+	        } catch (IOException e) {
+	        	return;
+	        }
+	        for (int i = 0; i < actors.length; i++) {
+	        	if (DEBUG) { System.out.println("After move, deleting actor " + actors[i].Name + "..."); }
+	        	((ActorTableModel) table.getModel()).removeActor(actors[i]);
+	        }
+	        
+			//int[] rows =  table.getSelectedRows();
+			//java.util.Arrays.sort(rows);
+			//for (int i = rows.length - 1; i >= 0; i--) { // need to delete rows from bottom up
+			//	if (DEBUG) { System.out.println("After move, deleting row " + rows[i] + "..."); }
+			//	((ActorTableModel) table.getModel()).removeActor(rows[i]);
+			//}
 		}
 		if (DEBUG) {
 			System.out.println("export done: " + action);
