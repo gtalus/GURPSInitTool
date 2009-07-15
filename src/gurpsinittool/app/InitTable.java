@@ -110,10 +110,9 @@ public class InitTable extends JTable
     			| "Disabled".equals(e.getActionCommand()) 
     			| "Unconscious".equals(e.getActionCommand()) 
     			| "Dead".equals(e.getActionCommand())) {
-    		Actor[] actors = tableModel.getActors(getSelectedRows());
-       		for (int i = 0; i < actors.length; i++) {
-       			actors[i].State = Actor.ActorState.valueOf(e.getActionCommand());
-       			tableModel.fireRefresh(actors[i]);
+       		int[] rows = getSelectedRows();
+       		for (int i = 0; i < rows.length; i++) {
+       			tableModel.setValueAt(e.getActionCommand(), rows[i], 3);
        		}
     	}
        	else if ("PC".equals(e.getActionCommand()) 
@@ -121,10 +120,9 @@ public class InitTable extends JTable
     			| "Enemy".equals(e.getActionCommand()) 
     			| "Neutral".equals(e.getActionCommand()) 
     			| "Special".equals(e.getActionCommand())) {
-    		Actor[] actors = tableModel.getActors(getSelectedRows());
-       		for (int i = 0; i < actors.length; i++) {
-       			actors[i].Type = Actor.ActorType.valueOf(e.getActionCommand());
-       			tableModel.fireRefresh(actors[i]);
+       		int[] rows = getSelectedRows();
+       		for (int i = 0; i < rows.length; i++) {
+       			tableModel.setValueAt(e.getActionCommand(), rows[i], 4);
        		}
     	}
     }
@@ -277,7 +275,7 @@ public class InitTable extends JTable
 	    public void mouseReleased(MouseEvent e) { checkPopup(e); }
 	 
 	    private void checkPopup(MouseEvent e) {
-	    	if (e.isPopupTrigger()) {
+	    	if (e.isPopupTrigger() & (getSelectedRows().length > 0)) {
 	    		popupMenu.show(e.getComponent(), e.getX(), e.getY());
 	        }
 	    }

@@ -102,7 +102,7 @@ public class ActorTableModel extends AbstractTableModel {
 	}
  
 	/**
-	 * Remove an actor from the table
+	 * Remove an actor from the table (only the specific row)
 	 * @param row : the actor to remove
 	 */
 	public void removeActor(int row) {
