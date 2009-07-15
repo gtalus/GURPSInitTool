@@ -58,44 +58,8 @@ public class GITApp // extends JPanel
         JScrollPane actorDetailsPane = new JScrollPane(label);
         
         //InitTable initTable = new InitTable(new ActorTableModel());
-        JTable initTable = new JTable(new ActorTableModel());
-        mainApp.actorTableModel = (ActorTableModel) initTable.getModel();
-        initTable.setDefaultRenderer(new Object().getClass(), new InitTableCellRenderer());
-        initTable.setDefaultRenderer(new Integer(0).getClass(), new InitTableCellRenderer());
-        initTable.setTransferHandler(new initTableTransferHandler("name"));
-        initTable.setPreferredScrollableViewportSize(new Dimension(800, 270));
-        initTable.setFillsViewportHeight(true);
-        //initTable.setRowSelectionAllowed(true);
-        initTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        initTable.setDragEnabled(true);
-        initTable.setDropMode(DropMode.INSERT_ROWS);
-
-        JComboBox initTableStateEditor = new JComboBox();
-        initTableStateEditor.addItem("Active");
-        initTableStateEditor.addItem("Waiting");
-        initTableStateEditor.addItem("Disabled");
-        initTableStateEditor.addItem("Unconscious");
-        initTableStateEditor.addItem("Dead");
-        initTable.getColumnModel().getColumn(3).setCellEditor(new InitTableComboCellEditor(initTableStateEditor));
-        ((DefaultCellEditor) initTable.getColumnModel().getColumn(3).getCellEditor()).setClickCountToStart(2);
-        JComboBox initTableTypeEditor = new JComboBox();
-        initTableTypeEditor.addItem("PC");
-        initTableTypeEditor.addItem("Ally");
-        initTableTypeEditor.addItem("Enemy");
-        initTableTypeEditor.addItem("Neutral");
-        initTableTypeEditor.addItem("Special");
-        initTable.getColumnModel().getColumn(4).setCellEditor(new InitTableComboCellEditor(initTableTypeEditor));
-        ((DefaultCellEditor) initTable.getColumnModel().getColumn(4).getCellEditor()).setClickCountToStart(2);
-         JScrollPane tableScrollPane = new JScrollPane(initTable);
-         
-        // Table popup menu
-        JPopupMenu initPopup = new JPopupMenu();
-        JMenuItem menuItem = new JMenuItem("Delete");
-        menuItem.addActionListener(mainApp);
-        initPopup.add(menuItem);
-        MousePopupListener popupListener = mainApp.new MousePopupListener(initPopup);
-        initTable.addMouseListener(popupListener);
-
+        InitTable initTable = new InitTable();
+        JScrollPane tableScrollPane = new JScrollPane(initTable); 
         JSplitPane over_frame = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tableScrollPane, actorDetailsPane);
         over_frame.setDividerLocation(600);
         over_frame.setResizeWeight(0.7);
@@ -136,25 +100,8 @@ public class GITApp // extends JPanel
     
     //@Override
     public void actionPerformed(ActionEvent e) {
-    	if ("nextActor".equals(e.getActionCommand())) {
+    	/*if ("nextActor".equals(e.getActionCommand())) {
     		actorTableModel.nextActor();
-    	}
-    }
-
-    // An inner class to check whether mouse events are the pop-up trigger
-    class MousePopupListener extends MouseAdapter {
-    	private JPopupMenu popup;
-    	
-    	public MousePopupListener(JPopupMenu popup) { this.popup = popup; }
-    	
-        public void mousePressed(MouseEvent e) { checkPopup(e); }
-        public void mouseClicked(MouseEvent e) { checkPopup(e); }
-        public void mouseReleased(MouseEvent e) { checkPopup(e); }
- 
-        private void checkPopup(MouseEvent e) {
-            if (e.isPopupTrigger(  )) {
-                popup.show(e.getComponent(), e.getX(  ), e.getY(  ));
-            }
-        }
+    	}*/
     }
 }

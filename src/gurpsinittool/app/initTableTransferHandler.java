@@ -89,21 +89,11 @@ public class initTableTransferHandler extends TransferHandler {
 	
 	@Override
 	protected Transferable createTransferable(JComponent c) {
-		JTable table = (JTable) c;
-		
 		// Allows multiple selection rows
+		JTable table = (JTable) c;
 		int[] rows = table.getSelectedRows();
 		java.util.Arrays.sort(rows);
-		Actor[] actors = new Actor[rows.length];
-		for (int i = 0; i < rows.length; i++) {
-			if (DEBUG) { System.out.println("Creating transferable component: adding row " + rows[i] + "..."); }
-			actors[i] = ((ActorTableModel) table.getModel()).getActor(rows[i]);
-		}
-		if (DEBUG) {
-			System.out.println("Done Creating transferable component Item = " + c.toString());
-		}
-		
-		return new TransferableActor(actors);
+		return new TransferableActor(((ActorTableModel) table.getModel()).getActors(rows));
 	}
 	
 	@Override

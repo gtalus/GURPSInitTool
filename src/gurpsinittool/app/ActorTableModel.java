@@ -126,7 +126,30 @@ public class ActorTableModel extends AbstractTableModel {
 	public Actor getActor(int row) {
 		return (Actor) actorList.get(row);
 	}
+
+	/**
+	 * Get an array of Actors based on an array of indexes
+	 * @param rows - array of row numbers
+	 * @return Array of Actors corresponding to the row numbers
+	 */
+	public Actor[] getActors(int[] rows) {
+		Actor[] actors = new Actor[rows.length];
+		for (int i = 0; i < rows.length; i++) {
+			actors[i] = actorList.get(rows[i]);
+		}
+		return actors;
+	}
 	
+	/**
+	 * Fires a row updated for the listed actor. Does not currently support multiple instances of the same Actor!
+	 * @param actor
+	 */
+	public void fireRefresh(Actor actor) {
+		// TODO: support multiple instances of the same actor
+		int row = actorList.indexOf(actor);
+		fireTableRowsUpdated(row, row);
+	}
+
 	//@Override
 	public int getColumnCount() {
 		return 5;
