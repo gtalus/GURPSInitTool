@@ -1,6 +1,7 @@
 package gurpsinittool.app;
 
 import javax.swing.*;  
+
 import java.awt.Dimension;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
@@ -15,7 +16,7 @@ import gurpsinittool.data.*;
 public class GITApp // extends JPanel
 	implements ActionListener {
 
-	public ActorTableModel actorTableModel;
+	public InitTable initTable;
 	
     /**
      * Create the GUI and show it.  For thread safety,
@@ -54,12 +55,16 @@ public class GITApp // extends JPanel
         frame.getContentPane().add(toolbar, BorderLayout.PAGE_START);
 
         //Add the ubiquitous "Hello World" label.
-        JLabel label = new JLabel("Hello World");
-        JScrollPane actorDetailsPane = new JScrollPane(label);
+        // The actor info pane
+        JPanel actorDetailsPanel = new JPanel(new BorderLayout());
+        actorDetailsPanel.add(new JLabel("Hello World"), BorderLayout.PAGE_START);
+        actorDetailsPanel.add(new JLabel("Goodby World"), BorderLayout.PAGE_END);
+       // JLabel label = new JLabel("Hello World");
+        JScrollPane actorDetailsPane = new JScrollPane(actorDetailsPanel);
         
         //InitTable initTable = new InitTable(new ActorTableModel());
-        InitTable initTable = new InitTable();
-        JScrollPane tableScrollPane = new JScrollPane(initTable); 
+        mainApp.initTable = new InitTable();
+        JScrollPane tableScrollPane = new JScrollPane(mainApp.initTable); 
         JSplitPane over_frame = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tableScrollPane, actorDetailsPane);
         over_frame.setDividerLocation(600);
         over_frame.setResizeWeight(0.7);
@@ -100,8 +105,8 @@ public class GITApp // extends JPanel
     
     //@Override
     public void actionPerformed(ActionEvent e) {
-    	/*if ("nextActor".equals(e.getActionCommand())) {
-    		actorTableModel.nextActor();
-    	}*/
+    	if ("nextActor".equals(e.getActionCommand())) {
+    		initTable.nextActor();
+    	}
     }
 }

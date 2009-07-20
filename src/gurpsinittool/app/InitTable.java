@@ -15,6 +15,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -43,7 +44,59 @@ public class InitTable extends JTable
 		tableModel = (ActorTableModel) dataModel;
 		initialize();
 	}
-	
+
+    public void actionPerformed(ActionEvent e) {
+    	if (DEBUG) { System.out.println("Received action command " + e.getActionCommand()); }
+    	if ("Delete".equals(e.getActionCommand())) { // Delete selected rows
+    		int[] rows = getSelectedRows();
+    		int result = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete these rows?", "Confirm Row Delete", JOptionPane.OK_CANCEL_OPTION);
+    		if (result == JOptionPane.OK_OPTION) {
+    			for (int i = rows.length-1; i >= 0; i--) {  // Go from bottom up to preserve numbering
+    				if (DEBUG) { System.out.println("Deleting row: " + rows[i]); }   			
+    				tableModel.removeActor(rows[i]); // Just remove the rows indicated: not all instances of clones
+    			}
+    		}
+    	}
+       	if ("Clone".equals(e.getActionCommand())) { // Clone selected rows at the end (as "Haste" spell)
+    		Actor[] actors = tableModel.getActors(getSelectedRows());
+    		for (int i = 0; i < actors.length; i++) {
+    		   	if (DEBUG) { System.out.println("Cloning actor: " + actors[i].Name); }   			
+    			tableModel.addActor(actors[i], tableModel.getRowCount()-1); // Add actor to the end of the table
+    		}
+    	}
+    	else if ("Active".equals(e.getActionCommand()) 
+    			| "Waiting".equals(e.getActionCommand()) 
+    			| "Disabled".equals(e.getActionCommand()) 
+    			| "Unconscious".equals(e.getActionCommand()) 
+    			| "Dead".equals(e.getActionCommand())) {
+       		int[] rows = getSelectedRows();
+       		for (int i = 0; i < rows.length; i++) {
+       			tableModel.setValueAt(e.getActionCommand(), rows[i], ActorTableModel.columns.State.ordinal());
+       		}
+    	}
+       	else if ("PC".equals(e.getActionCommand()) 
+    			| "Ally".equals(e.getActionCommand()) 
+    			| "Enemy".equals(e.getActionCommand()) 
+    			| "Neutral".equals(e.getActionCommand()) 
+    			| "Special".equals(e.getActionCommand())) {
+       		int[] rows = getSelectedRows();
+       		for (int i = 0; i < rows.length; i++) {
+       			tableModel.setValueAt(e.getActionCommand(), rows[i], ActorTableModel.columns.Type.ordinal());
+       		}
+    	}
+    }
+    
+    /**
+     * Convenience method to create menu items for the table's menus.
+     * @param text - Text of the menu item
+     * @return
+     */
+    private JMenuItem createMenuItem(String text, int mnemonic) {
+    	JMenuItem menuItem = new JMenuItem(text, mnemonic);
+    	menuItem.addActionListener(this);
+    	return menuItem;
+    }
+ 
 	public void initialize() {
 		 //InitTable initTable = new InitTable(new ActorTableModel());
         setDefaultRenderer(new Object().getClass(), new InitTableCellRenderer());
@@ -75,7 +128,6 @@ public class InitTable extends JTable
                  
         // Table popup menu
         popupMenu = new JPopupMenu();
-        popupMenu.add(createMenuItem("Delete", KeyEvent.VK_D));
         JMenu menuFile = new JMenu("Set Status");
         menuFile.setMnemonic(KeyEvent.VK_S);
         menuFile.add(createMenuItem("Active", KeyEvent.VK_A));
@@ -92,52 +144,19 @@ public class InitTable extends JTable
         menuFile.add(createMenuItem("Neutral", KeyEvent.VK_N));
         menuFile.add(createMenuItem("Special", KeyEvent.VK_S));
         popupMenu.add(menuFile);
+        popupMenu.add(createMenuItem("Clone", KeyEvent.VK_C));
+        popupMenu.add(createMenuItem("Delete", KeyEvent.VK_DELETE));
         MousePopupListener popupListener = new MousePopupListener();
         addMouseListener(popupListener);
 	}
 	
-    public void actionPerformed(ActionEvent e) {
-    	if (DEBUG) { System.out.println("Received action command " + e.getActionCommand()); }
-    	if ("Delete".equals(e.getActionCommand())) { // Delete selected rows
-    		Actor[] actors = tableModel.getActors(getSelectedRows());
-    		for (int i = 0; i < actors.length; i++) {
-    		   	if (DEBUG) { System.out.println("Deleting actor: " + actors[i].Name); }   			
-    			tableModel.removeActor(actors[i]); // Remove actor objects in case there are multiple entries in the table (maybe hasted?)
-    		}
-    	}
-    	else if ("Active".equals(e.getActionCommand()) 
-    			| "Waiting".equals(e.getActionCommand()) 
-    			| "Disabled".equals(e.getActionCommand()) 
-    			| "Unconscious".equals(e.getActionCommand()) 
-    			| "Dead".equals(e.getActionCommand())) {
-       		int[] rows = getSelectedRows();
-       		for (int i = 0; i < rows.length; i++) {
-       			tableModel.setValueAt(e.getActionCommand(), rows[i], 3);
-       		}
-    	}
-       	else if ("PC".equals(e.getActionCommand()) 
-    			| "Ally".equals(e.getActionCommand()) 
-    			| "Enemy".equals(e.getActionCommand()) 
-    			| "Neutral".equals(e.getActionCommand()) 
-    			| "Special".equals(e.getActionCommand())) {
-       		int[] rows = getSelectedRows();
-       		for (int i = 0; i < rows.length; i++) {
-       			tableModel.setValueAt(e.getActionCommand(), rows[i], 4);
-       		}
-    	}
-    }
-    
-    /**
-     * Convenience method to create menu items for the table's menus.
-     * @param text - Text of the menu item
-     * @return
-     */
-    private JMenuItem createMenuItem(String text, int mnemonic) {
-    	JMenuItem menuItem = new JMenuItem(text, mnemonic);
-    	menuItem.addActionListener(this);
-    	return menuItem;
-    }
-    
+	/**
+	 * Advance current Actor
+	 */
+	public void nextActor() {
+		tableModel.nextActor();
+	}
+   
 	/**
 	 * Renderer to deal with all the customizations based on Actor state/type/etc.
 	 * Assumes that the table model being used is an ActorTableModel.
@@ -161,11 +180,12 @@ public class InitTable extends JTable
 				c.setBackground(new Color(255,255,255));
 				c.setForeground(new Color(128,128,128));
 				c.setHorizontalAlignment(SwingConstants.LEFT);
+				c.setIcon(new ImageIcon());
 				return c;
 			}
 			
 			Actor a = ((ActorTableModel)table.getModel()).getActor(row);
-			if (column == 0 && a.Active) {
+			if (column == 0 && (tableModel.getActiveActor() == row)) {
 				c.setIcon(new ImageIcon("src/resources/images/go.png", "Current Actor"));  
 			}
 			else {

@@ -8,7 +8,7 @@ package gurpsinittool.data;
 public class Actor {
 
 	public String Name;
-	public int Order;
+	//public int Order; // what is this?
 	
 	public enum ActorState {Active, Waiting, Disabled, Unconscious, Dead};
 	public ActorState State;
@@ -18,15 +18,15 @@ public class Actor {
 
 	public String Target; /* maybe this should be a pointer? */
 	
-	public Boolean Active; // Is this actor the current active actor
+	//public Boolean Active; // Is this actor the current active actor
 	
 	public int HP; // total Hit points
 	public int Health; // Health (for saving rolls)
 	public int Damage; // Amount of damage taken
 	
-	public int FP; // probably not useful
-	public int MP; // probably not useful, but more likely than FP
-	public int SP; // shock points, probably don't need 
+	//public int FP; // probably not useful
+	//public int MP; // probably not useful, but more likely than FP
+	//public int SP; // shock points, probably don't need 
 	
 	/* also need extra data collection*/
 	
@@ -44,7 +44,7 @@ public class Actor {
 		HP = hp;
 		Health = health;
 		Damage = damage;
-		Active = false;
+		//Active = false;
 	}
 	
 	/**
