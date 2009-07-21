@@ -1,6 +1,8 @@
 package gurpsinittool.app;
 
 import javax.swing.*;  
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import java.awt.Dimension;
 import java.awt.BorderLayout;
@@ -11,12 +13,13 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import gurpsinittool.data.*;
-
+import gurpsinittool.ui.*;
 
 public class GITApp // extends JPanel
 	implements ActionListener {
 
-	public InitTable initTable;
+	private InitTable initTable;
+	private ActorDetailsPanel detailsPanel;
 	
     /**
      * Create the GUI and show it.  For thread safety,
@@ -54,26 +57,28 @@ public class GITApp // extends JPanel
         toolbar.setRollover(true);
         frame.getContentPane().add(toolbar, BorderLayout.PAGE_START);
 
-        //Add the ubiquitous "Hello World" label.
-        // The actor info pane
-        JPanel actorDetailsPanel = new JPanel(new BorderLayout());
-        actorDetailsPanel.add(new JLabel("Hello World"), BorderLayout.PAGE_START);
-        actorDetailsPanel.add(new JLabel("Goodby World"), BorderLayout.PAGE_END);
-       // JLabel label = new JLabel("Hello World");
-        JScrollPane actorDetailsPane = new JScrollPane(actorDetailsPanel);
-        
+        // The actor table
         //InitTable initTable = new InitTable(new ActorTableModel());
         mainApp.initTable = new InitTable();
+        // Connect Details Panel to the table/tableModel
+        //mainApp.initTable.getSelectionModel().addListSelectionListener(mainApp.detailsPanel);
         JScrollPane tableScrollPane = new JScrollPane(mainApp.initTable); 
+
+        // The actor info pane
+        mainApp.detailsPanel = new ActorDetailsPanel(mainApp.initTable);
+        JScrollPane actorDetailsPane = new JScrollPane(mainApp.detailsPanel);
+         
         JSplitPane over_frame = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tableScrollPane, actorDetailsPane);
-        over_frame.setDividerLocation(600);
-        over_frame.setResizeWeight(0.7);
+        over_frame.setDividerLocation(480);
+        over_frame.setResizeWeight(.95);
+        //over_frame.setSize(300, 300);
         frame.getContentPane().add(over_frame, BorderLayout.CENTER);
        
         //Display the window.
         frame.setLocation(400,400);
+        frame.setSize(760,420);
         //frame.setSize(200,200);
-        frame.pack();
+        //frame.pack();
         frame.setVisible(true);
     }
 
@@ -107,6 +112,6 @@ public class GITApp // extends JPanel
     public void actionPerformed(ActionEvent e) {
     	if ("nextActor".equals(e.getActionCommand())) {
     		initTable.nextActor();
-    	}
-    }
+    	}	
+	}
 }

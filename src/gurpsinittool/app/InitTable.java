@@ -21,6 +21,8 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
+
+import gurpsinittool.app.ActorTableModel.columns;
 import gurpsinittool.data.*;
 
 public class InitTable extends JTable 
@@ -115,16 +117,16 @@ public class InitTable extends JTable
         initTableStateEditor.addItem("Disabled");
         initTableStateEditor.addItem("Unconscious");
         initTableStateEditor.addItem("Dead");
-        getColumnModel().getColumn(3).setCellEditor(new InitTableComboCellEditor(initTableStateEditor));
-        ((DefaultCellEditor) getColumnModel().getColumn(3).getCellEditor()).setClickCountToStart(2);
+        getColumnModel().getColumn(ActorTableModel.columns.State.ordinal()).setCellEditor(new InitTableComboCellEditor(initTableStateEditor));
+        ((DefaultCellEditor) getColumnModel().getColumn(ActorTableModel.columns.State.ordinal()).getCellEditor()).setClickCountToStart(2);
         JComboBox initTableTypeEditor = new JComboBox();
         initTableTypeEditor.addItem("PC");
         initTableTypeEditor.addItem("Ally");
         initTableTypeEditor.addItem("Enemy");
         initTableTypeEditor.addItem("Neutral");
         initTableTypeEditor.addItem("Special");
-        getColumnModel().getColumn(4).setCellEditor(new InitTableComboCellEditor(initTableTypeEditor));
-        ((DefaultCellEditor) getColumnModel().getColumn(4).getCellEditor()).setClickCountToStart(2);
+        getColumnModel().getColumn(ActorTableModel.columns.Type.ordinal()).setCellEditor(new InitTableComboCellEditor(initTableTypeEditor));
+        ((DefaultCellEditor) getColumnModel().getColumn(ActorTableModel.columns.Type.ordinal()).getCellEditor()).setClickCountToStart(2);
                  
         // Table popup menu
         popupMenu = new JPopupMenu();
@@ -156,6 +158,22 @@ public class InitTable extends JTable
 	public void nextActor() {
 		tableModel.nextActor();
 	}
+	
+	/**
+	 * Retrieve the currently active Actor
+	 * @return The currently active Actor
+	 */
+	public Actor getCurrentActor() {
+		return tableModel.getActor(tableModel.getActiveActor());
+	}
+	
+	/**
+	 * Retrieve the currently selected Actor
+	 * @return The currently selected Actor
+	 */
+	public Actor getSelectedActor() {
+		return tableModel.getActor(getSelectedRow());
+	}
    
 	/**
 	 * Renderer to deal with all the customizations based on Actor state/type/etc.
@@ -175,7 +193,7 @@ public class InitTable extends JTable
 			
 			JLabel c = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 			//JLabel l = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);	
-			
+			ActorTableModel.columns col = ActorTableModel.columns.values()[column];
 			if (row == table.getRowCount() -1) {
 				c.setBackground(new Color(255,255,255));
 				c.setForeground(new Color(128,128,128));
@@ -232,7 +250,12 @@ public class InitTable extends JTable
 			}
 		
 			c.setHorizontalAlignment(SwingConstants.LEFT);
-			c.setForeground(new Color(0,0,0));
+			if (col == columns.Damage) {
+				c.setForeground(new Color(220,0,0));
+			}
+			else {
+				c.setForeground(new Color(0,0,0));
+			}
 			switch (a.State) {
 			case Active:
 				break;

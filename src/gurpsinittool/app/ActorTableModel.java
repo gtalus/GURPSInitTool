@@ -18,8 +18,10 @@ public class ActorTableModel extends AbstractTableModel {
 
 	private static final boolean DEBUG = true;
 	
-	private String[] columnNames = {"Name", "HP", "Health", "State", "Type"};
-	public enum columns {Name, HP, Health, State, Type};
+	private String[] columnNames = {"Name", "HP", "Damage", "Health", "State", "Type"};
+	public enum columns {Name, HP, Damage, Health, State, Type};
+	//private class<?>[] columnClasses = {new String().getClass(), new Integer(0).getClass(), new Integer(0).getClass(), new String().getClass(), new String().getClass()};
+	private static int numColumns = 6;
 	
 	private ArrayList<Actor> actorList = new ArrayList<Actor>(Arrays.asList(
 			new Actor("Damian", ActorState.Active, ActorType.PC),
@@ -127,16 +129,18 @@ public class ActorTableModel extends AbstractTableModel {
 	}
 	
 	public Class<?> getColumnClass(int c) {
-		switch (c) {
-		case 0:
+		switch (columns.values()[c]) {
+		case Name:
 			return new String().getClass();
-		case 1:
+		case HP:
 			return new Integer(0).getClass();
-		case 2:
+		case Damage:
 			return new Integer(0).getClass();
-		case 3:
+		case Health:
+			return new Integer(0).getClass();
+		case State:
 			return new String().getClass();
-		case 4:
+		case Type:
 			return new String().getClass();
 		default:
 			return null;
@@ -145,7 +149,7 @@ public class ActorTableModel extends AbstractTableModel {
 	
 	//@Override
 	public int getColumnCount() {
-		return 5;
+		return numColumns;
 	}
 	
 	@Override
@@ -159,16 +163,18 @@ public class ActorTableModel extends AbstractTableModel {
 
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		Actor actor = (Actor) actorList.get(rowIndex);
-		switch (columnIndex) {
-		case 0:
+		switch (columns.values()[columnIndex]) {
+		case Name:
 			return actor.Name;
-		case 1:
+		case HP:
 			return actor.HP;
-		case 2:
+		case Damage:
+			return actor.Damage;
+		case Health:
 			return actor.Health;
-		case 3:
+		case State:
 			return actor.State;
-		case 4:
+		case Type:
 			return actor.Type;
 		default:
 			return null;
@@ -261,20 +267,23 @@ public class ActorTableModel extends AbstractTableModel {
         	fireTableRowsInserted(row+1,row+1);
         }
 
-		switch (col) {
-		case 0:
+		switch (columns.values()[col]) {
+		case Name:
 			a.Name = (String) value;
 			break;
-		case 1:
+		case HP:
 			a.HP = (Integer) value;
 			break;
-		case 2:
+		case Damage:
+			a.Damage = (Integer) value;
+			break;
+		case Health:
 			a.Health = (Integer) value;
 			break;
-		case 3:
+		case State:
 			a.State = ActorState.valueOf((String) value);
 			break;
-		case 4:
+		case Type:
 			a.Type = ActorType.valueOf((String) value);
 			break;
 		}
