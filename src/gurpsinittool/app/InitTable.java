@@ -59,8 +59,16 @@ public class InitTable extends JTable
     			}
     		}
     	}
-       	if ("Clone".equals(e.getActionCommand())) { // Clone selected rows at the end (as "Haste" spell)
-    		Actor[] actors = tableModel.getActors(getSelectedRows());
+      	if ("Set Active".equals(e.getActionCommand())) { // Clone selected rows at the end (as "Haste" spell)
+      		int[] rows = getSelectedRows();
+      		if (DEBUG) { System.out.println("Setting active actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).Name); }   	
+      		tableModel.setActiveRow(rows[0]); // sets actor as current active, and sets state to active
+       		for (int i = 0; i < rows.length; i++) {
+       			tableModel.setValueAt("Active", rows[i], ActorTableModel.columns.State.ordinal());
+       		}
+    	}
+     	if ("Clone".equals(e.getActionCommand())) { // Clone selected rows at the end (as "Haste" spell)
+     		Actor[] actors = tableModel.getActors(getSelectedRows());
     		for (int i = 0; i < actors.length; i++) {
     		   	if (DEBUG) { System.out.println("Cloning actor: " + actors[i].Name); }   			
     			tableModel.addActor(actors[i], tableModel.getRowCount()-1); // Add actor to the end of the table
@@ -146,6 +154,7 @@ public class InitTable extends JTable
         menuFile.add(createMenuItem("Neutral", KeyEvent.VK_N));
         menuFile.add(createMenuItem("Special", KeyEvent.VK_S));
         popupMenu.add(menuFile);
+        popupMenu.add(createMenuItem("Set Active", KeyEvent.VK_A));
         popupMenu.add(createMenuItem("Clone", KeyEvent.VK_C));
         popupMenu.add(createMenuItem("Delete", KeyEvent.VK_DELETE));
         MousePopupListener popupListener = new MousePopupListener();
@@ -173,6 +182,19 @@ public class InitTable extends JTable
 	 */
 	public Actor getSelectedActor() {
 		return tableModel.getActor(getSelectedRow());
+	}
+	
+	@Override
+	public int[] getSelectedRows() {
+		int[] rows = super.getSelectedRows();
+		if (rows[rows.length-1] == getRowCount() -1) {
+			if (rows.length == 1)
+				return new int[0];
+			int[] newrows = new int[rows.length-1];
+			System.arraycopy( rows, 0, newrows, 0, newrows.length );
+			return newrows;
+		}	
+		return rows;
 	}
    
 	/**
@@ -319,7 +341,7 @@ public class InitTable extends JTable
 	 
 	    private void checkPopup(MouseEvent e) {
 	    	if (e.isPopupTrigger() & (getSelectedRows().length > 0)) {
-	    		popupMenu.show(e.getComponent(), e.getX(), e.getY());
+	   			popupMenu.show(e.getComponent(), e.getX(), e.getY());
 	        }
 	    }
 	}

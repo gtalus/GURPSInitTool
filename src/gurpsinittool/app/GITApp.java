@@ -44,7 +44,7 @@ public class GITApp // extends JPanel
         frame.setJMenuBar(menubar);
   
         // The top tool bar
-        JToolBar toolbar = new JToolBar("The one and only tool bar");
+        JToolBar toolbar = new JToolBar("Encounter Control Toolbar");
         //first button
         JButton button = new JButton();
         button.setIcon(new ImageIcon("src/resources/images/control_play_blue.png", "Next Actor"));
@@ -54,9 +54,21 @@ public class GITApp // extends JPanel
         button.setMnemonic(KeyEvent.VK_N);
         button.addActionListener(mainApp);
         toolbar.add(button);
+        //first button
+        toolbar.add(Box.createHorizontalGlue());
+        JButton button2 = new JButton();
+        button2.setIcon(new ImageIcon("src/resources/images/control_play_blue.png", "Next Actor"));
+      // button.setText("Forward");
+        button2.setToolTipText("Step to next actor");
+        button2.setActionCommand("nextActor");
+        button2.setMnemonic(KeyEvent.VK_N);
+        button2.addActionListener(mainApp);
+        //button2.setAlignmentY(1000);
+        //button2.setLocation(500,500);
+        toolbar.add(button2);
         toolbar.setRollover(true);
         frame.getContentPane().add(toolbar, BorderLayout.PAGE_START);
-
+ 
         // The actor table
         //InitTable initTable = new InitTable(new ActorTableModel());
         mainApp.initTable = new InitTable();
@@ -84,7 +96,11 @@ public class GITApp // extends JPanel
 
     public static void main(String[] args) {
     	try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			//UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+			//UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
+			//UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
+			//UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

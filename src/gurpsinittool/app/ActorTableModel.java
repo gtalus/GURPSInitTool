@@ -252,6 +252,29 @@ public class ActorTableModel extends AbstractTableModel {
 		}
 	}
 
+	/**
+	 * Set the active actor by row #
+	 * @param row : the row which is now active
+	 */
+	public void setActiveRow(int row) {
+		if (row > getRowCount()-2) { // Error if trying to set 'new...' row active or non-existant row
+			throw new IndexOutOfBoundsException("Specified row is not an actor");
+		}
+		if (activeActor != -1) {
+			fireTableCellUpdated(activeActor, 0);
+		}
+		activeActor = row;
+		setValueAt(ActorState.Active.toString(), row, columns.State.ordinal());
+		fireTableCellUpdated(activeActor, 0);
+	}
+	
+	/**
+	 * Set the value at the row/col specified
+	 * For cloned actors, this will update all clones (and fire table updated events)
+	 * @param value : Must be either int (for hp/damage/health) or String (for name/State/Type) 
+	 * @param row : The row where the actor lives. Any clones will be updated also.
+	 * @param col : The column of the value to edit: use 'columns' enum to address.
+	 */
     @Override
     public void setValueAt(Object value, int row, int col) {
         if (DEBUG) {

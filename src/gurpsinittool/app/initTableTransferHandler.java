@@ -43,6 +43,14 @@ public class initTableTransferHandler extends TransferHandler {
 		
 		if (!support.isDataFlavorSupported(actorFlavor))
 			return false;
+		
+		// Don't allow dropping below the 'new...' row
+	    JTable.DropLocation dl = (JTable.DropLocation) support.getDropLocation();
+	    InitTable table = (InitTable) support.getComponent();
+	    int row = dl.getRow(); 
+	    if (row == table.getRowCount())
+	    	return false;
+	      
 		return true;
 	}
 	
@@ -123,6 +131,9 @@ public class initTableTransferHandler extends TransferHandler {
 		// Allows multiple selection rows
 		JTable table = (JTable) c;
 		int[] rows = table.getSelectedRows();
+		// Because the 'new...' row is filtered out of the selection, it is possible to try to drag 0 rows.
+		if (rows.length == 0)
+			return null;
 		java.util.Arrays.sort(rows);
 		return new TransferableActor(rows);
 	}
