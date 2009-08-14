@@ -1,16 +1,11 @@
 package gurpsinittool.app;
 
 import javax.swing.*;  
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
-import java.awt.Dimension;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 import gurpsinittool.data.*;
 import gurpsinittool.ui.*;
@@ -20,6 +15,7 @@ public class GITApp // extends JPanel
 
 	private InitTable initTable;
 	private ActorDetailsPanel detailsPanel;
+	private GroupManager groupManager;
 	
     /**
      * Create the GUI and show it.  For thread safety,
@@ -33,6 +29,9 @@ public class GITApp // extends JPanel
         GITApp mainApp = new GITApp();
         //contentPanel.setOpaque(true);
         //frame.setContentPane(contentPanel);
+        
+        // The group Manager
+        mainApp.groupManager = new GroupManager();
         
         // The main menu bar
         JMenuBar menubar = new JMenuBar();
@@ -60,7 +59,7 @@ public class GITApp // extends JPanel
         button2.setIcon(new ImageIcon("src/resources/images/group.png", "Group Manager"));
       // button.setText("Forward");
         button2.setToolTipText("Manage Actor Groups");
-        button2.setActionCommand("nextActor");
+        button2.setActionCommand("openGroupManager");
         button2.setMnemonic(KeyEvent.VK_N);
         button2.addActionListener(mainApp);
         //button2.setAlignmentY(1000);
@@ -81,17 +80,18 @@ public class GITApp // extends JPanel
         JScrollPane actorDetailsPane = new JScrollPane(mainApp.detailsPanel);
          
         JSplitPane over_frame = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tableScrollPane, actorDetailsPane);
-        over_frame.setDividerLocation(480);
+        over_frame.setDividerLocation(460);
         over_frame.setResizeWeight(.95);
         //over_frame.setSize(300, 300);
         frame.getContentPane().add(over_frame, BorderLayout.CENTER);
        
         //Display the window.
         frame.setLocation(400,400);
-        frame.setSize(760,420);
+        frame.setSize(760,480);
         //frame.setSize(200,200);
         //frame.pack();
         frame.setVisible(true);
+        mainApp.groupManager.setVisible(true);
     }
 
     public static void main(String[] args) {
@@ -128,6 +128,9 @@ public class GITApp // extends JPanel
     public void actionPerformed(ActionEvent e) {
     	if ("nextActor".equals(e.getActionCommand())) {
     		initTable.nextActor();
+    	}	
+    	else if ("openGroupManager".equals(e.getActionCommand())) {
+    		groupManager.setVisible(true);
     	}	
 	}
 }

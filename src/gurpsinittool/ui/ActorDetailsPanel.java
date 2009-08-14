@@ -22,8 +22,6 @@ import gurpsinittool.app.*;
 import gurpsinittool.data.Actor;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
-import javax.swing.JTextField;
-
 
 /**
  *

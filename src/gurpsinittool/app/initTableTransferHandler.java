@@ -2,7 +2,6 @@ package gurpsinittool.app;
 
 
 import java.io.IOException;
-import java.awt.Component;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;

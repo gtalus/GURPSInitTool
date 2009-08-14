@@ -187,7 +187,7 @@ public class InitTable extends JTable
 	@Override
 	public int[] getSelectedRows() {
 		int[] rows = super.getSelectedRows();
-		if (rows[rows.length-1] == getRowCount() -1) {
+		if (rows.length > 0 && rows[rows.length-1] == getRowCount() -1) {
 			if (rows.length == 1)
 				return new int[0];
 			int[] newrows = new int[rows.length-1];
