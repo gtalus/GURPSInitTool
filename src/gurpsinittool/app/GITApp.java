@@ -57,9 +57,9 @@ public class GITApp // extends JPanel
         //first button
         toolbar.add(Box.createHorizontalGlue());
         JButton button2 = new JButton();
-        button2.setIcon(new ImageIcon("src/resources/images/control_play_blue.png", "Next Actor"));
+        button2.setIcon(new ImageIcon("src/resources/images/group.png", "Group Manager"));
       // button.setText("Forward");
-        button2.setToolTipText("Step to next actor");
+        button2.setToolTipText("Manage Actor Groups");
         button2.setActionCommand("nextActor");
         button2.setMnemonic(KeyEvent.VK_N);
         button2.addActionListener(mainApp);
