@@ -111,7 +111,7 @@ public class InitTable extends JTable
 		 //InitTable initTable = new InitTable(new ActorTableModel());
         setDefaultRenderer(new Object().getClass(), new InitTableCellRenderer());
         setDefaultRenderer(new Integer(0).getClass(), new InitTableCellRenderer());
-        setTransferHandler(new initTableTransferHandler("name"));
+        setTransferHandler(new InitTableTransferHandler("name"));
         setPreferredScrollableViewportSize(new Dimension(800, 270));
         setFillsViewportHeight(true);
         //initTable.setRowSelectionAllowed(true);

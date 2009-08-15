@@ -10,7 +10,7 @@ import javax.swing.JTable;
 import javax.swing.TransferHandler;
 import gurpsinittool.data.Actor;
 
-public class initTableTransferHandler extends TransferHandler {
+public class InitTableTransferHandler extends TransferHandler {
 
 	/**
 	 * Default serialization UID
@@ -25,7 +25,7 @@ public class initTableTransferHandler extends TransferHandler {
 		actorFlavor
 	};
 
-	public initTableTransferHandler(String property){
+	public InitTableTransferHandler(String property){
         super(property);
     }
 
