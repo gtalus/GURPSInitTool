@@ -51,7 +51,7 @@ public class GroupManager extends JFrame {
         jSplitPaneVertical= new JSplitPane(JSplitPane.VERTICAL_SPLIT, jScrollPaneTree, jScrollPaneTable);
         jSplitPaneHorizontal= new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, jSplitPaneVertical, jScrollPaneDetails);
         
-        jSplitPaneVertical.setDividerLocation(100);
+        jSplitPaneVertical.setDividerLocation(200);
         jSplitPaneVertical.setContinuousLayout(true);
         jSplitPaneVertical.setResizeWeight(.95);
  

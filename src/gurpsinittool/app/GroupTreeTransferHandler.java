@@ -11,6 +11,7 @@ import javax.swing.JTree;
 import javax.swing.TransferHandler;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 
 public class GroupTreeTransferHandler extends TransferHandler {
@@ -83,22 +84,18 @@ public class GroupTreeTransferHandler extends TransferHandler {
 		GroupTree tree = (GroupTree) c;
 		TreePath transferPath = tree.getSelectionPath();
 		
-		DefaultMutableTreeNode transferNode = null;
-		    if (transferPath == null) { //There is no selection.     
-		        return null;
-		    } else {
-		        transferNode = (DefaultMutableTreeNode) (transferPath.getLastPathComponent());
-		    }
-
-		return new TransferableActorGroup(transferNode);
+	    if (transferPath == null) { //There is no selection.     
+	        return null;
+	    } else {
+			DefaultMutableTreeNode transferNode = (DefaultMutableTreeNode) (transferPath.getLastPathComponent());
+			return new TransferableActorGroup(transferNode);
+	    }
 	}
 	
 	@Override
 	protected void exportDone(JComponent source, Transferable data, int action) {
-		if (DEBUG) {
-			System.out.println("export done: " + action);
-		}
-        if (action == MOVE) {
+		if (DEBUG) { System.out.println("export done: " + action); }
+ 		if (action == MOVE) {
         	GroupTree tree = (GroupTree) source;
         	DefaultTreeModel treeModel = (DefaultTreeModel) tree.getModel();
         	DefaultMutableTreeNode transferNode;
@@ -109,6 +106,7 @@ public class GroupTreeTransferHandler extends TransferHandler {
 	        } catch (IOException e) {
 	        	return;
 	        }
+    		if (DEBUG) { System.out.println(" Removing node that was transfered: " + transferNode.toString()); }
 	        treeModel.removeNodeFromParent(transferNode);
         }
 	}

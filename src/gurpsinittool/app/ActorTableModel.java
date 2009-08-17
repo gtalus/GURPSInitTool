@@ -2,7 +2,6 @@ package gurpsinittool.app;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 
 import javax.swing.table.AbstractTableModel;
 import gurpsinittool.data.*;
