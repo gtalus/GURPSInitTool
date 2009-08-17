@@ -59,15 +59,18 @@ public class GroupTreeTransferHandler extends TransferHandler {
         Transferable t = support.getTransferable();
         int action = support.getDropAction();
         
+		if (DEBUG) { System.out.println("Retrieving node data..."); }
         DefaultMutableTreeNode transferNode;
         try {
         	transferNode = (DefaultMutableTreeNode) t.getTransferData(actorGroupFlavor);
         } catch (UnsupportedFlavorException e) {
+    		if (DEBUG) { System.out.println("Unsupported Flavor Exception"); }
         	return false;
         } catch (IOException e) {
+    		if (DEBUG) { System.out.println("IO Exception"); }
         	return false;
         }
-        
+		if (DEBUG) { System.out.println("Inserting node " + transferNode.toString() + " @ " + insertIndex); }
         // parentNode.add(transferNode);
         treeModel.insertNodeInto(transferNode, parentNode, insertIndex);
         

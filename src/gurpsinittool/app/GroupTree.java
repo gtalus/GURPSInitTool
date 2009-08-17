@@ -110,6 +110,32 @@ public class GroupTree extends JTree
 	}
 	  
 	/**
+	 * Add a group to the tree. Current selection is used as parent, or the root node.
+	 * @param name : The name of the new group
+	 * @return The newly created group
+	 */
+	public GroupTreeGroup addGroup(String name) {
+	    GroupTreeGroup newGroup = new GroupTreeGroup(name);
+	    insertObjectAtSelection(newGroup);
+	    scrollPathToVisible(new TreePath(newGroup.getPath()));
+	    
+	    return newGroup;
+	}
+	
+	/**
+	 * Add a folder to the tree. Current selection is used as parent, or the root node.
+	 * @param name : The name of the new folder
+	 * @return The newly created folder
+	 */
+	public GroupTreeFolder addFolder(String name) {
+	    GroupTreeFolder newFolder = new GroupTreeFolder(name);
+	    insertObjectAtSelection(newFolder);
+	    scrollPathToVisible(new TreePath(newFolder.getPath()));
+	 
+	    return newFolder;
+	}
+
+	/**
 	 * Add an object to the tree. Current selection is used as parent, or the root node.
 	 * @param child : The new object to be added
 	 * @return The newly created tree node
@@ -184,7 +210,7 @@ public class GroupTree extends JTree
     		}
 	    }
     }
-
+    
     /**
      * Remove the currently selected node
      */
@@ -210,12 +236,20 @@ public class GroupTree extends JTree
 	class GroupTreeFolder extends DefaultMutableTreeNode {
 		
 		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -1099896752894307302L;
+
+		/**
 		 * Constructor for GroupTreeGroup
 		 * @param name : Name of group
 		 * @param initTable : InitTable which holds group Actors
 		 */
 		public GroupTreeFolder(String name) {
-			super(name, true);
+			super(name);
+		}
+		public GroupTreeFolder(GroupTreeFolder copy) {
+			super(copy);
 		}
 	}
 	
@@ -247,8 +281,8 @@ public class GroupTree extends JTree
 			this.initTable = initTable;
 		}
 	}
-
-    /**
+	
+	/**
 	 * An inner class to check whether mouse events are the pop-up trigger
 	 */
 	class MousePopupListener extends MouseAdapter {
