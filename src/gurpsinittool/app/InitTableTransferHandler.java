@@ -19,10 +19,12 @@ public class InitTableTransferHandler extends TransferHandler {
 	
 	private static final boolean DEBUG = true;
 
-	protected static DataFlavor actorFlavor = new DataFlavor(Actor.class, "GURPS Actor Object");
+	// Must hack class to be different: string difference does not make unique DataFlavor
+	protected static DataFlavor initTableActorFlavor = new DataFlavor(InitTable.class, "GURPS Actor Object from init table");
+	protected static DataFlavor groupTableActorFlavor = new DataFlavor(GroupTree.class, "GURPS Actor Object from group table");
 	
 	protected static DataFlavor[] supportedFlavors = {
-		actorFlavor
+		initTableActorFlavor, groupTableActorFlavor
 	};
 
 	public InitTableTransferHandler(String property){
@@ -31,15 +33,8 @@ public class InitTableTransferHandler extends TransferHandler {
 
 	@Override
 	public boolean canImport(TransferSupport support) {
-		/*if (DEBUG) {
-		  	System.out.println("Receiving import request");
-		  	DataFlavor[] flavors = support.getDataFlavors();
-		  	for (int i =0; i < flavors.length; i++) {
-			  	System.out.println(" import flavor: " + flavors[i].getHumanPresentableName());
-		  	}
-		}*/
 		
-		if (!support.isDataFlavorSupported(actorFlavor))
+		if (!support.isDataFlavorSupported(initTableActorFlavor) &&  !support.isDataFlavorSupported(groupTableActorFlavor))
 			return false;
 
 		// Don't allow dropping below the 'new...' row
@@ -49,12 +44,12 @@ public class InitTableTransferHandler extends TransferHandler {
 	    if (row == table.getRowCount())
 	    	return false;
 	      
-		// Assume that if actorFlavor is supported, that this is a TransferableActor
-		//TransferableActor t = (TransferableActor) support.getTransferable();
+		// Set Drop Action based on whether this is a cross-table drag.
 		// If the table types do not match, then set action to copy
-		//if (t.isSourceInitTable() != table.isInitTable()) {
-		//	support.setDropAction(COPY);
-		//}
+	    Transferable t = (Transferable) support.getTransferable();
+ 		if (table.isInitTable() != t.isDataFlavorSupported(initTableActorFlavor)) {
+			support.setDropAction(COPY);
+		}
 
 		return true;
 	}
@@ -70,7 +65,7 @@ public class InitTableTransferHandler extends TransferHandler {
         Transferable t = support.getTransferable();
         Actor[] actorRows;
         try {
-        	actorRows = (Actor[]) t.getTransferData(actorFlavor);
+        	actorRows = (Actor[]) t.getTransferData(initTableActorFlavor); // Don't really care which flavor it is
         } catch (UnsupportedFlavorException e) {
         	return false;
         } catch (IOException e) {
@@ -133,7 +128,7 @@ public class InitTableTransferHandler extends TransferHandler {
 			
 			Actor[] actors;
 	        try {
-	        	actors = (Actor[]) data.getTransferData(actorFlavor);
+	        	actors = (Actor[]) data.getTransferData(initTableActorFlavor); // Don't really care which flavor it is
 	        } catch (UnsupportedFlavorException e) {
 	        	return;
 	        } catch (IOException e) {
@@ -160,7 +155,12 @@ public class InitTableTransferHandler extends TransferHandler {
 		}
 		  
 		/** Return a list of DataFlavors we can support */
-		public DataFlavor[] getTransferDataFlavors() { return supportedFlavors; }
+		public DataFlavor[] getTransferDataFlavors() { 
+			if (isSourceInitTable) {
+				return new DataFlavor[] {initTableActorFlavor}; 
+			}
+			else { return new DataFlavor[] {groupTableActorFlavor}; }
+		}
 
 		/** 
 		   * Transfer the data.  Given a specified DataFlavor, return an Object
@@ -170,19 +170,15 @@ public class InitTableTransferHandler extends TransferHandler {
 		public Object getTransferData(DataFlavor flavor) 
 		       throws UnsupportedFlavorException, IOException
 		  {
-		    if (flavor.equals(actorFlavor)) return actorRows;
+		    if (flavor.equals(initTableActorFlavor) || flavor.equals(groupTableActorFlavor)) return actorRows;
 		    else throw new UnsupportedFlavorException(flavor);
 		  }
 
 		/** Check whether a specified DataFlavor is available */
 		public boolean isDataFlavorSupported(DataFlavor flavor) {
-			if (flavor.equals(actorFlavor)) return true;
+ 			if ((flavor.equals(initTableActorFlavor) && isSourceInitTable) || (flavor.equals(groupTableActorFlavor) && !isSourceInitTable)) return true;
 		    return false;
 		}
 		
-		/** Return true if the source was a group table **/
-		public boolean isSourceInitTable() {
-			return this.isSourceInitTable;
-		}
 	}
 }
