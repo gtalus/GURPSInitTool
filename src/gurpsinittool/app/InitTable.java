@@ -78,13 +78,13 @@ public class InitTable extends JTable
        			tableModel.setValueAt("Active", rows[i], ActorTableModel.columns.State.ordinal());
        		}
     	}
-     	if ("Clone".equals(e.getActionCommand())) { // Clone selected rows at the end (as "Haste" spell)
-     		Actor[] actors = tableModel.getActors(getSelectedRows());
-    		for (int i = 0; i < actors.length; i++) {
-    		   	if (DEBUG) { System.out.println("Cloning actor: " + actors[i].Name); }   			
-    			tableModel.addActor(actors[i], tableModel.getRowCount()-1); // Add actor to the end of the table
-    		}
-    	}
+//     	if ("Clone".equals(e.getActionCommand())) { // Clone selected rows at the end (as "Haste" spell)
+//     		Actor[] actors = tableModel.getActors(getSelectedRows());
+//    		for (int i = 0; i < actors.length; i++) {
+//    		   	if (DEBUG) { System.out.println("Cloning actor: " + actors[i].Name); }   			
+//    			tableModel.addActor(actors[i], tableModel.getRowCount()-1); // Add actor to the end of the table
+//    		}
+//    	}
     	else if ("Active".equals(e.getActionCommand()) 
     			| "Waiting".equals(e.getActionCommand()) 
     			| "Disabled".equals(e.getActionCommand()) 
@@ -148,11 +148,19 @@ public class InitTable extends JTable
         menuFile.add(createMenuItem("Neutral", KeyEvent.VK_N));
         menuFile.add(createMenuItem("Special", KeyEvent.VK_S));
         popupMenu.add(menuFile);
-        popupMenu.add(createMenuItem("Set Active", KeyEvent.VK_A));
-        popupMenu.add(createMenuItem("Clone", KeyEvent.VK_C));
+        if (isInitTable) { popupMenu.add(createMenuItem("Set Active", KeyEvent.VK_A)); }
+        //popupMenu.add(createMenuItem("Clone", KeyEvent.VK_C));
         popupMenu.add(createMenuItem("Delete", KeyEvent.VK_DELETE));
         MousePopupListener popupListener = new MousePopupListener();
         addMouseListener(popupListener);
+	}
+	
+	/**
+	 * Return whether this table is the initTable
+	 * @return : true is this table is the initTable, false if it is the groupTable
+	 */
+	public boolean isInitTable() {
+		return isInitTable;
 	}
 	
 	/**

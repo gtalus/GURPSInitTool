@@ -122,7 +122,10 @@ public class InitTableTransferHandler extends TransferHandler {
 	
 	@Override
 	public int getSourceActions(JComponent c) {
-		return COPY | MOVE;
+		if (((InitTable) c).isInitTable()) 
+			return COPY | MOVE;
+		else 
+			return COPY;
 	}
 	
 	@Override
