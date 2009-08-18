@@ -135,7 +135,7 @@ public class GroupTree extends JTree
 	    return newFolder;
 	}
 
-	/**
+    /**
      * Convenience method to create menu items for the table's menus.
      * @param text - Text of the menu item
      * @return
@@ -188,26 +188,20 @@ public class GroupTree extends JTree
         } 
     }
     
-    /**
-     * Start a DnD drop: remove all references to current group.
-     */
-    public void startDrop() {
-    	groupTable.setModel(null);
-    	actorPanel.setActorModel(null);
-    }
+
     /**
      * After a DnD drop: refresh selection references
      */
-    public void endDrop() {
-    	if (getLastSelectedPathComponent() != null) {
-			if (DEBUG) { System.out.println("Current Selection: " + getLastSelectedPathComponent().toString()); }
-			GroupTreeNode node = (GroupTreeNode) getLastSelectedPathComponent();
-			if (!node.isFolder()) {
-				groupTable.setModel(node.getActorModel());
-				actorPanel.setActorModel(node.getActorModel());
-			}
-		}
-    }
+//    public void endDrop() {
+//    	if (getLastSelectedPathComponent() != null) {
+//			if (DEBUG) { System.out.println("Current Selection: " + getLastSelectedPathComponent().toString()); }
+//			GroupTreeNode node = (GroupTreeNode) getLastSelectedPathComponent();
+//			if (!node.isFolder()) {
+//				groupTable.setModel(node.getActorModel());
+//				actorPanel.setActorModel(node.getActorModel());
+//			}
+//		}
+//    }
 
 	/**
 	 * An inner class to check whether mouse events are the pop-up trigger

@@ -57,15 +57,15 @@ public class GroupTreeTransferHandler extends TransferHandler {
         Transferable t = support.getTransferable();
         
 		if (DEBUG) { System.out.println("Retrieving node data..."); }
-		tree.startDrop(); // Make sure that no one keeps a reference to the old node
+		tree.clearSelection(); // Make sure that no one keeps a reference to the old node
 		TreePath transferPath;
         try {
         	transferPath = (TreePath) t.getTransferData(actorGroupFlavor);
         } catch (UnsupportedFlavorException e) {
-    		if (DEBUG) { System.out.println("Unsupported Flavor Exception"); }
+    		if (DEBUG) { System.out.println("-E- Unsupported Flavor Exception"); }
         	return false;
         } catch (IOException e) {
-    		if (DEBUG) { System.out.println("IO Exception"); }
+    		if (DEBUG) { System.out.println("-E- IO Exception"); }
         	return false;
         }
 		if (DEBUG) { System.out.println("Inserting node " + transferPath.toString() + " @ " + insertIndex); }
@@ -77,7 +77,7 @@ public class GroupTreeTransferHandler extends TransferHandler {
 		else {
 			treeModel.insertNodeInto(transferNode, parentNode, parentNode.getChildCount());
 		}
-		tree.endDrop(); // Re-load table selection
+		tree.setSelectionPath(new TreePath(transferNode.getPath())); // Select the newly inserted group
 		
         return true;
 	}

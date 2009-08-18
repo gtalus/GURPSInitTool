@@ -39,6 +39,28 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 	private boolean actorLoaded = false;
 	private int selectedActor = -1;
 	
+	// Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton add_attack;
+    private javax.swing.JButton add_timer;
+    private javax.swing.JPanel attacks;
+    private javax.swing.JFormattedTextField damage;
+    private javax.swing.JFormattedTextField health;
+    private javax.swing.JFormattedTextField hp;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JTextField name;
+    private javax.swing.JComboBox status;
+    private javax.swing.JComboBox target;
+    private javax.swing.JPanel timers;
+    private javax.swing.JComboBox type;
+    // End of variables declaration//GEN-END:variables
+    
+
     /** Creates new form ActorDetailsPanel */
     public ActorDetailsPanel(InitTable initTable) {
     	this.initTable = initTable;
@@ -48,6 +70,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     	actorModel.addTableModelListener(this);
 
         initComponents();
+        disablePanel();
     }
 
     /** This method is called from within the constructor to
@@ -356,51 +379,96 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     	t.selectAll();
     }//GEN-LAST:event_fieldFocusGained
 
-public void refreshActor () {
-	actorLoaded = false; // turn off property updates
-	if (initTable.getSelectedRow() == -1) { return; } 
-	selectedActor = initTable.getSelectedRow();
-	Actor actor = actorModel.getActor(initTable.getSelectedRow());
-	name.setText(actor.Name);
-	switch (actor.Type) {
-	case PC:
-		name.setBackground(new Color(200,255,200));
-		break;
-	case Ally:
-		name.setBackground(new Color(200,200,255));
-		break;
-	case Enemy:
-		name.setBackground(new Color(255,200,200));
-		break;
-	case Neutral:
-		name.setBackground(new Color(200,200,200));
-		break;
-	case Special:
-		name.setBackground(new Color(255,200,255));
-		break;
-	}
-	name.setForeground(new Color(0,0,0));
-	switch (actor.State) {
-	case Active:
-		break;
-	case Waiting:
-		//name.setHorizontalAlignment(SwingConstants.RIGHT);
-		break;
-	case Disabled:
-		break;
-	case Unconscious:
-	case Dead:
-		name.setForeground(new Color(128,128,128));
-		break;
-	}
+    /**
+     * Disable the panel, setting all values to default
+     */
+    public void disablePanel() {
+    	hp.setValue(10);
+    	hp.setEnabled(false);
+    	damage.setValue(0);
+    	damage.setEnabled(false);
+    	health.setValue(10);
+    	health.setEnabled(false);
+    	status.setSelectedIndex(0);
+    	status.setEnabled(false);
+    	type.setSelectedIndex(0);
+    	type.setEnabled(false);
+    	name.setText("");
+    	name.setBackground(new java.awt.Color(236, 233, 216));
+    	name.setEnabled(false);
+    	add_attack.setEnabled(false);
+    	add_timer.setEnabled(false);
+    	target.setSelectedIndex(0);
+    	target.setEnabled(false);
+    }
 
-    status.setSelectedItem(actor.State.toString());
-    type.setSelectedItem(actor.Type.toString());
-    hp.setValue(((Integer)actor.HP).longValue());
-    damage.setValue(((Integer)actor.Damage).longValue());
-    health.setValue(((Integer)actor.Health).longValue());
-	actorLoaded = true; // turn property updates back on
-}
+    /**
+     * Enable the panel fields, only called when the actor is refreshed with good data
+     */
+    private void enablePanel() {
+    	hp.setEnabled(true);
+    	damage.setEnabled(true);
+    	health.setEnabled(true);
+    	status.setEnabled(true);
+    	type.setEnabled(true);
+    	name.setEnabled(true);
+    	add_attack.setEnabled(true);
+    	add_timer.setEnabled(true);
+    	target.setEnabled(true);
+    }
+
+    /**
+     * Refresh the actor in the display
+     */
+	public void refreshActor () {
+		actorLoaded = false; // turn off property updates
+		if (initTable.getSelectedRow() == -1) { 
+			disablePanel();
+			return; 
+		} 
+		enablePanel();
+		selectedActor = initTable.getSelectedRow();
+		Actor actor = actorModel.getActor(initTable.getSelectedRow());
+		name.setText(actor.Name);
+		switch (actor.Type) {
+		case PC:
+			name.setBackground(new Color(200,255,200));
+			break;
+		case Ally:
+			name.setBackground(new Color(200,200,255));
+			break;
+		case Enemy:
+			name.setBackground(new Color(255,200,200));
+			break;
+		case Neutral:
+			name.setBackground(new Color(200,200,200));
+			break;
+		case Special:
+			name.setBackground(new Color(255,200,255));
+			break;
+		}
+		name.setForeground(new Color(0,0,0));
+		switch (actor.State) {
+		case Active:
+			break;
+		case Waiting:
+			//name.setHorizontalAlignment(SwingConstants.RIGHT);
+			break;
+		case Disabled:
+			break;
+		case Unconscious:
+		case Dead:
+			name.setForeground(new Color(128,128,128));
+			break;
+		}
+	
+	    status.setSelectedItem(actor.State.toString());
+	    type.setSelectedItem(actor.Type.toString());
+	    hp.setValue(((Integer)actor.HP).longValue());
+	    damage.setValue(((Integer)actor.Damage).longValue());
+	    health.setValue(((Integer)actor.Health).longValue());
+		actorLoaded = true; // turn property updates back on
+	}
 
 	/**
 	 * Set the actor table model used for displaying actors.
@@ -413,30 +481,10 @@ public void refreshActor () {
 			model.addTableModelListener(this);
 		
 		actorModel = model;
+		refreshActor();
 	}
 	
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton add_attack;
-    private javax.swing.JButton add_timer;
-    private javax.swing.JPanel attacks;
-    private javax.swing.JFormattedTextField damage;
-    private javax.swing.JFormattedTextField health;
-    private javax.swing.JFormattedTextField hp;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
-    private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JTextField name;
-    private javax.swing.JComboBox status;
-    private javax.swing.JComboBox target;
-    private javax.swing.JPanel timers;
-    private javax.swing.JComboBox type;
-    // End of variables declaration//GEN-END:variables
-    
-	@Override
+ 	@Override
 	public void tableChanged(TableModelEvent e) {
 		if (DEBUG) { System.out.println("Table Model event: " + e.toString()); }
 		refreshActor();
