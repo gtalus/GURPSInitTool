@@ -23,15 +23,15 @@ public class ActorTableModel extends AbstractTableModel {
 	private static int numColumns = 6;
 	
 	private ArrayList<Actor> actorList = new ArrayList<Actor>(Arrays.asList(
-			new Actor("Damian", ActorState.Active, ActorType.PC),
-			new Actor("Galen", ActorState.Active, ActorType.PC),	
-			new Actor("Guard", ActorState.Active, ActorType.Ally),
-			new Actor("Guard 2", ActorState.Active, ActorType.Ally),
-			new Actor("Villager", ActorState.Active, ActorType.Neutral),
-			new Actor("Vorpal Blade", ActorState.Active, ActorType.Special),
-			new Actor("Monster", ActorState.Active, ActorType.Enemy),
-			new Actor("Big Monster", ActorState.Active, ActorType.Enemy),
-			new Actor("Demon", ActorState.Active, ActorType.Enemy),
+//			new Actor("Damian", ActorState.Active, ActorType.PC),
+//			new Actor("Galen", ActorState.Active, ActorType.PC),	
+//			new Actor("Guard", ActorState.Active, ActorType.Ally),
+//			new Actor("Guard 2", ActorState.Active, ActorType.Ally),
+//			new Actor("Villager", ActorState.Active, ActorType.Neutral),
+//			new Actor("Vorpal Blade", ActorState.Active, ActorType.Special),
+//			new Actor("Monster", ActorState.Active, ActorType.Enemy),
+//			new Actor("Big Monster", ActorState.Active, ActorType.Enemy),
+//			new Actor("Demon", ActorState.Active, ActorType.Enemy),
 			new Actor("new...", ActorState.Active, ActorType.Enemy))
 			);
 	private int activeActor = -1;

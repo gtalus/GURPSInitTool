@@ -6,12 +6,10 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 
 import javax.swing.JComponent;
-import javax.swing.JTable;
 import javax.swing.JTree;
 import javax.swing.TransferHandler;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 
 public class GroupTreeTransferHandler extends TransferHandler {
@@ -57,12 +55,11 @@ public class GroupTreeTransferHandler extends TransferHandler {
         int insertIndex = dl.getChildIndex();  
         DefaultMutableTreeNode parentNode = (DefaultMutableTreeNode) (insertPath.getLastPathComponent());
         Transferable t = support.getTransferable();
-        int action = support.getDropAction();
         
 		if (DEBUG) { System.out.println("Retrieving node data..."); }
-        DefaultMutableTreeNode transferNode;
+		TreePath transferPath;
         try {
-        	transferNode = (DefaultMutableTreeNode) t.getTransferData(actorGroupFlavor);
+        	transferPath = (TreePath) t.getTransferData(actorGroupFlavor);
         } catch (UnsupportedFlavorException e) {
     		if (DEBUG) { System.out.println("Unsupported Flavor Exception"); }
         	return false;
@@ -70,9 +67,15 @@ public class GroupTreeTransferHandler extends TransferHandler {
     		if (DEBUG) { System.out.println("IO Exception"); }
         	return false;
         }
-		if (DEBUG) { System.out.println("Inserting node " + transferNode.toString() + " @ " + insertIndex); }
+		if (DEBUG) { System.out.println("Inserting node " + transferPath.toString() + " @ " + insertIndex); }
         // parentNode.add(transferNode);
-        treeModel.insertNodeInto(transferNode, parentNode, insertIndex);
+		DefaultMutableTreeNode transferNode = (DefaultMutableTreeNode) transferPath.getLastPathComponent();
+		if (insertIndex >= 0) {
+			treeModel.insertNodeInto(transferNode, parentNode, insertIndex);
+		}
+		else {
+			treeModel.insertNodeInto(transferNode, parentNode, parentNode.getChildCount());
+		}
         
         return true;
 	}
@@ -90,8 +93,7 @@ public class GroupTreeTransferHandler extends TransferHandler {
 	    if (transferPath == null) { //There is no selection.     
 	        return null;
 	    } else {
-			DefaultMutableTreeNode transferNode = (DefaultMutableTreeNode) (transferPath.getLastPathComponent());
-			return new TransferableActorGroup(transferNode);
+			return new TransferableActorGroup(transferPath);
 	    }
 	}
 	
@@ -101,24 +103,25 @@ public class GroupTreeTransferHandler extends TransferHandler {
  		if (action == MOVE) {
         	GroupTree tree = (GroupTree) source;
         	DefaultTreeModel treeModel = (DefaultTreeModel) tree.getModel();
-        	DefaultMutableTreeNode transferNode;
+        	TreePath transferPath;
         	try {
-        		transferNode = (DefaultMutableTreeNode) data.getTransferData(actorGroupFlavor);
+        		transferPath = (TreePath) data.getTransferData(actorGroupFlavor);
         	} catch (UnsupportedFlavorException e) {
 	        	return;
 	        } catch (IOException e) {
 	        	return;
 	        }
-    		if (DEBUG) { System.out.println(" Removing node that was transfered: " + transferNode.toString()); }
+    		if (DEBUG) { System.out.println(" Removing path that was transfered: " + transferPath.toString()); }
+    		DefaultMutableTreeNode transferNode = (DefaultMutableTreeNode) transferPath.getLastPathComponent();
 	        treeModel.removeNodeFromParent(transferNode);
         }
 	}
 	
 	class TransferableActorGroup implements Transferable {
 		
-		DefaultMutableTreeNode transferNode;
+		TreePath transferPath;
 		
-		public TransferableActorGroup(DefaultMutableTreeNode transferNode) { this.transferNode = transferNode; }
+		public TransferableActorGroup(TreePath transferPath) { this.transferPath = transferPath; }
 		  
 		/** Return a list of DataFlavors we can support */
 		public DataFlavor[] getTransferDataFlavors() { return supportedFlavors; }
@@ -131,7 +134,10 @@ public class GroupTreeTransferHandler extends TransferHandler {
 		public Object getTransferData(DataFlavor flavor) 
 		       throws UnsupportedFlavorException, IOException
 		  {
-		    if (flavor.equals(actorGroupFlavor)) return transferNode;
+		    if (flavor.equals(actorGroupFlavor)) {
+		   		if (DEBUG) { System.out.println(" Transfering path: " + transferPath.toString()); }		    	
+		    	return transferPath;
+		    }
 		    else throw new UnsupportedFlavorException(flavor);
 		  }
 

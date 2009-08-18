@@ -31,10 +31,9 @@ public class Actor {
 	/* also need extra data collection*/
 	
 	/* also need attacks info */
-	
+
 	/**
-	 * Basic constructor which assigns the name, state and type
-	 * 
+	 * Basic constructor specifying all options
 	 */
 	public Actor(String name, ActorState state, ActorType type, int hp, int health, int damage)
 	{
@@ -48,10 +47,10 @@ public class Actor {
 	}
 	
 	/**
-	 * Basic constructor providing default options
-	 * @param name
-	 * @param state
-	 * @param type
+	 * Basic constructor providing default options for hp, health and damage
+	 * @param name : Actor's name
+	 * @param state : Actor's state (Active, Dead, etc)
+	 * @param type : Actor type (PC, NPC, etc)
 	 */
 	public Actor(String name, ActorState state, ActorType type) {
 		this(name,state,type,10,10,0);

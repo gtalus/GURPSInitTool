@@ -2,21 +2,20 @@ package gurpsinittool.app;
 
 import gurpsinittool.ui.ActorDetailsPanel;
 
-import java.awt.BorderLayout;
-import java.awt.event.KeyEvent;
-import javax.swing.Box;
 import javax.swing.GroupLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JToolBar;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 
-public class GroupManager extends JFrame {
+public class GroupManager extends JFrame 
+	implements TreeSelectionListener {
 	
+	private static final boolean DEBUG = true;
+
 	private JSplitPane jSplitPaneVertical;
 	private JSplitPane jSplitPaneHorizontal;
 	private JScrollPane jScrollPaneTable;
@@ -44,6 +43,7 @@ public class GroupManager extends JFrame {
         
         jTable = new InitTable();
         groupTree = new GroupTree(jTable);
+        groupTree.addTreeSelectionListener(this);
         actorDetailsPanel = new ActorDetailsPanel(jTable);
         jScrollPaneTable = new JScrollPane(jTable);
         jScrollPaneDetails = new JScrollPane(actorDetailsPanel);
@@ -74,6 +74,19 @@ public class GroupManager extends JFrame {
         setSize(620,450);
         
         //pack();
+	}
+
+	@Override
+	public void valueChanged(TreeSelectionEvent e) {
+       	if (DEBUG) { System.out.println("Current Selection: " + groupTree.getLastSelectedPathComponent().toString()); }
+       	GroupTreeNode node = (GroupTreeNode) groupTree.getLastSelectedPathComponent();
+       	if (node.isFolder()) {
+       		
+       	}
+       	else {
+       		jTable.setModel(node.getNodeTable());
+       		//jTable.
+       	}
 	}
 
 }

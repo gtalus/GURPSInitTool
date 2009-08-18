@@ -1,31 +1,19 @@
 package gurpsinittool.app;
 
-import gurpsinittool.app.InitTable.MousePopupListener;
-import gurpsinittool.data.Actor;
-
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.beans.PropertyChangeListener;
 
-import javax.swing.DefaultCellEditor;
 import javax.swing.DropMode;
-import javax.swing.JComboBox;
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
-import javax.swing.JTable;
 import javax.swing.JTree;
-import javax.swing.ListSelectionModel;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
-import javax.swing.tree.RowMapper;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
@@ -41,36 +29,37 @@ public class GroupTree extends JTree
 	private JPopupMenu popupMenu;
 	
 	public GroupTree(InitTable initTable) {
-		super(new DefaultTreeModel(new DefaultMutableTreeNode("Groups")));
+		super(new DefaultTreeModel(new GroupTreeNode("Groups",true)));
 		
 		this.treeModel = (DefaultTreeModel) super.treeModel;
 		this.rootNode = (DefaultMutableTreeNode) treeModel.getRoot();
 		this.initTable = initTable;
 		
 		// Add some default nodes
-		DefaultMutableTreeNode PC_group = new DefaultMutableTreeNode("PC Groups");
-		DefaultMutableTreeNode NPC_group = new DefaultMutableTreeNode("NPC Groups");
-		DefaultMutableTreeNode Monster_group = new DefaultMutableTreeNode("Monster Groups");
-		PC_group.add(new DefaultMutableTreeNode("Default"));
-		PC_group.add(new DefaultMutableTreeNode("Adventure 1"));
-		PC_group.add(new DefaultMutableTreeNode("Group 2"));
-		PC_group.add(new DefaultMutableTreeNode("I don't know"));
-		NPC_group.add(new DefaultMutableTreeNode("Town Guard"));
-		NPC_group.add(new DefaultMutableTreeNode("Nobles"));
-		NPC_group.add(new DefaultMutableTreeNode("Scum"));
-		NPC_group.add(new DefaultMutableTreeNode("Pirates"));
-		NPC_group.add(new DefaultMutableTreeNode("Ninjas"));
-		Monster_group.add(new DefaultMutableTreeNode("Goblins"));
-		Monster_group.add(new DefaultMutableTreeNode("Dragons"));
-		Monster_group.add(new DefaultMutableTreeNode("Orcs"));
-		Monster_group.add(new DefaultMutableTreeNode("Encounter 1"));
-		Monster_group.add(new DefaultMutableTreeNode("Encounter 2"));
-		Monster_group.add(new DefaultMutableTreeNode("Ogres"));
+		GroupTreeNode PC_group = new GroupTreeNode("PC Groups",true);
+		GroupTreeNode NPC_group = new GroupTreeNode("NPC Groups",true);
+		GroupTreeNode Monster_group = new GroupTreeNode("Monster Groups",true);
+		PC_group.add(new GroupTreeNode("Default",false));
+		PC_group.add(new GroupTreeNode("Adventure 1",false));
+		PC_group.add(new GroupTreeNode("Group 2",false));
+		PC_group.add(new GroupTreeNode("I don't know",false));
+		NPC_group.add(new GroupTreeNode("Town Guard",false));
+		NPC_group.add(new GroupTreeNode("Nobles",false));
+		NPC_group.add(new GroupTreeNode("Scum",false));
+		NPC_group.add(new GroupTreeNode("Pirates",false));
+		NPC_group.add(new GroupTreeNode("Ninjas",false));
+		Monster_group.add(new GroupTreeNode("Goblins",false));
+		Monster_group.add(new GroupTreeNode("Dragons",false));
+		Monster_group.add(new GroupTreeNode("Orcs",false));
+		Monster_group.add(new GroupTreeNode("Encounter 1",false));
+		Monster_group.add(new GroupTreeNode("Encounter 2",false));
+		Monster_group.add(new GroupTreeNode("Ogres",false));
 		rootNode.add(PC_group);
 		rootNode.add(NPC_group);
 		rootNode.add(Monster_group);
-		addObject(new DefaultMutableTreeNode("test"));
-		
+		treeModel.nodeStructureChanged(rootNode); // Very important. Issues with isLeaf returning true for 0 children nodes if this is not called.
+		addFolder("test");
+
 		// Tree settings
 		setEditable(true);
 		setRootVisible(false);
@@ -92,10 +81,14 @@ public class GroupTree extends JTree
 	public void actionPerformed(ActionEvent e) {
     	if (DEBUG) { System.out.println("Received action command " + e.getActionCommand()); }
     	if ("New Folder".equals(e.getActionCommand())) { // Add folder
-	
+			DefaultMutableTreeNode newFolder = addFolder("New Folder...");
+			TreePath folderPath = new TreePath(newFolder.getPath());
+			selectionModel.setSelectionPath(folderPath);
+	    	if (DEBUG) { System.out.println("Added new node. User object " + newFolder.getUserObject().getClass()); }
+	    	startEditingAtPath(folderPath);	
     	}
 		else if ("New Group".equals(e.getActionCommand())) { // Add group
-			DefaultMutableTreeNode newGroup = addObject("New Group...");
+			DefaultMutableTreeNode newGroup = addGroup("New Group...");
 			TreePath groupPath = new TreePath(newGroup.getPath());
 			selectionModel.setSelectionPath(groupPath);
 	    	if (DEBUG) { System.out.println("Added new node. User object " + newGroup.getUserObject().getClass()); }
@@ -114,8 +107,8 @@ public class GroupTree extends JTree
 	 * @param name : The name of the new group
 	 * @return The newly created group
 	 */
-	public GroupTreeGroup addGroup(String name) {
-	    GroupTreeGroup newGroup = new GroupTreeGroup(name);
+	public GroupTreeNode addGroup(String name) {
+		GroupTreeNode newGroup = new GroupTreeNode(name,false);
 	    insertObjectAtSelection(newGroup);
 	    scrollPathToVisible(new TreePath(newGroup.getPath()));
 	    
@@ -127,50 +120,50 @@ public class GroupTree extends JTree
 	 * @param name : The name of the new folder
 	 * @return The newly created folder
 	 */
-	public GroupTreeFolder addFolder(String name) {
-	    GroupTreeFolder newFolder = new GroupTreeFolder(name);
+	public GroupTreeNode addFolder(String name) {
+		GroupTreeNode newFolder = new GroupTreeNode(name,true);
 	    insertObjectAtSelection(newFolder);
 	    scrollPathToVisible(new TreePath(newFolder.getPath()));
 	 
 	    return newFolder;
 	}
 
-	/**
-	 * Add an object to the tree. Current selection is used as parent, or the root node.
-	 * @param child : The new object to be added
-	 * @return The newly created tree node
-	 */
-	public DefaultMutableTreeNode addObject(Object child) {
-	    DefaultMutableTreeNode parentNode = null;
-	    TreePath parentPath = getSelectionPath();
-
-	    if (parentPath == null) {
-	        //There is no selection. Default to the root node.
-	        parentNode = rootNode;
-	    } else {
-	        parentNode = (DefaultMutableTreeNode) (parentPath.getLastPathComponent());
-	    }
-
-	    return addObject(parentNode, child, true);
-	}
-	
-	/**
-	 * Add an object to the tree
-	 * @param parent : Parent node of the new object
-	 * @param child : The new object
-	 * @param shouldBeVisible : Scroll to the added object
-	 * @return The newly created TreeNode
-	 */
-	public DefaultMutableTreeNode addObject(DefaultMutableTreeNode parent, Object child, boolean shouldBeVisible) {
-		DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(child);
-		((DefaultTreeModel) treeModel).insertNodeInto(childNode, parent, parent.getChildCount());
-	
-		//Make sure the user can see the lovely new node.
-		if (shouldBeVisible) {
-			scrollPathToVisible(new TreePath(childNode.getPath()));
-		}
-		return childNode;
-	}
+//	/**
+//	 * Add an object to the tree. Current selection is used as parent, or the root node.
+//	 * @param child : The new object to be added
+//	 * @return The newly created tree node
+//	 */
+//	public DefaultMutableTreeNode addObject(Object child) {
+//	    DefaultMutableTreeNode parentNode = null;
+//	    TreePath parentPath = getSelectionPath();
+//
+//	    if (parentPath == null) {
+//	        //There is no selection. Default to the root node.
+//	        parentNode = rootNode;
+//	    } else {
+//	        parentNode = (DefaultMutableTreeNode) (parentPath.getLastPathComponent());
+//	    }
+//
+//	    return addObject(parentNode, child, true);
+//	}
+//	
+//	/**
+//	 * Add an object to the tree
+//	 * @param parent : Parent node of the new object
+//	 * @param child : The new object
+//	 * @param shouldBeVisible : Scroll to the added object
+//	 * @return The newly created TreeNode
+//	 */
+//	public DefaultMutableTreeNode addObject(DefaultMutableTreeNode parent, Object child, boolean shouldBeVisible) {
+//		DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(child);
+//		((DefaultTreeModel) treeModel).insertNodeInto(childNode, parent, parent.getChildCount());
+//	
+//		//Make sure the user can see the lovely new node.
+//		if (shouldBeVisible) {
+//			scrollPathToVisible(new TreePath(childNode.getPath()));
+//		}
+//		return childNode;
+//	}
 
 	/**
      * Convenience method to create menu items for the table's menus.
@@ -187,7 +180,7 @@ public class GroupTree extends JTree
      * Determine where a new node should be placed, based on the current selection
      * @return The TreePath where the new component should be inserted
      */
-    private void insertObjectAtSelection(MutableTreeNode child) {
+    private void insertObjectAtSelection(GroupTreeNode child) {
     	//TreePath insertPath = new TreePath();
 
     	TreePath selectionPath = getSelectionPath();
@@ -197,15 +190,14 @@ public class GroupTree extends JTree
     		treeModel.insertNodeInto(child, rootNode, rootNode.getChildCount());
 	    } 
     	else {
-    		Object node = selectionPath.getLastPathComponent();
-        	if (DEBUG) { System.out.println("Inserting child. Selection is node: " + node.getClass().toString()); }
+    		GroupTreeNode node = (GroupTreeNode) selectionPath.getLastPathComponent();
+        	if (DEBUG) { System.out.println("Inserting child. Selection is node: " + node.toString()); }
    		
-    		if (node.getClass().equals(GroupTreeFolder.class)) { // insert after last child node
-    			GroupTreeFolder parentNode = (GroupTreeFolder) node;
-    			treeModel.insertNodeInto(child, parentNode, parentNode.getChildCount());
+    		if (node.isFolder()) { // insert after last child node
+    			treeModel.insertNodeInto(child, node, node.getChildCount());
     		}
     		else { // Insert after current selection
-    			MutableTreeNode parentNode = (MutableTreeNode) selectionPath.getParentPath().getLastPathComponent();
+    			GroupTreeNode parentNode = (GroupTreeNode) node.getParent();
     			treeModel.insertNodeInto(child, parentNode, parentNode.getChildCount());
     		}
 	    }
@@ -228,60 +220,6 @@ public class GroupTree extends JTree
         //toolkit.beep();
     }
 
-    /**
-	 * Inner class to encapsulate group folders as a tree node
-	 * @author dsmall
-	 *
-	 */
-	class GroupTreeFolder extends DefaultMutableTreeNode {
-		
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -1099896752894307302L;
-
-		/**
-		 * Constructor for GroupTreeGroup
-		 * @param name : Name of group
-		 * @param initTable : InitTable which holds group Actors
-		 */
-		public GroupTreeFolder(String name) {
-			super(name);
-		}
-		public GroupTreeFolder(GroupTreeFolder copy) {
-			super(copy);
-		}
-	}
-	
-	/**
-	 * Inner class to encapsulate groups as a tree node
-	 * @author dsmall
-	 *
-	 */
-	class GroupTreeGroup extends DefaultMutableTreeNode {
-
-		private InitTable initTable;
-		
-		/**
-		 * Basic Constructor for GroupTreeGroup
-		 * @param name : Name of group
-		 */
-		public GroupTreeGroup(String name) {
-			super(name, false);
-			this.initTable = new InitTable();
-		}
-
-		/**
-		 * Constructor for GroupTreeGroup which specifies InitTable to use
-		 * @param name : Name of group
-		 * @param initTable : InitTable which holds group Actors
-		 */
-		public GroupTreeGroup(String name, InitTable initTable) {
-			super(name, false);
-			this.initTable = initTable;
-		}
-	}
-	
 	/**
 	 * An inner class to check whether mouse events are the pop-up trigger
 	 */

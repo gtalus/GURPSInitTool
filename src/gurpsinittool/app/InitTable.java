@@ -24,6 +24,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 import gurpsinittool.app.ActorTableModel.columns;
 import gurpsinittool.data.*;
+import gurpsinittool.test.RandomData;
 
 public class InitTable extends JTable 
 	implements ActionListener {
@@ -31,7 +32,7 @@ public class InitTable extends JTable
 	/**
 	 * Default Serial UID
 	 */
-	private static final long serialVersionUID = 1L;
+	//private static final long serialVersionUID = 1L;
 
 	private static final boolean DEBUG = true;
 
@@ -44,6 +45,7 @@ public class InitTable extends JTable
 	public InitTable() {
 		super(new ActorTableModel());
 		tableModel = (ActorTableModel) dataModel;
+		RandomData.RandomActors(tableModel);
 		initialize();
 	}
 
