@@ -1,11 +1,14 @@
 package gurpsinittool.data;
 
+import java.io.Serializable;
+
 /** 
  * Encapsulates a single actor in the current encounter.
  * Contains all status information.
  *
  */
-public class Actor {
+public class Actor 
+	implements Serializable {
 
 	public String Name;
 	//public int Order; // what is this?

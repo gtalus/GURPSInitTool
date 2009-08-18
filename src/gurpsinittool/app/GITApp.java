@@ -70,7 +70,7 @@ public class GITApp // extends JPanel
  
         // The actor table
         //InitTable initTable = new InitTable(new ActorTableModel());
-        mainApp.initTable = new InitTable();
+        mainApp.initTable = new InitTable(true);
         // Connect Details Panel to the table/tableModel
         //mainApp.initTable.getSelectionModel().addListSelectionListener(mainApp.detailsPanel);
         JScrollPane tableScrollPane = new JScrollPane(mainApp.initTable); 

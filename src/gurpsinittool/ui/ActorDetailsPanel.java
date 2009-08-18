@@ -12,6 +12,8 @@
 package gurpsinittool.ui;
 
 import java.awt.Color;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -41,6 +43,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     public ActorDetailsPanel(InitTable initTable) {
     	this.initTable = initTable;
     	this.actorModel= (ActorTableModel) initTable.getModel();
+    	initTable.add(this);
     	initTable.getSelectionModel().addListSelectionListener(this);
     	actorModel.addTableModelListener(this);
 
@@ -398,6 +401,20 @@ public void refreshActor () {
     health.setValue(((Integer)actor.Health).longValue());
 	actorLoaded = true; // turn property updates back on
 }
+
+	/**
+	 * Set the actor table model used for displaying actors.
+	 * @param model : the model to use.
+	 */
+	public void setActorModel(ActorTableModel model) {
+		if (actorModel != null)
+			actorModel.removeTableModelListener(this);
+		if(model != null) 
+			model.addTableModelListener(this);
+		
+		actorModel = model;
+	}
+	
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton add_attack;
     private javax.swing.JButton add_timer;
@@ -421,7 +438,7 @@ public void refreshActor () {
     
 	@Override
 	public void tableChanged(TableModelEvent e) {
-		// TODO Auto-generated method stub
+		if (DEBUG) { System.out.println("Table Model event: " + e.toString()); }
 		refreshActor();
 	}
 	
@@ -432,5 +449,4 @@ public void refreshActor () {
 			refreshActor();
 		}
 	}
-
 }

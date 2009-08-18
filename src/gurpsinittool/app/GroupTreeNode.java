@@ -4,7 +4,6 @@ import gurpsinittool.test.RandomData;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
-
 public class GroupTreeNode extends DefaultMutableTreeNode {
 
 	private static final boolean DEBUG = true;
@@ -27,9 +26,9 @@ public class GroupTreeNode extends DefaultMutableTreeNode {
 	}
 	
 	/**
-	 * Get the InitTable associated with the node. Returns null if none exists.
+	 * Get the ActorTableModel associated with the node. Returns null if none exists.
 	 */
-	public ActorTableModel getNodeTable() {
+	public ActorTableModel getActorModel() {
 		if (!isFolder) { return tableModel; }
 		else return null;
 	}

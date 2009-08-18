@@ -21,7 +21,7 @@ public class GroupTreeTransferHandler extends TransferHandler {
 	
 	private static final boolean DEBUG = true;
 
-	protected static DataFlavor actorGroupFlavor = new DataFlavor(String.class, "GURPS Actor Group Object");
+	protected static DataFlavor actorGroupFlavor = new DataFlavor(GroupTreeNode.class, "GURPS Actor Group Object");
 	
 	protected static DataFlavor[] supportedFlavors = {
 		actorGroupFlavor
@@ -57,6 +57,7 @@ public class GroupTreeTransferHandler extends TransferHandler {
         Transferable t = support.getTransferable();
         
 		if (DEBUG) { System.out.println("Retrieving node data..."); }
+		tree.startDrop(); // Make sure that no one keeps a reference to the old node
 		TreePath transferPath;
         try {
         	transferPath = (TreePath) t.getTransferData(actorGroupFlavor);
@@ -76,7 +77,8 @@ public class GroupTreeTransferHandler extends TransferHandler {
 		else {
 			treeModel.insertNodeInto(transferNode, parentNode, parentNode.getChildCount());
 		}
-        
+		tree.endDrop(); // Re-load table selection
+		
         return true;
 	}
 		
@@ -89,7 +91,6 @@ public class GroupTreeTransferHandler extends TransferHandler {
 	protected Transferable createTransferable(JComponent c) {
 		GroupTree tree = (GroupTree) c;
 		TreePath transferPath = tree.getSelectionPath();
-		
 	    if (transferPath == null) { //There is no selection.     
 	        return null;
 	    } else {

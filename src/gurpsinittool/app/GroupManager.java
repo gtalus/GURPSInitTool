@@ -21,7 +21,7 @@ public class GroupManager extends JFrame
 	private JScrollPane jScrollPaneTable;
 	private JScrollPane jScrollPaneTree;
 	private JScrollPane jScrollPaneDetails;
-	private InitTable jTable;
+	private InitTable groupTable;
 	private ActorDetailsPanel actorDetailsPanel;
 	private JMenuBar jMenuBar;
 	private JMenu jMenu;
@@ -41,11 +41,11 @@ public class GroupManager extends JFrame
         jMenuBar.add(jMenu);
         setJMenuBar(jMenuBar);
         
-        jTable = new InitTable();
-        groupTree = new GroupTree(jTable);
+        groupTable = new InitTable(false);
+        actorDetailsPanel = new ActorDetailsPanel(groupTable);
+        groupTree = new GroupTree(groupTable, actorDetailsPanel);
         groupTree.addTreeSelectionListener(this);
-        actorDetailsPanel = new ActorDetailsPanel(jTable);
-        jScrollPaneTable = new JScrollPane(jTable);
+        jScrollPaneTable = new JScrollPane(groupTable);
         jScrollPaneDetails = new JScrollPane(actorDetailsPanel);
         jScrollPaneTree = new JScrollPane(groupTree);
         jSplitPaneVertical= new JSplitPane(JSplitPane.VERTICAL_SPLIT, jScrollPaneTree, jScrollPaneTable);
@@ -78,15 +78,24 @@ public class GroupManager extends JFrame
 
 	@Override
 	public void valueChanged(TreeSelectionEvent e) {
-       	if (DEBUG) { System.out.println("Current Selection: " + groupTree.getLastSelectedPathComponent().toString()); }
-       	GroupTreeNode node = (GroupTreeNode) groupTree.getLastSelectedPathComponent();
-       	if (node.isFolder()) {
-       		
-       	}
-       	else {
-       		jTable.setModel(node.getNodeTable());
-       		//jTable.
-       	}
+		if (DEBUG) { System.out.println("Event: " + e.toString()); }
+		if (groupTree.getLastSelectedPathComponent() != null) {
+			if (DEBUG) { System.out.println("Current Selection: " + groupTree.getLastSelectedPathComponent().toString()); }
+			GroupTreeNode node = (GroupTreeNode) groupTree.getLastSelectedPathComponent();
+			if (!node.isFolder()) {
+				groupTable.setModel(node.getActorModel());
+				actorDetailsPanel.setActorModel(node.getActorModel());
+			}
+			else {
+				groupTable.setModel(null);
+				actorDetailsPanel.setActorModel(null);
+			}
+		}
+		else {
+			if (DEBUG) { System.out.println("Current Selection: null"); }
+			groupTable.setModel(null);
+			actorDetailsPanel.setActorModel(null);
+		}
 	}
 
 }
