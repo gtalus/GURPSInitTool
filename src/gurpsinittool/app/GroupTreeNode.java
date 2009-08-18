@@ -1,5 +1,11 @@
 package gurpsinittool.app;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import gurpsinittool.data.Actor;
+import gurpsinittool.data.Actor.ActorState;
+import gurpsinittool.data.Actor.ActorType;
 import gurpsinittool.test.RandomData;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -9,14 +15,14 @@ public class GroupTreeNode extends DefaultMutableTreeNode {
 	private static final boolean DEBUG = true;
 	
 	private boolean isFolder;
-	private ActorTableModel tableModel;
+	private ArrayList<Actor> actorList;
 	
 	public GroupTreeNode(String name, boolean isFolder) {
 		super(name, isFolder);
 		this.isFolder = isFolder;
 		if (!isFolder) {
-			tableModel = new ActorTableModel();
-			RandomData.RandomActors(tableModel);
+			actorList = new ArrayList<Actor>(Arrays.asList(new Actor("new...", ActorState.Active, ActorType.Enemy)));
+			RandomData.RandomActors(actorList);
 		}
 	}
 	
@@ -26,10 +32,10 @@ public class GroupTreeNode extends DefaultMutableTreeNode {
 	}
 	
 	/**
-	 * Get the ActorTableModel associated with the node. Returns null if none exists.
+	 * Get the ArrayList<Actor> associated with the node. Returns null if none exists.
 	 */
-	public ActorTableModel getActorModel() {
-		if (!isFolder) { return tableModel; }
+	public ArrayList<Actor> getActorList() {
+		if (!isFolder) { return actorList; }
 		else return null;
 	}
 	

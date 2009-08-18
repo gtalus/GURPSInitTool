@@ -48,13 +48,10 @@ public class InitTable extends JTable
 	public InitTable(boolean isInitTable) {
 		super(new ActorTableModel());
 		this.isInitTable = isInitTable;
+		tableModel = (ActorTableModel) dataModel;
 		initialize();
 		if (isInitTable) {
-			tableModel = (ActorTableModel) dataModel;
 			RandomData.RandomActors(tableModel);
-		}
-		else {
-			setModel(null);
 		}
 	}
 
@@ -130,7 +127,25 @@ public class InitTable extends JTable
         setDragEnabled(true);
         setDropMode(DropMode.INSERT_ROWS);
 
-        // Table popup menu
+		// Set column editors
+        JComboBox initTableStateEditor = new JComboBox();
+        initTableStateEditor.addItem("Active");
+        initTableStateEditor.addItem("Waiting");
+        initTableStateEditor.addItem("Disabled");
+        initTableStateEditor.addItem("Unconscious");
+        initTableStateEditor.addItem("Dead");
+        getColumnModel().getColumn(ActorTableModel.columns.State.ordinal()).setCellEditor(new InitTableComboCellEditor(initTableStateEditor));
+        ((DefaultCellEditor) getColumnModel().getColumn(ActorTableModel.columns.State.ordinal()).getCellEditor()).setClickCountToStart(2);
+        JComboBox initTableTypeEditor = new JComboBox();
+        initTableTypeEditor.addItem("PC");
+        initTableTypeEditor.addItem("Ally");
+        initTableTypeEditor.addItem("Enemy");
+        initTableTypeEditor.addItem("Neutral");
+        initTableTypeEditor.addItem("Special");
+        getColumnModel().getColumn(ActorTableModel.columns.Type.ordinal()).setCellEditor(new InitTableComboCellEditor(initTableTypeEditor));
+        ((DefaultCellEditor) getColumnModel().getColumn(ActorTableModel.columns.Type.ordinal()).getCellEditor()).setClickCountToStart(2);
+
+		// Table popup menu
         popupMenu = new JPopupMenu();
         JMenu menuFile = new JMenu("Set Status");
         menuFile.setMnemonic(KeyEvent.VK_S);
@@ -197,40 +212,6 @@ public class InitTable extends JTable
 			return newrows;
 		}	
 		return rows;
-	}
-	
-	/**
-	 * Set the table model & re-initializes column editors. If model is null, then table is set to hide.
-	 * @param model : The model to use. Must be ActorTableModel or null
-	 */
-	@Override
-	public void setModel(TableModel model) {
-		if (model == null) {
-			this.setVisible(false);
-			super.setModel(new ActorTableModel());
-			return;
-		}
-		tableModel = (ActorTableModel) model;
-		super.setModel(model);
-		
-		// Set column editors
-        JComboBox initTableStateEditor = new JComboBox();
-        initTableStateEditor.addItem("Active");
-        initTableStateEditor.addItem("Waiting");
-        initTableStateEditor.addItem("Disabled");
-        initTableStateEditor.addItem("Unconscious");
-        initTableStateEditor.addItem("Dead");
-        getColumnModel().getColumn(ActorTableModel.columns.State.ordinal()).setCellEditor(new InitTableComboCellEditor(initTableStateEditor));
-        ((DefaultCellEditor) getColumnModel().getColumn(ActorTableModel.columns.State.ordinal()).getCellEditor()).setClickCountToStart(2);
-        JComboBox initTableTypeEditor = new JComboBox();
-        initTableTypeEditor.addItem("PC");
-        initTableTypeEditor.addItem("Ally");
-        initTableTypeEditor.addItem("Enemy");
-        initTableTypeEditor.addItem("Neutral");
-        initTableTypeEditor.addItem("Special");
-        getColumnModel().getColumn(ActorTableModel.columns.Type.ordinal()).setCellEditor(new InitTableComboCellEditor(initTableTypeEditor));
-        ((DefaultCellEditor) getColumnModel().getColumn(ActorTableModel.columns.Type.ordinal()).getCellEditor()).setClickCountToStart(2);
-		this.setVisible(true);
 	}
    
 	/**

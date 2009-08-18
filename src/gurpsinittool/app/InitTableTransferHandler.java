@@ -2,6 +2,7 @@ package gurpsinittool.app;
 
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -34,7 +35,9 @@ public class InitTableTransferHandler extends TransferHandler {
 	@Override
 	public boolean canImport(TransferSupport support) {
 		
-		if (!support.isDataFlavorSupported(initTableActorFlavor) &&  !support.isDataFlavorSupported(groupTableActorFlavor))
+		if (!support.isDataFlavorSupported(initTableActorFlavor) 
+				&& !support.isDataFlavorSupported(groupTableActorFlavor) 
+				&& !support.isDataFlavorSupported(GroupTreeTransferHandler.actorGroupFlavor))
 			return false;
 
 		// Don't allow dropping below the 'new...' row
@@ -46,8 +49,10 @@ public class InitTableTransferHandler extends TransferHandler {
 	      
 		// Set Drop Action based on whether this is a cross-table drag.
 		// If the table types do not match, then set action to copy
-	    Transferable t = (Transferable) support.getTransferable();
- 		if (table.isInitTable() != t.isDataFlavorSupported(initTableActorFlavor)) {
+	    if (support.isDataFlavorSupported(GroupTreeTransferHandler.actorGroupFlavor)) {
+			support.setDropAction(COPY);
+	    }
+ 		if (table.isInitTable() != support.isDataFlavorSupported(initTableActorFlavor)) {
 			support.setDropAction(COPY);
 		}
 
@@ -62,15 +67,26 @@ public class InitTableTransferHandler extends TransferHandler {
         }
           
         // Do in-process & in-table import: everything is done for you.
-        Transferable t = support.getTransferable();
+    	if (DEBUG) { System.out.println("Getting transferable data for InitTable import..."); }
+    	Transferable t = support.getTransferable();
         Actor[] actorRows;
         try {
-        	actorRows = (Actor[]) t.getTransferData(initTableActorFlavor); // Don't really care which flavor it is
+        	if (t.isDataFlavorSupported(GroupTreeTransferHandler.actorGroupFlavor)) {
+        		GroupTreeNode node = (GroupTreeNode) t.getTransferData(GroupTreeTransferHandler.actorGroupFlavor); 
+        		ArrayList<Actor> actors = node.getActorList();
+        		actorRows = actors.subList(0, actors.size()-1).toArray(new Actor[0]);
+        	}
+        	else 
+        		actorRows = (Actor[]) t.getTransferData(initTableActorFlavor); // Don't really care which flavor it is
         } catch (UnsupportedFlavorException e) {
+    		if (DEBUG) { System.out.println("-E- Unsupported Flavor Exception"); }
         	return false;
         } catch (IOException e) {
+    		if (DEBUG) { System.out.println("-E- IO Exception"); }
         	return false;
         }
+        
+    	if (DEBUG) { System.out.println(" Transferable data retrieved."); }
 
         InitTable table = (InitTable) support.getComponent();
         ActorTableModel tableModel = (ActorTableModel) table.getModel();

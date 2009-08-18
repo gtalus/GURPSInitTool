@@ -42,6 +42,7 @@ public class GroupManager extends JFrame
         setJMenuBar(jMenuBar);
         
         groupTable = new InitTable(false);
+        groupTable.setVisible(false);
         actorDetailsPanel = new ActorDetailsPanel(groupTable);
         groupTree = new GroupTree(groupTable, actorDetailsPanel);
         groupTree.addTreeSelectionListener(this);
@@ -72,29 +73,29 @@ public class GroupManager extends JFrame
         
         setLocation(500,300);
         setSize(620,450);
-        
-        //pack();
+
 	}
 
 	@Override
 	public void valueChanged(TreeSelectionEvent e) {
 		if (DEBUG) { System.out.println("Event: " + e.toString()); }
+		ActorTableModel tableModel = (ActorTableModel) groupTable.getModel();
 		if (groupTree.getLastSelectedPathComponent() != null) {
 			if (DEBUG) { System.out.println("Current Selection: " + groupTree.getLastSelectedPathComponent().toString()); }
 			GroupTreeNode node = (GroupTreeNode) groupTree.getLastSelectedPathComponent();
 			if (!node.isFolder()) {
-				groupTable.setModel(node.getActorModel());
-				actorDetailsPanel.setActorModel(node.getActorModel());
+				tableModel.setActorList(node.getActorList());
+				groupTable.setVisible(true);
 			}
 			else {
-				groupTable.setModel(null);
-				actorDetailsPanel.setActorModel(null);
+				groupTable.setVisible(false);
+				tableModel.setActorList(null);
 			}
 		}
 		else {
 			if (DEBUG) { System.out.println("Current Selection: null"); }
-			groupTable.setModel(null);
-			actorDetailsPanel.setActorModel(null);
+			groupTable.setVisible(false);
+			tableModel.setActorList(null);
 		}
 	}
 

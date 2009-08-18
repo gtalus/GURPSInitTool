@@ -1,5 +1,6 @@
 package gurpsinittool.test;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 import gurpsinittool.app.ActorTableModel;
@@ -21,6 +22,21 @@ public class RandomData {
 			ActorType type = (ActorType.values())[r.nextInt(ActorType.values().length)];
 			Actor random = new Actor(RandomString(), state, type, r.nextInt(20), r.nextInt(20), r.nextInt(20));
 			actorModel.addActor(random, 0);
+		}
+	}
+	
+	/**
+	 * Generate some random actors for the ArrayList<Actor>
+	 * @param actorModel : ArrayList<Actor> to insert random actors into
+	 */
+	public static void RandomActors(ArrayList<Actor> actorList) {
+		Random r = new Random();
+		int num_actors = r.nextInt(5)+5;
+		for (int i = 0; i < num_actors; i++) {
+			ActorState state = (ActorState.values())[r.nextInt(ActorState.values().length)];
+			ActorType type = (ActorType.values())[r.nextInt(ActorType.values().length)];
+			Actor random = new Actor(RandomString(), state, type, r.nextInt(20), r.nextInt(20), r.nextInt(20));
+			actorList.add(0, random);
 		}
 	}
 	

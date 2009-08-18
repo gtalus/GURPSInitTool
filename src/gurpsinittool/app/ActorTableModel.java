@@ -252,6 +252,19 @@ public class ActorTableModel extends AbstractTableModel {
 	}
 
 	/**
+	 * Set the list of actors to the ArrayList<Actor> specified. Redraw table.
+	 * @param actorList : the new ArrayList<Actor> to use as the base for the ActorTableModel
+	 */
+	public void setActorList(ArrayList<Actor> actorList) {
+		fireTableRowsDeleted(0, getRowCount()); // remove current selection
+		if (actorList == null) 
+			this.actorList = new ArrayList<Actor>(Arrays.asList(new Actor("new...", ActorState.Active, ActorType.Enemy)));
+		else 
+			this.actorList = actorList;
+		fireTableDataChanged();
+	}
+	
+	/**
 	 * Set the active actor by row #
 	 * @param row : the row which is now active
 	 */

@@ -486,7 +486,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 	
  	@Override
 	public void tableChanged(TableModelEvent e) {
-		if (DEBUG) { System.out.println("Table Model event: " + e.toString()); }
+		if (DEBUG) { System.out.println("Table Model event: type = " + e.getType() + ", " + e.toString()); }
 		refreshActor();
 	}
 	

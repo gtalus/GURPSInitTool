@@ -2,6 +2,13 @@ package gurpsinittool.app;
 
 import gurpsinittool.ui.ActorDetailsPanel;
 
+import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DragSource;
+import java.awt.dnd.DragSourceDragEvent;
+import java.awt.dnd.DragSourceDropEvent;
+import java.awt.dnd.DragSourceEvent;
+import java.awt.dnd.DragSourceListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -23,7 +30,7 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 public class GroupTree extends JTree 
-	implements ActionListener {
+	implements ActionListener, DragSourceListener{
 
 	private static final boolean DEBUG = true;
 	
@@ -71,10 +78,11 @@ public class GroupTree extends JTree
 		setEditable(true);
 		setRootVisible(false);
 		setShowsRootHandles(true);
-		setTransferHandler(new GroupTreeTransferHandler("name"));
+		setTransferHandler(new GroupTreeTransferHandler(this, "name"));
 		getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         setDragEnabled(true);
         setDropMode(DropMode.INSERT);
+        //setDropMode(DropMode.ON_OR_INSERT);
         
 		// Table popup menu
         popupMenu = new JPopupMenu();
@@ -187,21 +195,6 @@ public class GroupTree extends JTree
             }
         } 
     }
-    
-
-    /**
-     * After a DnD drop: refresh selection references
-     */
-//    public void endDrop() {
-//    	if (getLastSelectedPathComponent() != null) {
-//			if (DEBUG) { System.out.println("Current Selection: " + getLastSelectedPathComponent().toString()); }
-//			GroupTreeNode node = (GroupTreeNode) getLastSelectedPathComponent();
-//			if (!node.isFolder()) {
-//				groupTable.setModel(node.getActorModel());
-//				actorPanel.setActorModel(node.getActorModel());
-//			}
-//		}
-//    }
 
 	/**
 	 * An inner class to check whether mouse events are the pop-up trigger
@@ -217,5 +210,39 @@ public class GroupTree extends JTree
 	   			popupMenu.show(e.getComponent(), e.getX(), e.getY());
 	        }
 	    }
+	}
+
+	@Override
+	public void dragDropEnd(DragSourceDropEvent dsde) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void dragEnter(DragSourceDragEvent dsde) {
+		// TODO Auto-generated method stub
+   		if (DEBUG) { System.out.println("Drag has entered the tree..."); }
+
+		Transferable t = dsde.getDragSourceContext().getTransferable();
+		if (t.isDataFlavorSupported(GroupTreeTransferHandler.actorGroupFlavor)) 
+			setDropMode(DropMode.INSERT);
+		else if ( t.isDataFlavorSupported(InitTableTransferHandler.initTableActorFlavor)
+				|| t.isDataFlavorSupported(InitTableTransferHandler.groupTableActorFlavor)){
+			setDropMode(DropMode.ON);
+		}
+	}
+
+	@Override
+	public void dragExit(DragSourceEvent dse) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void dragOver(DragSourceDragEvent dsde) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void dropActionChanged(DragSourceDragEvent dsde) {
+		// TODO Auto-generated method stub
 	}
 }
