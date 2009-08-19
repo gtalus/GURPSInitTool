@@ -16,6 +16,7 @@ import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
@@ -34,35 +35,35 @@ public class GroupTree extends JTree
 	public GroupTree(InitTable groupTable, ActorDetailsPanel actorPanel) {
 		super(new DefaultTreeModel(new GroupTreeNode("Groups",true)));
 		
-		this.treeModel = (DefaultTreeModel) super.treeModel;
-		this.rootNode = (DefaultMutableTreeNode) treeModel.getRoot();
+		//this.treeModel = (DefaultTreeModel) super.treeModel;
+		//this.rootNode = (DefaultMutableTreeNode) treeModel.getRoot();
 		this.groupTable = groupTable;
 		this.actorPanel = actorPanel;
 		
 		// Add some default nodes
-		GroupTreeNode PC_group = new GroupTreeNode("PC Groups",true);
-		GroupTreeNode NPC_group = new GroupTreeNode("NPC Groups",true);
-		GroupTreeNode Monster_group = new GroupTreeNode("Monster Groups",true);
-		PC_group.add(new GroupTreeNode("Default",false));
-		PC_group.add(new GroupTreeNode("Adventure 1",false));
-		PC_group.add(new GroupTreeNode("Group 2",false));
-		PC_group.add(new GroupTreeNode("I don't know",false));
-		NPC_group.add(new GroupTreeNode("Town Guard",false));
-		NPC_group.add(new GroupTreeNode("Nobles",false));
-		NPC_group.add(new GroupTreeNode("Scum",false));
-		NPC_group.add(new GroupTreeNode("Pirates",false));
-		NPC_group.add(new GroupTreeNode("Ninjas",false));
-		Monster_group.add(new GroupTreeNode("Goblins",false));
-		Monster_group.add(new GroupTreeNode("Dragons",false));
-		Monster_group.add(new GroupTreeNode("Orcs",false));
-		Monster_group.add(new GroupTreeNode("Encounter 1",false));
-		Monster_group.add(new GroupTreeNode("Encounter 2",false));
-		Monster_group.add(new GroupTreeNode("Ogres",false));
-		rootNode.add(PC_group);
-		rootNode.add(NPC_group);
-		rootNode.add(Monster_group);
+//		GroupTreeNode PC_group = new GroupTreeNode("PC Groups",true);
+//		GroupTreeNode NPC_group = new GroupTreeNode("NPC Groups",true);
+//		GroupTreeNode Monster_group = new GroupTreeNode("Monster Groups",true);
+//		PC_group.add(new GroupTreeNode("Default",false));
+//		PC_group.add(new GroupTreeNode("Adventure 1",false));
+//		PC_group.add(new GroupTreeNode("Group 2",false));
+//		PC_group.add(new GroupTreeNode("I don't know",false));
+//		NPC_group.add(new GroupTreeNode("Town Guard",false));
+//		NPC_group.add(new GroupTreeNode("Nobles",false));
+//		NPC_group.add(new GroupTreeNode("Scum",false));
+//		NPC_group.add(new GroupTreeNode("Pirates",false));
+//		NPC_group.add(new GroupTreeNode("Ninjas",false));
+//		Monster_group.add(new GroupTreeNode("Goblins",false));
+//		Monster_group.add(new GroupTreeNode("Dragons",false));
+//		Monster_group.add(new GroupTreeNode("Orcs",false));
+//		Monster_group.add(new GroupTreeNode("Encounter 1",false));
+//		Monster_group.add(new GroupTreeNode("Encounter 2",false));
+//		Monster_group.add(new GroupTreeNode("Ogres",false));
+//		rootNode.add(PC_group);
+//		rootNode.add(NPC_group);
+//		rootNode.add(Monster_group);
 		treeModel.nodeStructureChanged(rootNode); // Very important. Issues with isLeaf returning true for 0 children nodes if this is not called.
-		addGroup("test");
+		//addGroup("test");
 
 		// Tree settings
 		setEditable(true);
@@ -189,6 +190,13 @@ public class GroupTree extends JTree
             }
         } 
     }
+    
+    @Override
+    public void setModel(TreeModel newModel) {
+    	super.setModel(newModel);
+    	this.treeModel = (DefaultTreeModel) newModel;
+    	this.rootNode = (DefaultMutableTreeNode) treeModel.getRoot();
+   }
 
 	/**
 	 * An inner class to check whether mouse events are the pop-up trigger

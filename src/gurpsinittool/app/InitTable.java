@@ -50,9 +50,9 @@ public class InitTable extends JTable
 		this.isInitTable = isInitTable;
 		tableModel = (ActorTableModel) dataModel;
 		initialize();
-		if (isInitTable) {
-			RandomData.RandomActors(tableModel);
-		}
+//		if (isInitTable) {
+//			RandomData.RandomActors(tableModel);
+//		}
 	}
 
     public void actionPerformed(ActionEvent e) {

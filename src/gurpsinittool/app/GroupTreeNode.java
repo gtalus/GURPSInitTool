@@ -20,7 +20,7 @@ public class GroupTreeNode extends DefaultMutableTreeNode {
 		this.isFolder = isFolder;
 		if (!isFolder) {
 			actorList = new ArrayList<Actor>(Arrays.asList(new Actor("new...", ActorState.Active, ActorType.Enemy)));
-			RandomData.RandomActors(actorList);
+			//RandomData.RandomActors(actorList);
 		}
 	}
 	
