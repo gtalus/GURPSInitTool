@@ -18,7 +18,7 @@ public class InitTableTransferHandler extends TransferHandler {
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 
 	// Must hack class to be different: string difference does not make unique DataFlavor
 	protected static DataFlavor initTableActorFlavor = new DataFlavor(InitTable.class, "GURPS Actor Object from init table");
@@ -67,7 +67,7 @@ public class InitTableTransferHandler extends TransferHandler {
         }
           
         // Do in-process & in-table import: everything is done for you.
-    	if (DEBUG) { System.out.println("Getting transferable data for InitTable import..."); }
+    	if (DEBUG) { System.out.println("InitTreeTransferHandler: Getting transferable data for InitTable import..."); }
     	Transferable t = support.getTransferable();
         Actor[] actorRows;
         try {
@@ -79,14 +79,14 @@ public class InitTableTransferHandler extends TransferHandler {
         	else 
         		actorRows = (Actor[]) t.getTransferData(initTableActorFlavor); // Don't really care which flavor it is
         } catch (UnsupportedFlavorException e) {
-    		if (DEBUG) { System.out.println("-E- Unsupported Flavor Exception"); }
+    		if (DEBUG) { System.out.println("InitTreeTransferHandler: -E- Unsupported Flavor Exception"); }
         	return false;
         } catch (IOException e) {
-    		if (DEBUG) { System.out.println("-E- IO Exception"); }
+    		if (DEBUG) { System.out.println("InitTreeTransferHandler: -E- IO Exception"); }
         	return false;
         }
         
-    	if (DEBUG) { System.out.println(" Transferable data retrieved."); }
+    	if (DEBUG) { System.out.println("InitTreeTransferHandler:  Transferable data retrieved."); }
 
         InitTable table = (InitTable) support.getComponent();
         ActorTableModel tableModel = (ActorTableModel) table.getModel();
@@ -98,16 +98,16 @@ public class InitTableTransferHandler extends TransferHandler {
         if (row >= tableModel.getRowCount()) { row = tableModel.getRowCount() - 1; }
 
         for (int i = actorRows.length-1; i >= 0; i--) { // Actors added to same 'row', so go from bottom up to preserve order
-        	if (DEBUG) { System.out.println("Adding actor # " + i + " @ row: " + row); }
+        	if (DEBUG) { System.out.println("InitTreeTransferHandler: Adding actor # " + i + " @ row: " + row); }
             tableModel.addActor(actorRows[i], row);
             table.getSelectionModel().addSelectionInterval(row, row);
         }
         
         if (DEBUG) {
-			System.out.println("Getting import data request: " + row + " String " + dl.toString());
+			System.out.println("InitTreeTransferHandler: Getting import data request: " + row + " String " + dl.toString());
 			DataFlavor[] flavors = support.getDataFlavors();
 			for (int i = 0; i < flavors.length; i++) {
-				System.out.println("Debug flavor: " + flavors[i].toString());
+				System.out.println("InitTreeTransferHandler: Debug flavor: " + flavors[i].toString());
 			}
 		}
         
@@ -151,12 +151,12 @@ public class InitTableTransferHandler extends TransferHandler {
 	        	return;
 	        }
 	        for (int i = 0; i < actors.length; i++) {
-	        	if (DEBUG) { System.out.println("After move, deleting actor " + actors[i].Name + "..."); }
+	        	if (DEBUG) { System.out.println("InitTreeTransferHandler: After move, deleting actor " + actors[i].Name + "..."); }
 	        	((ActorTableModel) table.getModel()).removeActor(actors[i]);
 	        }
 		}
 		if (DEBUG) {
-			System.out.println("export done: " + action);
+			System.out.println("InitTreeTransferHandler: export done: " + action);
 		}
 	}
 	

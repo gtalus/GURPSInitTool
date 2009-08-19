@@ -78,10 +78,10 @@ public class GroupManager extends JFrame
 
 	@Override
 	public void valueChanged(TreeSelectionEvent e) {
-		if (DEBUG) { System.out.println("Event: " + e.toString()); }
+		if (DEBUG) { System.out.println("GroupManager: Event: " + e.toString()); }
 		ActorTableModel tableModel = (ActorTableModel) groupTable.getModel();
 		if (groupTree.getLastSelectedPathComponent() != null) {
-			if (DEBUG) { System.out.println("Current Selection: " + groupTree.getLastSelectedPathComponent().toString()); }
+			if (DEBUG) { System.out.println("GroupManager: Current Selection: " + groupTree.getLastSelectedPathComponent().toString()); }
 			GroupTreeNode node = (GroupTreeNode) groupTree.getLastSelectedPathComponent();
 			if (!node.isFolder()) {
 				tableModel.setActorList(node.getActorList());
@@ -93,7 +93,7 @@ public class GroupManager extends JFrame
 			}
 		}
 		else {
-			if (DEBUG) { System.out.println("Current Selection: null"); }
+			if (DEBUG) { System.out.println("GroupManager: Current Selection: null"); }
 			groupTable.setVisible(false);
 			tableModel.setActorList(null);
 		}

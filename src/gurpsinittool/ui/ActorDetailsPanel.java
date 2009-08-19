@@ -321,7 +321,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     private void hpPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_hpPropertyChange
         // TODO add your handling code here:
         if(actorLoaded && evt.getPropertyName().equals("value")) {
-           	if (DEBUG) { System.out.println("HP Property change event (" + evt.getNewValue() + ") " + evt.getPropertyName() + ": " + evt.toString()); }
+           	if (DEBUG) { System.out.println("ActorDetailsPanel: HP Property change event (" + evt.getNewValue() + ") " + evt.getPropertyName() + ": " + evt.toString()); }
             actorModel.setValueAt(((Long) hp.getValue()).intValue(), selectedActor, ActorTableModel.columns.HP.ordinal());
         }
     }//GEN-LAST:event_hpPropertyChange
@@ -343,7 +343,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
         	//String newValue = ((JComboBox)evt.getSource()).getSelectedItem().toString();
         	//String oldValue = actorModel.getActor(initTable.getSelectedRow()).State.toString();
             //if (!newValue.equals(oldValue)) {
-        		if (DEBUG) { System.out.println("State action performed event " + evt.toString()); }
+        		if (DEBUG) { System.out.println("ActorDetailsPanel: State action performed event " + evt.toString()); }
             	actorModel.setValueAt(((JComboBox)evt.getSource()).getSelectedItem().toString(), selectedActor, ActorTableModel.columns.State.ordinal());
             //}
         }
@@ -373,7 +373,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 
     private void fieldFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldFocusGained
         // TODO add your handling code here:
-    	if (DEBUG) { System.out.println("Focus gained on " + evt.toString()); }
+    	if (DEBUG) { System.out.println("ActorDetailsPanel: Focus gained on " + evt.toString()); }
     	JFormattedTextField t = (JFormattedTextField) evt.getComponent();
     	t.setText(t.getText());
     	t.selectAll();
@@ -486,13 +486,13 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 	
  	@Override
 	public void tableChanged(TableModelEvent e) {
-		if (DEBUG) { System.out.println("Table Model event: type = " + e.getType() + ", " + e.toString()); }
+		if (DEBUG) { System.out.println("ActorDetailsPanel: Table Model event: type = " + e.getType() + ", " + e.toString()); }
 		refreshActor();
 	}
 	
 	@Override
 	public void valueChanged(ListSelectionEvent e) {
-		if (DEBUG) { System.out.println("List Selection event: " + e.getSource().toString()); }
+		if (DEBUG) { System.out.println("ActorDetailsPanel: List Selection event: " + e.getSource().toString()); }
 		if(!e.getValueIsAdjusting()) {
 			refreshActor();
 		}

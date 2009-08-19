@@ -36,7 +36,7 @@ public class InitTable extends JTable
 	 */
 	//private static final long serialVersionUID = 1L;
 
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 
 	private JPopupMenu popupMenu;
 	private ActorTableModel tableModel;
@@ -56,20 +56,20 @@ public class InitTable extends JTable
 	}
 
     public void actionPerformed(ActionEvent e) {
-    	if (DEBUG) { System.out.println("Received action command " + e.getActionCommand()); }
+    	if (DEBUG) { System.out.println("InitTable: Received action command " + e.getActionCommand()); }
     	if ("Delete".equals(e.getActionCommand())) { // Delete selected rows
     		int[] rows = getSelectedRows();
     		int result = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete these rows?", "Confirm Row Delete", JOptionPane.OK_CANCEL_OPTION);
     		if (result == JOptionPane.OK_OPTION) {
     			for (int i = rows.length-1; i >= 0; i--) {  // Go from bottom up to preserve numbering
-    				if (DEBUG) { System.out.println("Deleting row: " + rows[i]); }   			
+    				if (DEBUG) { System.out.println("InitTable: Deleting row: " + rows[i]); }   			
     				tableModel.removeActor(rows[i]); // Just remove the rows indicated: not all instances of clones
     			}
     		}
     	}
       	if ("Set Active".equals(e.getActionCommand())) { // Clone selected rows at the end (as "Haste" spell)
       		int[] rows = getSelectedRows();
-      		if (DEBUG) { System.out.println("Setting active actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).Name); }   	
+      		if (DEBUG) { System.out.println("InitTable: Setting active actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).Name); }   	
       		tableModel.setActiveRow(rows[0]); // sets actor as current active, and sets state to active
        		for (int i = 0; i < rows.length; i++) {
        			tableModel.setValueAt("Active", rows[i], ActorTableModel.columns.State.ordinal());
@@ -78,7 +78,7 @@ public class InitTable extends JTable
 //     	if ("Clone".equals(e.getActionCommand())) { // Clone selected rows at the end (as "Haste" spell)
 //     		Actor[] actors = tableModel.getActors(getSelectedRows());
 //    		for (int i = 0; i < actors.length; i++) {
-//    		   	if (DEBUG) { System.out.println("Cloning actor: " + actors[i].Name); }   			
+//    		   	if (DEBUG) { System.out.println("InitTable: Cloning actor: " + actors[i].Name); }   			
 //    			tableModel.addActor(actors[i], tableModel.getRowCount()-1); // Add actor to the end of the table
 //    		}
 //    	}

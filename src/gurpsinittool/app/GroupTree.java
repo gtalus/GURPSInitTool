@@ -2,21 +2,11 @@ package gurpsinittool.app;
 
 import gurpsinittool.ui.ActorDetailsPanel;
 
-import java.awt.datatransfer.Transferable;
-import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DragSource;
-import java.awt.dnd.DragSourceDragEvent;
-import java.awt.dnd.DragSourceDropEvent;
-import java.awt.dnd.DragSourceEvent;
-import java.awt.dnd.DragSourceListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 
 import javax.swing.DropMode;
 import javax.swing.JMenuItem;
@@ -30,7 +20,7 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 public class GroupTree extends JTree 
-	implements ActionListener, DragSourceListener{
+	implements ActionListener {
 
 	private static final boolean DEBUG = true;
 	
@@ -94,19 +84,19 @@ public class GroupTree extends JTree
 	}
 	
 	public void actionPerformed(ActionEvent e) {
-    	if (DEBUG) { System.out.println("Received action command " + e.getActionCommand()); }
+    	if (DEBUG) { System.out.println("GroupTree: Received action command " + e.getActionCommand()); }
     	if ("New Folder".equals(e.getActionCommand())) { // Add folder
 			DefaultMutableTreeNode newFolder = addFolder("New Folder...");
 			TreePath folderPath = new TreePath(newFolder.getPath());
 			selectionModel.setSelectionPath(folderPath);
-	    	if (DEBUG) { System.out.println("Added new node. User object " + newFolder.getUserObject().getClass()); }
+	    	if (DEBUG) { System.out.println("GroupTree: Added new node. User object " + newFolder.getUserObject().getClass()); }
 	    	startEditingAtPath(folderPath);	
     	}
 		else if ("New Group".equals(e.getActionCommand())) { // Add group
 			DefaultMutableTreeNode newGroup = addGroup("New Group...");
 			TreePath groupPath = new TreePath(newGroup.getPath());
 			selectionModel.setSelectionPath(groupPath);
-	    	if (DEBUG) { System.out.println("Added new node. User object " + newGroup.getUserObject().getClass()); }
+	    	if (DEBUG) { System.out.println("GroupTree: Added new node. User object " + newGroup.getUserObject().getClass()); }
 	    	startEditingAtPath(groupPath);
 		}
 		else if ("Delete".equals(e.getActionCommand())) { // Delete selected rows
@@ -154,6 +144,10 @@ public class GroupTree extends JTree
     	return menuItem;
     }
     
+    public InitTable getGroupTable() {
+    	return groupTable;
+    }
+    
     /**
      * Determine where a new node should be placed, based on the current selection
      * @return The TreePath where the new component should be inserted
@@ -164,12 +158,12 @@ public class GroupTree extends JTree
     	TreePath selectionPath = getSelectionPath();
     	if (selectionPath == null) {
 	        //There is no selection. Insert after the last child of the root node
-        	if (DEBUG) { System.out.println("Inserting child at root node " + rootNode.getChildCount()); }
+        	if (DEBUG) { System.out.println("GroupTree: Inserting child at root node " + rootNode.getChildCount()); }
     		treeModel.insertNodeInto(child, rootNode, rootNode.getChildCount());
 	    } 
     	else {
     		GroupTreeNode node = (GroupTreeNode) selectionPath.getLastPathComponent();
-        	if (DEBUG) { System.out.println("Inserting child. Selection is node: " + node.toString()); }
+        	if (DEBUG) { System.out.println("GroupTree: Inserting child. Selection is node: " + node.toString()); }
    		
     		if (node.isFolder()) { // insert after last child node
     			treeModel.insertNodeInto(child, node, node.getChildCount());
@@ -210,39 +204,5 @@ public class GroupTree extends JTree
 	   			popupMenu.show(e.getComponent(), e.getX(), e.getY());
 	        }
 	    }
-	}
-
-	@Override
-	public void dragDropEnd(DragSourceDropEvent dsde) {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void dragEnter(DragSourceDragEvent dsde) {
-		// TODO Auto-generated method stub
-   		if (DEBUG) { System.out.println("Drag has entered the tree..."); }
-
-		Transferable t = dsde.getDragSourceContext().getTransferable();
-		if (t.isDataFlavorSupported(GroupTreeTransferHandler.actorGroupFlavor)) 
-			setDropMode(DropMode.INSERT);
-		else if ( t.isDataFlavorSupported(InitTableTransferHandler.initTableActorFlavor)
-				|| t.isDataFlavorSupported(InitTableTransferHandler.groupTableActorFlavor)){
-			setDropMode(DropMode.ON);
-		}
-	}
-
-	@Override
-	public void dragExit(DragSourceEvent dse) {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void dragOver(DragSourceDragEvent dsde) {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void dropActionChanged(DragSourceDragEvent dsde) {
-		// TODO Auto-generated method stub
 	}
 }

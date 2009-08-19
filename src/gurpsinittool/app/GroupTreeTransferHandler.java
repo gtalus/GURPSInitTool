@@ -10,6 +10,7 @@ import java.util.ArrayList;
 
 import javax.swing.DropMode;
 import javax.swing.JComponent;
+import javax.swing.JTable;
 import javax.swing.JTree;
 import javax.swing.TransferHandler;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -46,6 +47,7 @@ public class GroupTreeTransferHandler extends TransferHandler {
         JTree.DropLocation dl = (JTree.DropLocation) support.getDropLocation();
         TreePath insertPath = dl.getPath();
         //int insertIndex = dl.getChildIndex();  
+        if (insertPath == null) {return false; }
         GroupTreeNode parentNode = (GroupTreeNode) (insertPath.getLastPathComponent());
 
         if (support.isDataFlavorSupported(actorGroupFlavor)) {
@@ -78,51 +80,85 @@ public class GroupTreeTransferHandler extends TransferHandler {
         JTree.DropLocation dl = (JTree.DropLocation) support.getDropLocation();
         TreePath insertPath = dl.getPath();
         int insertIndex = dl.getChildIndex();  
-        DefaultMutableTreeNode parentNode = (DefaultMutableTreeNode) (insertPath.getLastPathComponent());
+        GroupTreeNode parentNode = (GroupTreeNode) (insertPath.getLastPathComponent());
         Transferable t = support.getTransferable();
  		int action = support.getDropAction();
        
-		if (DEBUG) { System.out.println("Retrieving node data..."); }
-		//tree.clearSelection(); // Make sure that no one keeps a reference to the old node
-		GroupTreeNode transferNode;
-		try {
-			transferNode = (GroupTreeNode) t.getTransferData(actorGroupFlavor);
-        } catch (UnsupportedFlavorException e) {
-    		if (DEBUG) { System.out.println("-E- Unsupported Flavor Exception"); }
-        	return false;
-        } catch (IOException e) {
-    		if (DEBUG) { System.out.println("-E- IO Exception"); }
-        	return false;
-        }
-		TreePath transferPath = new TreePath(transferNode.getPath());
-
-        // Check whether the destination is within the source, and disallow for move (will cause entire tree to be deleted)
- 		if (action == MOVE && insertPath.getPathCount() >= transferPath.getPathCount()) { // Insert path must be longer or equal
- 	        if (DEBUG) { System.out.println("Comparing paths: " + insertPath + " vs " + transferPath); }
-	        for (int i = 0; i < transferPath.getPathCount(); i++) {
-	            if (DEBUG) { System.out.println("Checking node path: " + (insertPath.getPath())[i] + " vs " + (transferPath.getPath())[i]); }
-	        	if (!(insertPath.getPath())[i].toString().equals((transferPath.getPath())[i].toString())) {
-		            if (DEBUG) { System.out.println(" Paths are NOT identical: allowing move"); }
-	        		break;
-	        	}
-	        	if (i == transferPath.getPathCount()-1) {
-		            if (DEBUG) { System.out.println(" Paths are identical: disallowing move"); }
-	        		return false;
-	        	}
+ 		if (support.isDataFlavorSupported(actorGroupFlavor)) { // Get node
+ 			if (DEBUG) { System.out.println("GroupTreeTransferHandler: Retrieving node data..."); }
+			//tree.clearSelection(); // Make sure that no one keeps a reference to the old node
+			GroupTreeNode transferNode;
+			try {
+				transferNode = (GroupTreeNode) t.getTransferData(actorGroupFlavor);
+	        } catch (UnsupportedFlavorException e) {
+	    		if (DEBUG) { System.out.println("GroupTreeTransferHandler: -E- Unsupported Flavor Exception"); }
+	        	return false;
+	        } catch (IOException e) {
+	    		if (DEBUG) { System.out.println("GroupTreeTransferHandler: -E- IO Exception"); }
+	        	return false;
+	        }
+			TreePath transferPath = new TreePath(transferNode.getPath());
+	
+	        // Check whether the destination is within the source, and disallow for move (will cause entire tree to be deleted)
+	 		if (action == MOVE && insertPath.getPathCount() >= transferPath.getPathCount()) { // Insert path must be longer or equal
+	 	        if (DEBUG) { System.out.println("GroupTreeTransferHandler: Comparing paths: " + insertPath + " vs " + transferPath); }
+		        for (int i = 0; i < transferPath.getPathCount(); i++) {
+		            if (DEBUG) { System.out.println("GroupTreeTransferHandler: Checking node path: " + (insertPath.getPath())[i] + " vs " + (transferPath.getPath())[i]); }
+		        	if (!(insertPath.getPath())[i].toString().equals((transferPath.getPath())[i].toString())) {
+			            if (DEBUG) { System.out.println("GroupTreeTransferHandler:  Paths are NOT identical: allowing move"); }
+		        		break;
+		        	}
+		        	if (i == transferPath.getPathCount()-1) {
+			            if (DEBUG) { System.out.println("GroupTreeTransferHandler:  Paths are identical: disallowing move"); }
+		        		return false;
+		        	}
+		        }
+	 		}
+        
+	        if (DEBUG) { System.out.println("GroupTreeTransferHandler: Inserting node " + transferPath.toString() + " @ " + insertIndex); }
+			// Detect whether to insert at end, or in the middle of the list
+	 		if (insertIndex >= 0) {
+				treeModel.insertNodeInto(transferNode, parentNode, insertIndex);
+			}
+			else {
+				treeModel.insertNodeInto(transferNode, parentNode, parentNode.getChildCount());
+			}
+	 		if (action == MOVE)
+	 			tree.setSelectionPath(new TreePath(transferNode.getPath())); // Select the newly moved group
+ 		}
+ 		else { // Get actors 
+	    	if (parentNode.isFolder()) { System.out.println("GroupTreeTransferHandler: -E- attempting to drop rows on folder!"); return false; }
+			Actor[] actorRows;
+ 			if (DEBUG) { System.out.println("GroupTreeTransferHandler: Retrieving actor data..."); }
+			try {
+	       		actorRows = (Actor[]) t.getTransferData(InitTableTransferHandler.initTableActorFlavor); // Don't really care which flavor it is
+	        } catch (UnsupportedFlavorException e) {
+	    		if (DEBUG) { System.out.println("GroupTreeTransferHandler: -E- Unsupported Flavor Exception"); }
+	        	return false;
+	        } catch (IOException e) {
+	    		if (DEBUG) { System.out.println("GroupTreeTransferHandler: -E- IO Exception"); }
+	        	return false;
+	        }
+	    	if (DEBUG) { System.out.println("GroupTreeTransferHandler:  Transferable data retrieved."); }
+	
+	        ArrayList<Actor> actorList = parentNode.getActorList();
+	        // Refresh current group table, since it might be selected
+	        if (parent.getSelectionPath().getLastPathComponent().equals(parentNode)) { // If data is being displayed, add new Actors through the ActorTableModel
+	        	if (DEBUG) { System.out.println("GroupTreeTransferHandler: Selected node is changing"); }
+	        	ActorTableModel model = (ActorTableModel) parent.getGroupTable().getModel();
+	        	for (int i = actorRows.length-1; i >= 0; i--) { // Actors added from bottom up, excluding new row
+		        	if (DEBUG) { System.out.println("GroupTreeTransferHandler: Adding actor through ActorTableModel # " + i); }
+		        	model.addActor(actorRows[i], model.getRowCount()-1);
+		        }	        	
+	        }
+	        else {
+		        for (int i = actorRows.length-1; i >= 0; i--) { // Actors added from bottom up, excluding new row
+		        	if (DEBUG) { System.out.println("GroupTreeTransferHandler: Adding actor # " + i); }
+		        	actorList.add(actorList.size()-1, actorRows[i]);
+		        }
 	        }
  		}
-        
-        if (DEBUG) { System.out.println("Inserting node " + transferPath.toString() + " @ " + insertIndex); }
-		// Detect whether to insert at end, or in the middle of the list
- 		if (insertIndex >= 0) {
-			treeModel.insertNodeInto(transferNode, parentNode, insertIndex);
-		}
-		else {
-			treeModel.insertNodeInto(transferNode, parentNode, parentNode.getChildCount());
-		}
- 		if (action == MOVE)
- 			tree.setSelectionPath(new TreePath(transferNode.getPath())); // Select the newly moved group
-		
+ 		
         return true;
 	}
 		
@@ -144,7 +180,7 @@ public class GroupTreeTransferHandler extends TransferHandler {
 	
 	@Override
 	protected void exportDone(JComponent source, Transferable data, int action) {
-		if (DEBUG) { System.out.println("export done: " + action); }
+		if (DEBUG) { System.out.println("GroupTreeTransferHandler: export done: " + action); }
     	GroupTree tree = (GroupTree) source;
     	DefaultTreeModel treeModel = (DefaultTreeModel) tree.getModel();
     	GroupTreeNode transferNode;
@@ -157,7 +193,7 @@ public class GroupTreeTransferHandler extends TransferHandler {
         }
         TreePath transferPath = new TreePath(transferNode.getPath());
  		if (action == MOVE) {
-    		if (DEBUG) { System.out.println(" Removing path that was transfered: " + transferPath.toString()); }
+    		if (DEBUG) { System.out.println("GroupTreeTransferHandler:  Removing path that was transfered: " + transferPath.toString()); }
 	        treeModel.removeNodeFromParent(transferNode);
         }
  		else if (action == COPY) {
@@ -183,7 +219,7 @@ public class GroupTreeTransferHandler extends TransferHandler {
 		       throws UnsupportedFlavorException, IOException
 		  {
 		    if (flavor.equals(actorGroupFlavor)) {
-		   		if (DEBUG) { System.out.println(" Exporting data to " + flavor + " flavor, path: " + (new TreePath(transferNode.getPath())).toString()); }
+		   		if (DEBUG) { System.out.println("GroupTreeTransferHandler:  Exporting data to " + flavor + " flavor, path: " + (new TreePath(transferNode.getPath())).toString()); }
 		    	return transferNode;
 		    }
 		    else throw new UnsupportedFlavorException(flavor);

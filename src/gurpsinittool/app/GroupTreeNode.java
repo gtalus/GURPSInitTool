@@ -11,8 +11,6 @@ import gurpsinittool.test.RandomData;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 public class GroupTreeNode extends DefaultMutableTreeNode {
-
-	private static final boolean DEBUG = true;
 	
 	private boolean isFolder;
 	private ArrayList<Actor> actorList;
