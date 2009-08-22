@@ -10,10 +10,8 @@ import java.util.ArrayList;
 
 import javax.swing.DropMode;
 import javax.swing.JComponent;
-import javax.swing.JTable;
 import javax.swing.JTree;
 import javax.swing.TransferHandler;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 

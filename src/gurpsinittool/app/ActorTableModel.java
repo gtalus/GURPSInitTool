@@ -207,24 +207,31 @@ public class ActorTableModel extends AbstractTableModel {
 	
 	/**
 	 * Set next actor as active
+	 * @return Whether a new round has started.
 	 */
-	public void nextActor() {
+	public boolean nextActor() {
 		if (activeActor != -1) {
 			fireTableCellUpdated(activeActor, 0);
 		}
-		nextActorInternal();
+		boolean isNewRound = nextActorInternal();
 		fireTableCellUpdated(activeActor, 0);
+		return isNewRound;
 	}
 	
 	/**
 	 * Calculate the next actor without updating the table
+	 * @return Whether a new round has started.
 	 */
-	protected void nextActorInternal() {
+	protected boolean nextActorInternal() {
+		boolean isNewRound = (activeActor == -1);
 		do {
 			activeActor++;
-			if (activeActor >= actorList.size() - 1) // Remember that the last entry is 'new...'
+			if (activeActor >= actorList.size() - 1) { // Remember that the last entry is 'new...'
 				activeActor = 0;
+				isNewRound = true;
+			}
 		} while (actorList.get(activeActor).State != Actor.ActorState.Active & actorList.get(activeActor).State != Actor.ActorState.Disabled);
+		return isNewRound;
 	}
 
 	/**
@@ -251,6 +258,14 @@ public class ActorTableModel extends AbstractTableModel {
 		}
 	}
 
+	/**
+	 * Reset the encounter. Set the active actor to -1
+	 */
+	public void resetEncounter() {
+		fireTableCellUpdated(activeActor, 0);
+		activeActor = -1;
+	}
+	
 	/**
 	 * Set the list of actors to the ArrayList<Actor> specified. Redraw table.
 	 * @param actorList : the new ArrayList<Actor> to use as the base for the ActorTableModel

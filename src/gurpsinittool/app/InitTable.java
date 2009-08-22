@@ -20,9 +20,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableModel;
 
 import gurpsinittool.app.ActorTableModel.columns;
 import gurpsinittool.data.*;
@@ -67,7 +65,15 @@ public class InitTable extends JTable
     			}
     		}
     	}
-      	if ("Set Active".equals(e.getActionCommand())) { // Clone selected rows at the end (as "Haste" spell)
+    	else if ("Reset".equals(e.getActionCommand())) { // Delete selected rows
+      		int[] rows = getSelectedRows();
+      		if (DEBUG) { System.out.println("InitTable: Resetting actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).Name); }   	
+       		for (int i = 0; i < rows.length; i++) {
+       			tableModel.setValueAt("Active", rows[i], ActorTableModel.columns.State.ordinal());
+       			tableModel.setValueAt(0, rows[i], ActorTableModel.columns.Damage.ordinal());
+       		}
+    	}
+    	else if ("Set Active".equals(e.getActionCommand())) { // Clone selected rows at the end (as "Haste" spell)
       		int[] rows = getSelectedRows();
       		if (DEBUG) { System.out.println("InitTable: Setting active actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).Name); }   	
       		tableModel.setActiveRow(rows[0]); // sets actor as current active, and sets state to active
@@ -165,6 +171,7 @@ public class InitTable extends JTable
         popupMenu.add(menuFile);
         if (isInitTable) { popupMenu.add(createMenuItem("Set Active", KeyEvent.VK_A)); }
         //popupMenu.add(createMenuItem("Clone", KeyEvent.VK_C));
+        popupMenu.add(createMenuItem("Reset", KeyEvent.VK_R));
         popupMenu.add(createMenuItem("Delete", KeyEvent.VK_DELETE));
         MousePopupListener popupListener = new MousePopupListener();
         addMouseListener(popupListener);
@@ -179,10 +186,11 @@ public class InitTable extends JTable
 	}
 	
 	/**
-	 * Advance current Actor
+	 * Advance current Actor. Should only be called for initTable, not groupTable.
+	 * @return Whether a new round has started.
 	 */
-	public void nextActor() {
-		tableModel.nextActor();
+	public boolean nextActor() {	
+		return tableModel.nextActor();
 	}
 	
 	/**
@@ -212,6 +220,13 @@ public class InitTable extends JTable
 			return newrows;
 		}	
 		return rows;
+	}
+	
+	/**
+	 * Reset the encounter. Set the active actor to -1
+	 */
+	public void resetEncounter() {
+		tableModel.resetEncounter();
 	}
    
 	/**

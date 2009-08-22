@@ -12,18 +12,16 @@
 package gurpsinittool.ui;
 
 import java.awt.Color;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.JComboBox;
+import javax.swing.JFormattedTextField;
 
 import gurpsinittool.app.*;
 import gurpsinittool.data.Actor;
-import javax.swing.JComboBox;
-import javax.swing.JFormattedTextField;
+
 
 /**
  *

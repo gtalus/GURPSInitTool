@@ -40,12 +40,13 @@ public class InitTableTransferHandler extends TransferHandler {
 				&& !support.isDataFlavorSupported(GroupTreeTransferHandler.actorGroupFlavor))
 			return false;
 
-		// Don't allow dropping below the 'new...' row
+		// Don't allow dropping below the 'new...' row 
+		// Actually allow it, but just put them before the new row
 	    JTable.DropLocation dl = (JTable.DropLocation) support.getDropLocation();
 	    InitTable table = (InitTable) support.getComponent();
 	    int row = dl.getRow(); 
 	    if (row == table.getRowCount())
-	    	return false;
+	    	support.setShowDropLocation(false);
 	      
 		// Set Drop Action based on whether this is a cross-table drag.
 		// If the table types do not match, then set action to copy

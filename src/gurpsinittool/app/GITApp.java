@@ -3,9 +3,11 @@ package gurpsinittool.app;
 import javax.swing.*;  
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.Properties;
 
 import gurpsinittool.data.*;
 import gurpsinittool.ui.*;
@@ -13,9 +15,12 @@ import gurpsinittool.ui.*;
 public class GITApp // extends JPanel
 	implements ActionListener {
 
+	private static final boolean DEBUG = true;
 	private InitTable initTable;
 	private ActorDetailsPanel detailsPanel;
 	private GroupManager groupManager;
+	private Properties propertyBag;
+	private JLabel roundCounter;
 	
     /**
      * Create the GUI and show it.  For thread safety,
@@ -31,7 +36,9 @@ public class GITApp // extends JPanel
         //frame.setContentPane(contentPanel);
         
         // The group Manager
-        mainApp.groupManager = new GroupManager();
+        Properties propertyBag = new Properties();
+        mainApp.propertyBag = propertyBag;
+        mainApp.groupManager = new GroupManager(propertyBag);
         
         // The main menu bar
         JMenuBar menubar = new JMenuBar();
@@ -47,24 +54,44 @@ public class GITApp // extends JPanel
         //first button
         JButton button = new JButton();
         button.setIcon(new ImageIcon("src/resources/images/control_play_blue.png", "Next Actor"));
-      // button.setText("Forward");
+        button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
+        //button.setText("Forward");
         button.setToolTipText("Step to next actor");
         button.setActionCommand("nextActor");
         button.setMnemonic(KeyEvent.VK_N);
         button.addActionListener(mainApp);
         toolbar.add(button);
-        //first button
+        // Round counter labels
+        JLabel label = new JLabel("Round:");
+        label.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 5));
+        toolbar.add(label);
+        label = new JLabel("0");
+        //label.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        label.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
+        //label.setMinimumSize(new java.awt.Dimension(20, 20));
+        //label.setMaximumSize(new java.awt.Dimension(20, 20));
+        label.setPreferredSize(new java.awt.Dimension(20, 20));
+        mainApp.roundCounter = label; 
+        toolbar.add(label);
+        // Reset round counter buffer
+        button = new JButton();
+        button.setIcon(new ImageIcon("src/resources/images/control_start_blue.png", "Reset Encounter"));
+        button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
+        button.setToolTipText("Resen the round counter");
+        button.setActionCommand("resetRound");
+        button.setMnemonic(KeyEvent.VK_R);
+        button.addActionListener(mainApp);
+        toolbar.add(button);
+        //Group manager button & horizontal glue
         toolbar.add(Box.createHorizontalGlue());
-        JButton button2 = new JButton();
-        button2.setIcon(new ImageIcon("src/resources/images/group.png", "Group Manager"));
-      // button.setText("Forward");
-        button2.setToolTipText("Manage Actor Groups");
-        button2.setActionCommand("openGroupManager");
-        button2.setMnemonic(KeyEvent.VK_N);
-        button2.addActionListener(mainApp);
-        //button2.setAlignmentY(1000);
-        //button2.setLocation(500,500);
-        toolbar.add(button2);
+        button = new JButton();
+        button.setIcon(new ImageIcon("src/resources/images/group.png", "Group Manager"));
+        button.setToolTipText("Manage Actor Groups");
+        button.setActionCommand("openGroupManager");
+        button.setMnemonic(KeyEvent.VK_N);
+        button.addActionListener(mainApp);
+        toolbar.add(button);
         toolbar.setRollover(true);
         frame.getContentPane().add(toolbar, BorderLayout.PAGE_START);
  
@@ -127,7 +154,18 @@ public class GITApp // extends JPanel
     //@Override
     public void actionPerformed(ActionEvent e) {
     	if ("nextActor".equals(e.getActionCommand())) {
-    		initTable.nextActor();
+    		if(initTable.nextActor()) {
+    			Integer currentRound = Integer.valueOf(roundCounter.getText()) + 1;
+    			roundCounter.setText(currentRound.toString());
+    			int minimumWidth = roundCounter.getMinimumSize().width/10 * 10;
+    			if (roundCounter.getMinimumSize().width + 1  % 10 != 0) { minimumWidth += 10; }
+    			roundCounter.setPreferredSize(new Dimension(minimumWidth, 20));
+    			if (DEBUG) { System.out.println("Minimum round cunter size = " + roundCounter.getMinimumSize().toString()); }
+    		}
+    	}	
+    	if ("resetRound".equals(e.getActionCommand())) {
+    		roundCounter.setText("0");
+    		initTable.resetEncounter();
     	}	
     	else if ("openGroupManager".equals(e.getActionCommand())) {
     		groupManager.setVisible(true);

@@ -2,19 +2,22 @@ package gurpsinittool.app;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.util.Properties;
 
 import gurpsinittool.data.ActorGroupFile;
 import gurpsinittool.ui.ActorDetailsPanel;
 
 import javax.swing.GroupLayout;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
@@ -24,7 +27,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.tree.DefaultTreeModel;
 
 public class GroupManager extends JFrame 
-	implements TreeSelectionListener, ActionListener {
+	implements TreeSelectionListener, ActionListener, ItemListener {
 	
 	private static final boolean DEBUG = true;
 
@@ -40,13 +43,17 @@ public class GroupManager extends JFrame
 	private GroupTree groupTree;
 	
 	private File saveAsFile;
+	private Properties propertyBag;
 	
-	public GroupManager() {
+	public GroupManager(Properties propertyBag) {
 		super("Group Manager");
+		this.propertyBag = propertyBag;
+		
         //Create and set up the window.	
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
  
         // The menu bar
+        jMenuBar = new JMenuBar();
         jMenu = new JMenu("File");
         jMenu.setMnemonic(KeyEvent.VK_F);
         JMenuItem menuItem = new JMenuItem("New", KeyEvent.VK_N);
@@ -65,9 +72,16 @@ public class GroupManager extends JFrame
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
         menuItem.getAccessibleContext().setAccessibleDescription("Save the group list");
         menuItem.addActionListener(this);
-        
         jMenu.add(menuItem);
-        jMenuBar = new JMenuBar();
+        jMenuBar.add(jMenu);
+        jMenu = new JMenu("View");
+        jMenu.setMnemonic(KeyEvent.VK_V);
+        menuItem = new JCheckBoxMenuItem("Actor Details");
+        //((JCheckBoxMenuItem) menuItem).setSelected(true);
+        menuItem.setSelected(true);
+        menuItem.setMnemonic(KeyEvent.VK_D);
+        menuItem.addItemListener(this);
+        jMenu.add(menuItem);
         jMenuBar.add(jMenu);
         setJMenuBar(jMenuBar);
         
@@ -143,8 +157,49 @@ public class GroupManager extends JFrame
         	groupTree.setModel(new DefaultTreeModel(new GroupTreeNode("Groups",true)));
         	saveAsFile = null;
     	}
+
 	}
 
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+    	if (DEBUG) { System.out.println("GroupManager: Received item state changed " + e.toString()); }
+    	JMenuItem source = (JMenuItem) e.getSource();
+    	if ("Actor Details".equals(source.getText())) { // Show/hide the actor details panel
+         	boolean selected = (e.getStateChange() == ItemEvent.SELECTED);
+         	if (DEBUG) { System.out.println("GroupManager: View/Actor Details item state changed. Selected = " + selected); }
+         	if (selected) {
+                getContentPane().remove(jSplitPaneVertical);
+                jSplitPaneHorizontal.setLeftComponent(jSplitPaneVertical);
+                jSplitPaneHorizontal.setDividerLocation(Integer.valueOf(propertyBag.getProperty("Manager.splitHorizontal.dividerLocation")));
+
+                GroupLayout layout = new GroupLayout(getContentPane());
+                getContentPane().setLayout(layout);
+                layout.setHorizontalGroup(
+                		layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                		.addComponent(jSplitPaneHorizontal, GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+                );
+                layout.setVerticalGroup(
+                	layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                	.addComponent(jSplitPaneHorizontal, GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
+                );           
+         	}
+         	else {
+         		propertyBag.setProperty("Manager.splitHorizontal.dividerLocation", String.valueOf(jSplitPaneHorizontal.getDividerLocation()));
+            	getContentPane().remove(jSplitPaneHorizontal);
+                GroupLayout layout = new GroupLayout(getContentPane());
+                getContentPane().setLayout(layout);
+                layout.setHorizontalGroup(
+                		layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                		.addComponent(jSplitPaneVertical, GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+                );
+                layout.setVerticalGroup(
+                	layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                	.addComponent(jSplitPaneVertical, GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
+                );
+         	}
+    	}
+	}
+	
 	@Override
 	public void valueChanged(TreeSelectionEvent e) {
 		if (DEBUG) { System.out.println("GroupManager: Event: " + e.toString()); }
@@ -178,4 +233,5 @@ public class GroupManager extends JFrame
 			return "InitTool Group (*.igroup)";
 		}
 	}
+
 }
