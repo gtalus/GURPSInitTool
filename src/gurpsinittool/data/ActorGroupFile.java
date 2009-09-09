@@ -28,7 +28,7 @@ public class ActorGroupFile {
 
 	private static final boolean DEBUG = true;
 
-	public static int currentSchemaVer = 0; // Schema version. Incremented when major changes to format are made
+	public static int currentSchemaVer = 1; // Schema version. Incremented when major changes to format are made
 	
 	/**
 	 * Open a file and populate the GroupTree with its contents
@@ -49,20 +49,12 @@ public class ActorGroupFile {
 		}
 		
 		DefaultTreeModel treeModel = new DefaultTreeModel(new GroupTreeNode("Groups",true));
-		GroupTreeNode currentNode = (GroupTreeNode) treeModel.getRoot();
 		// Start reading the file contents
   		if (DEBUG) { System.out.println("ActorGroupFile: Reading input file: " + openFile.getPath()); }   	
 		try {
 			String line;
 			Matcher matcher;
 			Pattern startFile = Pattern.compile("^<GURPSActorGroupList schemaVer=\"(\\d+)\">$");
-			Pattern endFile = Pattern.compile("^</GURPSActorGroupList>$");
-			Pattern startFolder = Pattern.compile("^<GroupFolder name=\"([^\"]+)\">$");
-			Pattern endFolder = Pattern.compile("^</GroupFolder>$");
-			Pattern startGroup = Pattern.compile("^<ActorGroup name=\"([^\"]+)\">$");
-			Pattern endGroup = Pattern.compile("^</ActorGroup>$");
-			Pattern startActor = Pattern.compile("^<Actor name=\"([^\"]+)\" hp=\"([^\"]+)\" damage=\"([^\"]+)\" health=\"([^\"]+)\" state=\"([^\"]+)\" type=\"([^\"]+)\"></Actor>$");
-			//Pattern endActor = Pattern.compile("^</Actor>$");
 				
 			line = input.readLine();
 			if (!(matcher = startFile.matcher(line)).matches()) {
@@ -70,49 +62,28 @@ public class ActorGroupFile {
 				return;
 			}
 			int schemaVer = Integer.parseInt(matcher.group(1));
-			if (DEBUG) { System.out.println("ActorGroupFile: Found start of Group List, schema version: " + schemaVer); }   	
-			line = input.readLine();
-			if (!(matcher = startFolder.matcher(line)).matches()) {
-				System.err.println("Error: second line does not specify start of base folder!");
-				return;
+			if (DEBUG) { System.out.println("ActorGroupFile: Found start of Group List, schema version: " + schemaVer); }   
+			
+			switch (schemaVer) {
+				case 0:
+					readSchema0(input,treeModel);
+					break;
+				case 1:
+					readSchema1(input,treeModel);
+					break;
+				default:
+					if (DEBUG) { System.out.println("ActorGroupFile: Unknown schema verision!"); }   
 			}
-			while( (line = input.readLine()) != null) {
-				if ((matcher = startFolder.matcher(line)).matches()) {
-					String name = matcher.group(1);
-					GroupTreeNode newNode = new GroupTreeNode(name, true);
-					currentNode.add(newNode);
-					currentNode = newNode;
-				}
-				else if ((matcher = startGroup.matcher(line)).matches()) {
-					String name = matcher.group(1);
-					GroupTreeNode newNode = new GroupTreeNode(name, false);
-					currentNode.add(newNode);
-					currentNode = newNode;
-				}
-				else if ((matcher = startActor.matcher(line)).matches()) {
-					Actor actor = new Actor(matcher.group(1), ActorState.valueOf(matcher.group(5)), ActorType.valueOf(matcher.group(6)), 
-							Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(3)));
-					ArrayList<Actor> actorList = currentNode.getActorList();
-					actorList.add(actorList.size()-1, actor);
-				}
-				else if ((matcher = endFolder.matcher(line)).matches()) {
-					currentNode = (GroupTreeNode) currentNode.getParent();
-				}
-				else if ((matcher = endGroup.matcher(line)).matches()) {
-					currentNode = (GroupTreeNode) currentNode.getParent();
-				}
-				else if ((matcher = endFile.matcher(line)).matches()) {
-		      		if (DEBUG) { System.out.println("ActorGroupFile: Found end of Group List"); }   	
-		      		break;
-				}
-			}
+			
+			input.close();
+			file.close();
 		}
-	    catch (IOException ex){
-	        ex.printStackTrace();
-	        return;
-	    }
-	    
-	    // Set Tree model
+		catch (IOException ex){
+			ex.printStackTrace();
+			return;
+		}
+		
+		// Set Tree model
 	    groupTree.setModel(treeModel);
 	}
 	
@@ -184,10 +155,164 @@ public class ActorGroupFile {
 				+ "\" health=\"" + actor.Health
 				+ "\" state=\"" + actor.State.toString()
 				+ "\" type=\"" + actor.Type.toString()
-				+ "\">");
+				+ "\">\n");
+		
+		if (actor.Notes != null)
+			stringWriter.append("<notes>" + actor.Notes + "</notes>\n");
 		
 		stringWriter.append("</Actor>\n");
 		return stringWriter.toString();
+	}
+
+	/**
+	 * Read data formatted using schema 1
+	 * @param input : The data to read, starting after the schema data
+	 * @param treeModel : DefaultTreeModel to populate
+	 */
+	public static void readSchema1(BufferedReader input, DefaultTreeModel treeModel) {
+		GroupTreeNode currentNode = (GroupTreeNode) treeModel.getRoot();
+
+		try {
+			String line;
+			Matcher matcher;
+			Pattern endFile = Pattern.compile("^</GURPSActorGroupList>$");
+			Pattern startFolder = Pattern.compile("^<GroupFolder name=\"([^\"]+)\">$");
+			Pattern endFolder = Pattern.compile("^</GroupFolder>$");
+			Pattern startGroup = Pattern.compile("^<ActorGroup name=\"([^\"]+)\">$");
+			Pattern endGroup = Pattern.compile("^</ActorGroup>$");
+			Pattern startActor = Pattern.compile("^<Actor name=\"([^\"]+)\" hp=\"([^\"]+)\" damage=\"([^\"]+)\" health=\"([^\"]+)\" state=\"([^\"]+)\" type=\"([^\"]+)\">$");
+			Pattern endActor = Pattern.compile("^</Actor>$");
+			Pattern notes = Pattern.compile("^<notes>(.*)</notes>$");
+			Pattern startNotes = Pattern.compile("^<notes>(.*)$");
+			Pattern endNotes = Pattern.compile("^(.*)</notes>$");
+				
+			line = input.readLine();
+			if (!(matcher = startFolder.matcher(line)).matches()) {
+				System.err.println("Error: second line does not specify start of base folder!");
+				return;
+			}
+			while( (line = input.readLine()) != null) {
+				if ((matcher = startFolder.matcher(line)).matches()) {
+					String name = matcher.group(1);
+					GroupTreeNode newNode = new GroupTreeNode(name, true);
+					currentNode.add(newNode);
+					currentNode = newNode;
+				}
+				else if ((matcher = startGroup.matcher(line)).matches()) {
+					String name = matcher.group(1);
+					GroupTreeNode newNode = new GroupTreeNode(name, false);
+					currentNode.add(newNode);
+					currentNode = newNode;
+				}
+				else if ((matcher = startActor.matcher(line)).matches()) {
+					Actor currentActor = new Actor(matcher.group(1), ActorState.valueOf(matcher.group(5)), ActorType.valueOf(matcher.group(6)), 
+							Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(3)));
+					ArrayList<Actor> actorList = currentNode.getActorList();
+					actorList.add(actorList.size()-1, currentActor);
+					// Inside Actor
+					while ((line = input.readLine()) != null) {
+						if ((matcher = endActor.matcher(line)).matches()) {
+							break;
+						}
+						else if ((matcher = notes.matcher(line)).matches()) {
+							currentActor.Notes = matcher.group(1);
+							if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + currentActor.Name + ", Notes: " + currentActor.Notes); }   	
+						}
+						else if ((matcher = startNotes.matcher(line)).matches()) {
+							StringBuilder actorNotes = new StringBuilder(matcher.group(1) + "\n");
+							// Inside Notes
+							while ((line = input.readLine()) != null) {
+								if ((matcher = endNotes.matcher(line)).matches()) {
+									actorNotes.append(matcher.group(1));
+									currentActor.Notes = actorNotes.toString();
+									if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + currentActor.Name + ", Notes: " + currentActor.Notes); }   	
+									break;
+								}	
+								actorNotes.append(line + "\n");
+							}
+						}
+						else if (DEBUG) { System.out.println("ActorGroupFile: Cannot parse line inside Actor: " + line); }   	
+					}
+				}
+				else if ((matcher = endFolder.matcher(line)).matches()) {
+					currentNode = (GroupTreeNode) currentNode.getParent();
+				}
+				else if ((matcher = endGroup.matcher(line)).matches()) {
+					currentNode = (GroupTreeNode) currentNode.getParent();
+				}
+				else if ((matcher = endFile.matcher(line)).matches()) {
+		      		if (DEBUG) { System.out.println("ActorGroupFile: Found end of Group List"); }   	
+		      		break;
+				}
+				else if (DEBUG) { System.out.println("ActorGroupFile: Cannot parse line: " + line); }   	
+			}
+		}
+	    catch (IOException ex){
+	        ex.printStackTrace();
+	        return;
+	    }
+	}
+
+	/**
+	 * Read data formatted using schema 0
+	 * @param input : The data to read, starting after the schema data
+	 * @param treeModel : DefaultTreeModel to populate
+	 */
+	public static void readSchema0(BufferedReader input, DefaultTreeModel treeModel) {
+
+		GroupTreeNode currentNode = (GroupTreeNode) treeModel.getRoot();
+
+		try {
+			String line;
+			Matcher matcher;
+			Pattern endFile = Pattern.compile("^</GURPSActorGroupList>$");
+			Pattern startFolder = Pattern.compile("^<GroupFolder name=\"([^\"]+)\">$");
+			Pattern endFolder = Pattern.compile("^</GroupFolder>$");
+			Pattern startGroup = Pattern.compile("^<ActorGroup name=\"([^\"]+)\">$");
+			Pattern endGroup = Pattern.compile("^</ActorGroup>$");
+			Pattern actor = Pattern.compile("^<Actor name=\"([^\"]+)\" hp=\"([^\"]+)\" damage=\"([^\"]+)\" health=\"([^\"]+)\" state=\"([^\"]+)\" type=\"([^\"]+)\"></Actor>$");
+				
+			line = input.readLine();
+			if (!(matcher = startFolder.matcher(line)).matches()) {
+				System.err.println("Error: second line does not specify start of base folder!");
+				return;
+			}
+			while( (line = input.readLine()) != null) {
+				if ((matcher = startFolder.matcher(line)).matches()) {
+					String name = matcher.group(1);
+					GroupTreeNode newNode = new GroupTreeNode(name, true);
+					currentNode.add(newNode);
+					currentNode = newNode;
+				}
+				else if ((matcher = startGroup.matcher(line)).matches()) {
+					String name = matcher.group(1);
+					GroupTreeNode newNode = new GroupTreeNode(name, false);
+					currentNode.add(newNode);
+					currentNode = newNode;
+				}
+				else if ((matcher = actor.matcher(line)).matches()) {
+					Actor currentActor = new Actor(matcher.group(1), ActorState.valueOf(matcher.group(5)), ActorType.valueOf(matcher.group(6)), 
+							Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(3)));
+					ArrayList<Actor> actorList = currentNode.getActorList();
+					actorList.add(actorList.size()-1, currentActor);
+				}
+				else if ((matcher = endFolder.matcher(line)).matches()) {
+					currentNode = (GroupTreeNode) currentNode.getParent();
+				}
+				else if ((matcher = endGroup.matcher(line)).matches()) {
+					currentNode = (GroupTreeNode) currentNode.getParent();
+				}
+				else if ((matcher = endFile.matcher(line)).matches()) {
+		      		if (DEBUG) { System.out.println("ActorGroupFile: Found end of Group List"); }   	
+		      		break;
+				}
+				else if (DEBUG) { System.out.println("ActorGroupFile: Cannot parse line: " + line); }   	
+			}
+		}
+	    catch (IOException ex){
+	        ex.printStackTrace();
+	        return;
+	    }
 	}
 
 }

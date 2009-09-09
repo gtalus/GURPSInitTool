@@ -37,21 +37,24 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 	private boolean actorLoaded = false;
 	private int selectedActor = -1;
 	
-	// Variables declaration - do not modify//GEN-BEGIN:variables
+    // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton add_attack;
     private javax.swing.JButton add_timer;
     private javax.swing.JPanel attacks;
     private javax.swing.JFormattedTextField damage;
     private javax.swing.JFormattedTextField health;
     private javax.swing.JFormattedTextField hp;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JTextField name;
+    private javax.swing.JTextArea notes;
     private javax.swing.JComboBox status;
     private javax.swing.JComboBox target;
     private javax.swing.JPanel timers;
@@ -98,6 +101,9 @@ public class ActorDetailsPanel extends javax.swing.JPanel
         hp = new javax.swing.JFormattedTextField();
         damage = new javax.swing.JFormattedTextField();
         health = new javax.swing.JFormattedTextField();
+        jLabel1 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        notes = new javax.swing.JTextArea();
 
         jLabel2.setFont(jLabel2.getFont().deriveFont(jLabel2.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel2.setText("Status:");
@@ -236,6 +242,23 @@ public class ActorDetailsPanel extends javax.swing.JPanel
             }
         });
 
+        jLabel1.setFont(jLabel1.getFont().deriveFont(jLabel1.getFont().getStyle() | java.awt.Font.BOLD));
+        jLabel1.setText("Notes:");
+
+        notes.setColumns(20);
+        notes.setRows(5);
+        notes.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                namePropertyChange(evt);
+            }
+        });
+        notes.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                nameTextChanged(evt);
+            }
+        });
+        jScrollPane1.setViewportView(notes);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -244,7 +267,6 @@ public class ActorDetailsPanel extends javax.swing.JPanel
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(timers, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -267,7 +289,17 @@ public class ActorDetailsPanel extends javax.swing.JPanel
                 .addContainerGap())
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(attacks, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabel1)
+                .addContainerGap(197, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(timers, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(attacks, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 222, Short.MAX_VALUE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -300,6 +332,10 @@ public class ActorDetailsPanel extends javax.swing.JPanel
                     .addComponent(target, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 9, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 85, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(timers, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -377,6 +413,20 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     	t.selectAll();
     }//GEN-LAST:event_fieldFocusGained
 
+    private void namePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_namePropertyChange
+        // TODO add your handling code here:
+    	//if (DEBUG) { System.out.println("ActorDetailsPanel: Changing text to: " + notes.getText()); }
+    	//if (selectedActor >= 0)
+    	//	actorModel.getActor(selectedActor).Notes = notes.getText();
+   }//GEN-LAST:event_namePropertyChange
+
+    private void nameTextChanged(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_nameTextChanged
+        // TODO add your handling code here:
+        if (DEBUG) { System.out.println("ActorDetailsPanel: Changing text to: " + notes.getText()); }
+        if(actorLoaded)
+    		actorModel.getActor(selectedActor).Notes = notes.getText();
+    }//GEN-LAST:event_nameTextChanged
+
     /**
      * Disable the panel, setting all values to default
      */
@@ -398,6 +448,8 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     	add_timer.setEnabled(false);
     	target.setSelectedIndex(0);
     	target.setEnabled(false);
+    	notes.setText("");
+    	notes.setEnabled(false);
     }
 
     /**
@@ -413,6 +465,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     	add_attack.setEnabled(true);
     	add_timer.setEnabled(true);
     	target.setEnabled(true);
+    	notes.setEnabled(true);
     }
 
     /**
@@ -465,6 +518,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 	    hp.setValue(((Integer)actor.HP).longValue());
 	    damage.setValue(((Integer)actor.Damage).longValue());
 	    health.setValue(((Integer)actor.Health).longValue());
+	    notes.setText(actor.Notes);
 		actorLoaded = true; // turn property updates back on
 	}
 

@@ -21,6 +21,8 @@ public class Actor
 
 	public String Target; /* maybe this should be a pointer? */
 	
+	public String Notes; /* Free-form notes field */
+	
 	//public Boolean Active; // Is this actor the current active actor
 	
 	public int HP; // total Hit points
