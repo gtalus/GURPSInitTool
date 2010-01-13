@@ -8,19 +8,28 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import javax.swing.DefaultCellEditor;
 import javax.swing.DropMode;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 
 import gurpsinittool.app.ActorTableModel.columns;
 import gurpsinittool.data.*;
@@ -48,6 +57,7 @@ public class InitTable extends JTable
 		this.isInitTable = isInitTable;
 		tableModel = (ActorTableModel) dataModel;
 		initialize();
+	    
 //		if (isInitTable) {
 //			RandomData.RandomActors(tableModel);
 //		}
@@ -123,8 +133,9 @@ public class InitTable extends JTable
  
 	public void initialize() {
 		 //InitTable initTable = new InitTable(new ActorTableModel());
-        setDefaultRenderer(new Object().getClass(), new InitTableCellRenderer());
+        setDefaultRenderer(Object.class, new InitTableCellRenderer());
         setDefaultRenderer(new Integer(0).getClass(), new InitTableCellRenderer());
+        setDefaultEditor(String.class, new InitTableTextCellEditor());
         setTransferHandler(new InitTableTransferHandler("name"));
         setPreferredScrollableViewportSize(new Dimension(800, 270));
         setFillsViewportHeight(true);
@@ -132,6 +143,7 @@ public class InitTable extends JTable
         setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         setDragEnabled(true);
         setDropMode(DropMode.INSERT_ROWS);
+        this.setSurrendersFocusOnKeystroke(true);
 
 		// Set column editors
         JComboBox initTableStateEditor = new JComboBox();
@@ -150,6 +162,9 @@ public class InitTable extends JTable
         initTableTypeEditor.addItem("Special");
         getColumnModel().getColumn(ActorTableModel.columns.Type.ordinal()).setCellEditor(new InitTableComboCellEditor(initTableTypeEditor));
         ((DefaultCellEditor) getColumnModel().getColumn(ActorTableModel.columns.Type.ordinal()).getCellEditor()).setClickCountToStart(2);
+
+        getColumnModel().getColumn(ActorTableModel.columns.Damage.ordinal()).setCellEditor(new InitTableDamageCellEditor());
+        //((DefaultCellEditor) getColumnModel().getColumn(ActorTableModel.columns.Damage.ordinal()).getCellEditor()).setClickCountToStart(1);
 
 		// Table popup menu
         popupMenu = new JPopupMenu();
@@ -228,6 +243,77 @@ public class InitTable extends JTable
 	public void resetEncounter() {
 		tableModel.resetEncounter();
 	}
+	
+	/**
+	 * Modify a component to match it's conditions
+	 * @param component : the component to modify
+	 * @param actor
+	 */
+	public void formatComponentColor(JComponent c, Actor a, boolean isSelected, ActorTableModel.columns col) {
+		
+		if (col == columns.Damage) {
+			c.setForeground(new Color(220,0,0));
+		}
+		else {
+			c.setForeground(new Color(0,0,0));
+		}
+		
+		if (isSelected) {
+			switch (a.Type) {
+			case PC:
+				c.setBackground(new Color(128,255,128));
+				break;
+			case Ally:
+				c.setBackground(new Color(128,128,255));
+				break;
+			case Enemy:
+				c.setBackground(new Color(255,128,128));
+				break;
+			case Neutral:
+				c.setBackground(new Color(128,128,128));
+				break;
+			case Special:
+				c.setBackground(new Color(255,128,255));
+				break;
+			}
+		}
+		else {
+			switch (a.Type) {
+			case PC:
+				c.setBackground(new Color(200,255,200));
+				break;
+			case Ally:
+				c.setBackground(new Color(200,200,255));
+				break;
+			case Enemy:
+				c.setBackground(new Color(255,200,200));
+				break;
+			case Neutral:
+				c.setBackground(new Color(200,200,200));
+				break;
+			case Special:
+				c.setBackground(new Color(255,200,255));
+				break;
+			}
+		}
+		
+		switch (a.State) {
+		case Active:
+			break;
+		case Waiting:
+			break;
+		case Disabled:
+			break;
+		case Unconscious:
+		case Dead:
+			c.setForeground(new Color(128,128,128));
+			break;
+		}
+
+		/*if (hasFocus) {
+			c.setFont(new Font("sansserif", Font.BOLD, 12));
+		}*/
+	}
    
 	/**
 	 * Renderer to deal with all the customizations based on Actor state/type/etc.
@@ -264,70 +350,14 @@ public class InitTable extends JTable
 				c.setIcon(new ImageIcon());
 			}
 			
-			if (isSelected) {
-				switch (a.Type) {
-				case PC:
-					c.setBackground(new Color(128,255,128));
-					break;
-				case Ally:
-					c.setBackground(new Color(128,128,255));
-					break;
-				case Enemy:
-					c.setBackground(new Color(255,128,128));
-					break;
-				case Neutral:
-					c.setBackground(new Color(128,128,128));
-					break;
-				case Special:
-					c.setBackground(new Color(255,128,255));
-					break;
-				}
-			}
-			else {
-				switch (a.Type) {
-				case PC:
-					c.setBackground(new Color(200,255,200));
-					break;
-				case Ally:
-					c.setBackground(new Color(200,200,255));
-					break;
-				case Enemy:
-					c.setBackground(new Color(255,200,200));
-					break;
-				case Neutral:
-					c.setBackground(new Color(200,200,200));
-					break;
-				case Special:
-					c.setBackground(new Color(255,200,255));
-					break;
-				}
-			}
-		
+			formatComponentColor((JComponent)c, a, isSelected, col);
+			
 			c.setHorizontalAlignment(SwingConstants.LEFT);
-			if (col == columns.Damage) {
-				c.setForeground(new Color(220,0,0));
-			}
-			else {
-				c.setForeground(new Color(0,0,0));
-			}
 			switch (a.State) {
-			case Active:
-				break;
 			case Waiting:
 				c.setHorizontalAlignment(SwingConstants.RIGHT);
 				break;
-			case Disabled:
-				break;
-			case Unconscious:
-			case Dead:
-				c.setForeground(new Color(128,128,128));
-				break;
 			}
-			
-			/*if (hasFocus) {
-				c.setFont(new Font("sansserif", Font.BOLD, 12));
-			}*/
-
 			return c;
 		}
 	}
@@ -363,6 +393,200 @@ public class InitTable extends JTable
 	}
 	
 	/**
+	 * Inner class to provide CellEditor functionality
+	 * Allow modification of the text cell editor
+	 * @author dsmall
+	 */
+	class InitTableTextCellEditor extends DefaultCellEditor {
+
+		/**
+		 * Default serial UID
+		 */
+		private static final long serialVersionUID = 1L;
+
+		/**
+		 * Super does not define default constructor, so must define one.
+		 * @param comboBox
+		 */
+		public InitTableTextCellEditor() {
+			super(new JTextField());
+			setClickCountToStart(1);
+		}
+		
+		@Override
+		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+			
+			JTextField c = (JTextField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
+
+			ActorTableModel.columns col = ActorTableModel.columns.values()[column];
+			if (row == table.getRowCount() -1) {
+				c.setBackground(new Color(255,255,255));
+				c.setForeground(new Color(128,128,128));
+				c.setHorizontalAlignment(SwingConstants.LEFT);
+				//c.setIcon(new ImageIcon());
+				return c;
+			}
+			
+			Actor a = ((ActorTableModel)table.getModel()).getActor(row);
+						
+			formatComponentColor((JComponent)c, a, isSelected, col);
+				
+			c.setHorizontalAlignment(SwingConstants.LEFT);		
+			switch (a.State) {
+			case Waiting:
+				c.setHorizontalAlignment(SwingConstants.RIGHT);
+				break;
+			}
+
+			return c;
+		}
+		
+	}
+	
+	/**
+	 * Inner class to provide CellEditor functionality
+	 * Allow modification of the damage cell editor
+	 * @author dsmall
+	 */
+	class InitTableDamageCellEditor extends DefaultCellEditor {
+
+		/**
+		 * Default serial UID
+		 */
+		private static final long serialVersionUID = 1L;
+		private static final boolean DEBUG = true;
+		
+		public InitTableDamageCellEditor() {
+			super(new JTextField());
+			JTextField tf = (JTextField)getComponent();
+			((AbstractDocument) tf.getDocument()).setDocumentFilter(new DamageDocumentFilter());
+			
+			//tf.getDocument().addDocumentListener(this);
+		}
+		
+		//Make sure the value remains an Integer.
+		@Override
+	    public Object getCellEditorValue() {
+	        JTextField tf = (JTextField)getComponent();
+	        try {
+	        	Integer value = new Integer(tf.getText());
+	        	return value;
+	        } catch (NumberFormatException e) {
+	        	return 0;
+	        }
+	    }
+
+		// Parse through the value, and perform any operations. Do a final check to make sure everything is ok.
+		// Keep track of all the intermediate damage steps
+	    public boolean stopCellEditing() {
+	        JTextField tf = (JTextField)getComponent();
+	        String text = tf.getText();
+	        Pattern pattern = Pattern.compile("^(-?\\d+)([\\+-])(\\d+)(.*)$");
+	        Matcher matcher = pattern.matcher(text);
+	        while (matcher.matches()) {
+	        	Integer first = new Integer(matcher.group(1));
+	        	String operator = matcher.group(2);
+	        	Integer second = new Integer(matcher.group(3));
+	        	Integer result;
+	        	if (operator.equals("+")) { result = first + second; }
+	        	else { result = first - second; }
+	        	text = matcher.group(4);
+	        	if (DEBUG) { System.out.println("InitTableDamageCellEditor: Calculating damage: " + first + " : " + operator + " : " + second + " = " + result + " (" + text + ")."); }
+	        	text = result + text;
+	        	matcher = pattern.matcher(text);
+	        }
+	        try {
+	        	new Integer(text);
+	        	tf.setText(text);
+	        	return super.stopCellEditing();
+	        } catch (NumberFormatException e) {
+	        	tf.setBorder(new LineBorder(new Color(220,0,0)));
+	        	
+	        	return false;
+	        }
+	    }
+	    
+		@Override
+		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+			
+			JTextField c = (JTextField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
+			
+			ActorTableModel.columns col = ActorTableModel.columns.values()[column];
+			if (row == table.getRowCount() -1) {
+				c.setBackground(new Color(255,255,255));
+				c.setForeground(new Color(128,128,128));
+				c.setHorizontalAlignment(SwingConstants.LEFT);
+				return c;
+			}
+			
+			Actor a = ((ActorTableModel)table.getModel()).getActor(row);
+						
+			formatComponentColor((JComponent)c, a, isSelected, col);
+				
+			c.setHorizontalAlignment(SwingConstants.LEFT);		
+			switch (a.State) {
+			case Waiting:
+				c.setHorizontalAlignment(SwingConstants.RIGHT);
+				break;
+			}
+
+			c.setBorder(new LineBorder(new Color(255,255,255)));
+			return c;
+		}
+
+		/*@Override
+		public void changedUpdate(DocumentEvent e) {
+			System.out.println("InitTableDamageCellEditor: Document change: " + e.toString() + ".");
+			
+		}
+
+		@Override
+		public void insertUpdate(DocumentEvent e) {
+			System.out.println("InitTableDamageCellEditor: Document insert: " + e.toString() + ".");
+			
+		}
+
+		@Override
+		public void removeUpdate(DocumentEvent e) {
+			System.out.println("InitTableDamageCellEditor: Document remove: " + e.toString() + ".");
+			
+		}*/
+		
+		private class DamageDocumentFilter extends DocumentFilter {
+			
+			boolean startingNew = false;
+			
+			@Override
+			public void insertString(FilterBypass fb, int offs, String str, javax.swing.text.AttributeSet a) throws BadLocationException {
+				System.out.println("InitTableDamageCellEditor: DamageDocumentFilter: Insert:" + str + ".");
+				
+				if (str.matches("[\\d\\+-]+")) {
+					super.insertString(fb, offs, str, a);
+				}
+			}
+			
+			@Override
+			public void replace(FilterBypass fb, int offs, int length, String str, javax.swing.text.AttributeSet a) throws BadLocationException {
+				System.out.println("InitTableDamageCellEditor: DamageDocumentFilter: Replace: '" + str + "', Offs=" + offs + ", Length=" + length + ".");
+				
+				if (length > 0) {
+					startingNew = true;
+					super.replace(fb, offs, length, str, a);
+				}
+				else if (startingNew && str.matches("\\d")) {
+					startingNew = false;
+					super.replace(fb, offs, 0, "+", null);
+					super.replace(fb, offs+1, 0, str, a);
+				}
+				else if (str.matches("[\\d\\+-]+")) {
+					startingNew = false;
+					super.replace(fb, offs, 0, str, a);
+				}
+			}
+		}
+	}
+	
+	/**
 	 * An inner class to check whether mouse events are the pop-up trigger
 	 */
 	class MousePopupListener extends MouseAdapter {
@@ -377,7 +601,7 @@ public class InitTable extends JTable
 	        }
 	    }
 	}
-	
+
 }
 
 

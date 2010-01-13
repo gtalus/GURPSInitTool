@@ -10,6 +10,9 @@ import java.io.Serializable;
 public class Actor 
 	implements Serializable {
 
+	// Default SVUID
+	private static final long serialVersionUID = 1L;
+
 	public String Name;
 	//public int Order; // what is this?
 	
@@ -26,9 +29,11 @@ public class Actor
 	//public Boolean Active; // Is this actor the current active actor
 	
 	public int HP; // total Hit points
-	public int Health; // Health (for saving rolls)
+	public int Health; // HT/Health (for saving rolls)
 	public int Damage; // Amount of damage taken
 	
+	//public int Will; // Will/IQ
+	//public int ST;
 	//public int FP; // probably not useful
 	//public int MP; // probably not useful, but more likely than FP
 	//public int SP; // shock points, probably don't need 

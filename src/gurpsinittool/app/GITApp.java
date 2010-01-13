@@ -118,7 +118,7 @@ public class GITApp // extends JPanel
         //frame.setSize(200,200);
         //frame.pack();
         frame.setVisible(true);
-        mainApp.groupManager.setVisible(true);
+        //mainApp.groupManager.setVisible(true);
     }
 
     public static void main(String[] args) {
