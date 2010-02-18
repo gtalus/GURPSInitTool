@@ -533,28 +533,17 @@ public class InitTable extends JTable
 			c.setBorder(new LineBorder(new Color(255,255,255)));
 			return c;
 		}
-
-		/*@Override
-		public void changedUpdate(DocumentEvent e) {
-			System.out.println("InitTableDamageCellEditor: Document change: " + e.toString() + ".");
-			
-		}
-
-		@Override
-		public void insertUpdate(DocumentEvent e) {
-			System.out.println("InitTableDamageCellEditor: Document insert: " + e.toString() + ".");
-			
-		}
-
-		@Override
-		public void removeUpdate(DocumentEvent e) {
-			System.out.println("InitTableDamageCellEditor: Document remove: " + e.toString() + ".");
-			
-		}*/
 		
 		private class DamageDocumentFilter extends DocumentFilter {
 			
 			boolean startingNew = false;
+			
+			@Override
+			public void remove(FilterBypass fb, int offs, int length) throws BadLocationException {
+				System.out.println("InitTableDamageCellEditor: DamageDocumentFilter: Remove: offs: " + offs + ", len:" + length + ".");
+				startingNew = false;
+				super.remove(fb, offs, length);
+			}
 			
 			@Override
 			public void insertString(FilterBypass fb, int offs, String str, javax.swing.text.AttributeSet a) throws BadLocationException {
