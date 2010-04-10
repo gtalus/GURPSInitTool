@@ -170,7 +170,7 @@ public class ActorTableModel extends AbstractTableModel {
 		case Damage:
 			return actor.Damage;
 		case Health:
-			return actor.Health;
+			return actor.HT;
 		case State:
 			return actor.State;
 		case Type:
@@ -328,7 +328,7 @@ public class ActorTableModel extends AbstractTableModel {
 			a.Damage = (Integer) value;
 			break;
 		case Health:
-			a.Health = (Integer) value;
+			a.HT = (Integer) value;
 			break;
 		case State:
 			a.State = ActorState.valueOf((String) value);

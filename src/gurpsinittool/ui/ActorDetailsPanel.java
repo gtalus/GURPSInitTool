@@ -42,21 +42,28 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     private javax.swing.JButton add_timer;
     private javax.swing.JPanel attacks;
     private javax.swing.JFormattedTextField damage;
-    private javax.swing.JFormattedTextField health;
+    private javax.swing.JFormattedTextField dodge;
+    private javax.swing.JFormattedTextField fatigue;
+    private javax.swing.JFormattedTextField fp;
     private javax.swing.JFormattedTextField hp;
+    private javax.swing.JFormattedTextField ht;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JSeparator jSeparator2;
+    private javax.swing.JFormattedTextField move;
     private javax.swing.JTextField name;
     private javax.swing.JTextArea notes;
     private javax.swing.JComboBox status;
-    private javax.swing.JComboBox target;
     private javax.swing.JPanel timers;
     private javax.swing.JComboBox type;
     // End of variables declaration//GEN-END:variables
@@ -87,7 +94,6 @@ public class ActorDetailsPanel extends javax.swing.JPanel
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
         timers = new javax.swing.JPanel();
         add_timer = new javax.swing.JButton();
@@ -96,14 +102,22 @@ public class ActorDetailsPanel extends javax.swing.JPanel
         name = new javax.swing.JTextField();
         status = new javax.swing.JComboBox();
         type = new javax.swing.JComboBox();
-        target = new javax.swing.JComboBox();
         jLabel7 = new javax.swing.JLabel();
         hp = new javax.swing.JFormattedTextField();
         damage = new javax.swing.JFormattedTextField();
-        health = new javax.swing.JFormattedTextField();
+        ht = new javax.swing.JFormattedTextField();
         jLabel1 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         notes = new javax.swing.JTextArea();
+        jLabel9 = new javax.swing.JLabel();
+        jLabel10 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
+        fp = new javax.swing.JFormattedTextField();
+        move = new javax.swing.JFormattedTextField();
+        fatigue = new javax.swing.JFormattedTextField();
+        jLabel6 = new javax.swing.JLabel();
+        dodge = new javax.swing.JFormattedTextField();
+        jSeparator2 = new javax.swing.JSeparator();
 
         jLabel2.setFont(jLabel2.getFont().deriveFont(jLabel2.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel2.setText("Status:");
@@ -112,13 +126,10 @@ public class ActorDetailsPanel extends javax.swing.JPanel
         jLabel3.setText("Type:");
 
         jLabel4.setFont(jLabel4.getFont().deriveFont(jLabel4.getFont().getStyle() | java.awt.Font.BOLD));
-        jLabel4.setText("HP:");
+        jLabel4.setText("HT/HP:");
 
         jLabel5.setFont(jLabel5.getFont().deriveFont(jLabel5.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel5.setText("Damage:");
-
-        jLabel6.setFont(jLabel6.getFont().deriveFont(jLabel6.getFont().getStyle() | java.awt.Font.BOLD));
-        jLabel6.setText("Target:");
 
         timers.setBorder(javax.swing.BorderFactory.createTitledBorder("Timers"));
 
@@ -134,7 +145,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
         timersLayout.setHorizontalGroup(
             timersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, timersLayout.createSequentialGroup()
-                .addContainerGap(125, Short.MAX_VALUE)
+                .addContainerGap(74, Short.MAX_VALUE)
                 .addComponent(add_timer))
         );
         timersLayout.setVerticalGroup(
@@ -158,7 +169,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
         attacksLayout.setHorizontalGroup(
             attacksLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, attacksLayout.createSequentialGroup()
-                .addContainerGap(121, Short.MAX_VALUE)
+                .addContainerGap(70, Short.MAX_VALUE)
                 .addComponent(add_attack))
         );
         attacksLayout.setVerticalGroup(
@@ -197,10 +208,8 @@ public class ActorDetailsPanel extends javax.swing.JPanel
             }
         });
 
-        target.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "none" }));
-
         jLabel7.setFont(jLabel7.getFont().deriveFont(jLabel7.getFont().getStyle() | java.awt.Font.BOLD));
-        jLabel7.setText("Health:");
+        jLabel7.setText("FP:");
 
         hp.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
         hp.setText("99");
@@ -229,16 +238,16 @@ public class ActorDetailsPanel extends javax.swing.JPanel
             }
         });
 
-        health.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
-        health.setText("99");
-        health.addFocusListener(new java.awt.event.FocusAdapter() {
+        ht.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
+        ht.setText("99");
+        ht.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
                 fieldFocusGained(evt);
             }
         });
-        health.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+        ht.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
             public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                healthPropertyChange(evt);
+                htPropertyChange(evt);
             }
         });
 
@@ -259,64 +268,159 @@ public class ActorDetailsPanel extends javax.swing.JPanel
         });
         jScrollPane1.setViewportView(notes);
 
+        jLabel9.setFont(new java.awt.Font("Tahoma", 1, 11));
+        jLabel9.setText("Move:");
+
+        jLabel10.setFont(new java.awt.Font("Tahoma", 1, 11));
+        jLabel10.setText("Dodge:");
+
+        jLabel8.setFont(jLabel8.getFont().deriveFont(jLabel8.getFont().getStyle() | java.awt.Font.BOLD));
+        jLabel8.setText("/");
+
+        fp.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
+        fp.setText("99");
+        fp.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+        });
+        fp.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                fpPropertyChange(evt);
+            }
+        });
+
+        move.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
+        move.setText("99");
+        move.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+        });
+        move.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                movePropertyChange(evt);
+            }
+        });
+
+        fatigue.setForeground(new java.awt.Color(220, 0, 0));
+        fatigue.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
+        fatigue.setText("99");
+        fatigue.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+        });
+        fatigue.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                fatiguePropertyChange(evt);
+            }
+        });
+
+        jLabel6.setFont(jLabel6.getFont().deriveFont(jLabel6.getFont().getStyle() | java.awt.Font.BOLD));
+        jLabel6.setText("Fatigue:");
+
+        dodge.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
+        dodge.setText("99");
+        dodge.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+        });
+        dodge.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                dodgePropertyChange(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(name, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 242, Short.MAX_VALUE)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel4)
-                            .addComponent(jLabel5)
-                            .addComponent(jLabel7)
-                            .addComponent(jLabel6))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(type, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(status, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(target, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                .addComponent(health, javax.swing.GroupLayout.Alignment.LEADING, 0, 0, Short.MAX_VALUE)
-                                .addComponent(damage, javax.swing.GroupLayout.Alignment.LEADING, 0, 0, Short.MAX_VALUE)
-                                .addComponent(hp, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 44, Short.MAX_VALUE)))
-                        .addGap(38, 38, 38))
-                    .addComponent(jSeparator1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 222, Short.MAX_VALUE))
-                .addContainerGap())
+            .addComponent(name, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 191, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel1)
-                .addContainerGap(197, Short.MAX_VALUE))
+                .addContainerGap(146, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 171, Short.MAX_VALUE)
+                .addContainerGap())
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(timers, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(timers, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(attacks, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(attacks, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jSeparator2, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE)))
                 .addContainerGap())
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 222, Short.MAX_VALUE)
-                .addContainerGap())
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                        .addGroup(layout.createSequentialGroup()
+                                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                .addComponent(jLabel9)
+                                                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addComponent(jLabel4))
+                                            .addGap(21, 21, 21))
+                                        .addGroup(layout.createSequentialGroup()
+                                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                                .addComponent(jLabel6)
+                                                .addComponent(jLabel5))
+                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
+                                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                            .addComponent(move, javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(fatigue, javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(fp, javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(ht, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE)
+                                            .addComponent(dodge, javax.swing.GroupLayout.DEFAULT_SIZE, 41, Short.MAX_VALUE))
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jLabel8)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                            .addComponent(damage)
+                                            .addComponent(hp, javax.swing.GroupLayout.DEFAULT_SIZE, 39, Short.MAX_VALUE)))
+                                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                        .addComponent(type, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(status, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                                .addGap(13, 13, 13))
+                            .addComponent(jLabel10))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel7)
+                        .addContainerGap(165, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(name, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                .addGap(6, 6, 6)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
                     .addComponent(status, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(type, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                    .addComponent(type, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel3))
+                .addGap(12, 12, 12)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel4)
+                    .addComponent(ht, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel8)
+                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(hp, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -325,22 +429,35 @@ public class ActorDetailsPanel extends javax.swing.JPanel
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
-                    .addComponent(health, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(fp, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel6)
-                    .addComponent(target, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 9, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(fatigue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel6))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel9)
+                    .addComponent(move, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel10)
+                    .addComponent(dodge, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(7, 7, 7)
+                        .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 9, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 85, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 113, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(timers, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(attacks, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -351,9 +468,14 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     private void add_attackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_add_attackActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_add_attackActionPerformed
+    
+    private void htPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_htPropertyChange
+        if(actorLoaded && evt.getPropertyName().equals("value")) {
+            actorModel.setValueAt(((Long) ht.getValue()).intValue(), selectedActor, ActorTableModel.columns.Health.ordinal());
+        }
+    }//GEN-LAST:event_htPropertyChange
 
     private void hpPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_hpPropertyChange
-        // TODO add your handling code here:
         if(actorLoaded && evt.getPropertyName().equals("value")) {
            	if (DEBUG) { System.out.println("ActorDetailsPanel: HP Property change event (" + evt.getNewValue() + ") " + evt.getPropertyName() + ": " + evt.toString()); }
             actorModel.setValueAt(((Long) hp.getValue()).intValue(), selectedActor, ActorTableModel.columns.HP.ordinal());
@@ -366,12 +488,38 @@ public class ActorDetailsPanel extends javax.swing.JPanel
         }
     }//GEN-LAST:event_damagePropertyChange
 
-    private void healthPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_healthPropertyChange
+    private void fpPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_fpPropertyChange
         if(actorLoaded && evt.getPropertyName().equals("value")) {
-            actorModel.setValueAt(((Long) health.getValue()).intValue(), selectedActor, ActorTableModel.columns.Health.ordinal());
-        }
-    }//GEN-LAST:event_healthPropertyChange
+    		Actor actor = actorModel.getActor(initTable.getSelectedRow());
+    		actor.FP = ((Long) fp.getValue()).intValue();
+        	//actorModel.setValueAt(((Long) fp.getValue()).intValue(), selectedActor, ActorTableModel.columns.FP.ordinal());
+        }	
+    }//GEN-LAST:event_fpPropertyChange
 
+    private void fatiguePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_fatiguePropertyChange
+        if(actorLoaded && evt.getPropertyName().equals("value")) {
+    		Actor actor = actorModel.getActor(initTable.getSelectedRow());
+    		actor.Fatigue = ((Long) fatigue.getValue()).intValue();
+        	//actorModel.setValueAt(((Long) fatigue.getValue()).intValue(), selectedActor, ActorTableModel.columns.Fatigue.ordinal());
+        }
+    }//GEN-LAST:event_fatiguePropertyChange
+
+    private void movePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_movePropertyChange
+        if(actorLoaded && evt.getPropertyName().equals("value")) {
+    		Actor actor = actorModel.getActor(initTable.getSelectedRow());
+    		actor.Move = ((Long) move.getValue()).intValue();
+        	//actorModel.setValueAt(((Long) move.getValue()).intValue(), selectedActor, ActorTableModel.columns.Move.ordinal());
+        }
+    }//GEN-LAST:event_movePropertyChange
+
+    private void dodgePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_dodgePropertyChange
+        if(actorLoaded && evt.getPropertyName().equals("value")) {
+    		Actor actor = actorModel.getActor(initTable.getSelectedRow());
+    		actor.Dodge = ((Long) dodge.getValue()).intValue();
+        	//actorModel.setValueAt(((Long) dodge.getValue()).intValue(), selectedActor, ActorTableModel.columns.Dodge.ordinal());
+        }
+    }//GEN-LAST:event_dodgePropertyChange
+    
     private void statusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_statusActionPerformed
         if(actorLoaded) {
         	//String newValue = ((JComboBox)evt.getSource()).getSelectedItem().toString();
@@ -427,16 +575,26 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     		actorModel.getActor(selectedActor).Notes = notes.getText();
     }//GEN-LAST:event_nameTextChanged
 
+
+
     /**
      * Disable the panel, setting all values to default
      */
     public void disablePanel() {
+    	ht.setValue(10);
+    	ht.setEnabled(false);
     	hp.setValue(10);
     	hp.setEnabled(false);
     	damage.setValue(0);
     	damage.setEnabled(false);
-    	health.setValue(10);
-    	health.setEnabled(false);
+    	fp.setValue(10);
+    	fp.setEnabled(false);
+    	fatigue.setValue(0);
+    	fatigue.setEnabled(false);
+    	move.setValue(5);
+    	move.setEnabled(false);
+    	dodge.setValue(8);
+    	dodge.setEnabled(false);
     	status.setSelectedIndex(0);
     	status.setEnabled(false);
     	type.setSelectedIndex(0);
@@ -446,8 +604,6 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     	name.setEnabled(false);
     	add_attack.setEnabled(false);
     	add_timer.setEnabled(false);
-    	target.setSelectedIndex(0);
-    	target.setEnabled(false);
     	notes.setText("");
     	notes.setEnabled(false);
     }
@@ -456,15 +612,18 @@ public class ActorDetailsPanel extends javax.swing.JPanel
      * Enable the panel fields, only called when the actor is refreshed with good data
      */
     private void enablePanel() {
+    	ht.setEnabled(true);
     	hp.setEnabled(true);
     	damage.setEnabled(true);
-    	health.setEnabled(true);
+    	fp.setEnabled(true);
+    	fatigue.setEnabled(true);
+    	move.setEnabled(true);
+    	dodge.setEnabled(true);
     	status.setEnabled(true);
     	type.setEnabled(true);
     	name.setEnabled(true);
     	add_attack.setEnabled(true);
     	add_timer.setEnabled(true);
-    	target.setEnabled(true);
     	notes.setEnabled(true);
     }
 
@@ -515,9 +674,13 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 	
 	    status.setSelectedItem(actor.State.toString());
 	    type.setSelectedItem(actor.Type.toString());
+	    ht.setValue(((Integer)actor.HT).longValue());
 	    hp.setValue(((Integer)actor.HP).longValue());
 	    damage.setValue(((Integer)actor.Damage).longValue());
-	    health.setValue(((Integer)actor.Health).longValue());
+	    fp.setValue(((Integer)actor.FP).longValue());
+	    fatigue.setValue(((Integer)actor.Fatigue).longValue());
+	    move.setValue(((Integer)actor.Move).longValue());
+	    dodge.setValue(((Integer)actor.Dodge).longValue());
 	    notes.setText(actor.Notes);
 		actorLoaded = true; // turn property updates back on
 	}

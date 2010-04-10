@@ -78,7 +78,7 @@ public class GITApp // extends JPanel
         button = new JButton();
         button.setIcon(new ImageIcon("src/resources/images/control_start_blue.png", "Reset Encounter"));
         button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
-        button.setToolTipText("Resen the round counter");
+        button.setToolTipText("Reset the round counter");
         button.setActionCommand("resetRound");
         button.setMnemonic(KeyEvent.VK_R);
         button.addActionListener(mainApp);
