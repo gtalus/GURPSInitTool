@@ -17,10 +17,10 @@ public class ActorTableModel extends AbstractTableModel {
 
 	private static final boolean DEBUG = true;
 	
-	private String[] columnNames = {"Name", "HP", "Damage", "Health", "State", "Type"};
-	public enum columns {Name, HP, Damage, Health, State, Type};
+	private String[] columnNames = {"Name", "Move", "Dodge", "HT", "HP", "Damage", "FP", "Fatigue", "State", "Type"};
+	public enum columns {Name, Move, Dodge, HT, HP, Damage, FP, Fatigue, State, Type};
 	//private class<?>[] columnClasses = {new String().getClass(), new Integer(0).getClass(), new Integer(0).getClass(), new String().getClass(), new String().getClass()};
-	private static int numColumns = 6;
+	private static int numColumns = 10;
 	
 	private ArrayList<Actor> actorList = new ArrayList<Actor>(Arrays.asList(
 //			new Actor("Damian", ActorState.Active, ActorType.PC),
@@ -131,11 +131,19 @@ public class ActorTableModel extends AbstractTableModel {
 		switch (columns.values()[c]) {
 		case Name:
 			return new String().getClass();
+		case Move:
+			return new Integer(0).getClass();
+		case Dodge:
+			return new Integer(0).getClass();
+		case HT:
+			return new Integer(0).getClass();
 		case HP:
 			return new Integer(0).getClass();
 		case Damage:
 			return new Integer(0).getClass();
-		case Health:
+		case FP:
+			return new Integer(0).getClass();
+		case Fatigue:
 			return new Integer(0).getClass();
 		case State:
 			return new String().getClass();
@@ -165,12 +173,20 @@ public class ActorTableModel extends AbstractTableModel {
 		switch (columns.values()[columnIndex]) {
 		case Name:
 			return actor.Name;
+		case Move:
+			return actor.Move;
+		case Dodge:
+			return actor.Dodge;
+		case HT:
+			return actor.HT;
 		case HP:
 			return actor.HP;
 		case Damage:
 			return actor.Damage;
-		case Health:
-			return actor.HT;
+		case FP:
+			return actor.FP;
+		case Fatigue:
+			return actor.Fatigue;
 		case State:
 			return actor.State;
 		case Type:
@@ -321,14 +337,26 @@ public class ActorTableModel extends AbstractTableModel {
 		case Name:
 			a.Name = (String) value;
 			break;
+		case Move:
+			a.Move = (Integer) value;
+			break;
+		case Dodge:
+			a.Dodge = (Integer) value;
+			break;
+		case HT:
+			a.HT = (Integer) value;
+			break;
 		case HP:
 			a.HP = (Integer) value;
 			break;
 		case Damage:
 			a.Damage = (Integer) value;
 			break;
-		case Health:
-			a.HT = (Integer) value;
+		case FP:
+			a.FP = (Integer) value;
+			break;
+		case Fatigue:
+			a.Fatigue = (Integer) value;
 			break;
 		case State:
 			a.State = ActorState.valueOf((String) value);
