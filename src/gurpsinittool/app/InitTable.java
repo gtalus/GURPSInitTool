@@ -43,7 +43,7 @@ public class InitTable extends JTable
 	 */
 	//private static final long serialVersionUID = 1L;
 
-	private static final boolean DEBUG = false;
+	private static final boolean DEBUG = true;
 
 	private JPopupMenu popupMenu;
 	private ActorTableModel tableModel;
@@ -164,6 +164,7 @@ public class InitTable extends JTable
         ((DefaultCellEditor) getColumnModel().getColumn(ActorTableModel.columns.Type.ordinal()).getCellEditor()).setClickCountToStart(2);
 
         getColumnModel().getColumn(ActorTableModel.columns.Damage.ordinal()).setCellEditor(new InitTableDamageCellEditor());
+        getColumnModel().getColumn(ActorTableModel.columns.Fatigue.ordinal()).setCellEditor(new InitTableDamageCellEditor());
         //((DefaultCellEditor) getColumnModel().getColumn(ActorTableModel.columns.Damage.ordinal()).getCellEditor()).setClickCountToStart(1);
 
 		// Table popup menu
@@ -251,8 +252,9 @@ public class InitTable extends JTable
 	 */
 	public void formatComponentColor(JComponent c, Actor a, boolean isSelected, ActorTableModel.columns col) {
 		
-		if (col == columns.Damage) {
+		if (col == columns.Damage || col == columns.Fatigue) {
 			c.setForeground(new Color(220,0,0));
+        	//if (DEBUG) { System.out.println("formatComponentColor: Setting column to have red foreground."); }
 		}
 		else {
 			c.setForeground(new Color(0,0,0));
@@ -333,7 +335,10 @@ public class InitTable extends JTable
 			
 			JLabel c = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 			//JLabel l = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);	
-			ActorTableModel.columns col = ActorTableModel.columns.values()[column];
+			//columnModel.getColumn(column).
+			//table.getColumnModel().getColumn(column).
+			ActorTableModel.columns col = ActorTableModel.columns.valueOf(table.getColumnName(column));
+			//ActorTableModel.columns col = ActorTableModel.columns.values()[column];
 			if (row == table.getRowCount() -1) {
 				c.setBackground(new Color(255,255,255));
 				c.setForeground(new Color(128,128,128));

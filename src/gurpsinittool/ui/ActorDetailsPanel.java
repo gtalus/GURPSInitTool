@@ -471,7 +471,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     
     private void htPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_htPropertyChange
         if(actorLoaded && evt.getPropertyName().equals("value")) {
-            actorModel.setValueAt(((Long) ht.getValue()).intValue(), selectedActor, ActorTableModel.columns.Health.ordinal());
+            actorModel.setValueAt(((Long) ht.getValue()).intValue(), selectedActor, ActorTableModel.columns.HT.ordinal());
         }
     }//GEN-LAST:event_htPropertyChange
 
@@ -490,33 +490,25 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 
     private void fpPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_fpPropertyChange
         if(actorLoaded && evt.getPropertyName().equals("value")) {
-    		Actor actor = actorModel.getActor(initTable.getSelectedRow());
-    		actor.FP = ((Long) fp.getValue()).intValue();
-        	//actorModel.setValueAt(((Long) fp.getValue()).intValue(), selectedActor, ActorTableModel.columns.FP.ordinal());
+         	actorModel.setValueAt(((Long) fp.getValue()).intValue(), selectedActor, ActorTableModel.columns.FP.ordinal());
         }	
     }//GEN-LAST:event_fpPropertyChange
 
     private void fatiguePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_fatiguePropertyChange
         if(actorLoaded && evt.getPropertyName().equals("value")) {
-    		Actor actor = actorModel.getActor(initTable.getSelectedRow());
-    		actor.Fatigue = ((Long) fatigue.getValue()).intValue();
-        	//actorModel.setValueAt(((Long) fatigue.getValue()).intValue(), selectedActor, ActorTableModel.columns.Fatigue.ordinal());
+        	actorModel.setValueAt(((Long) fatigue.getValue()).intValue(), selectedActor, ActorTableModel.columns.Fatigue.ordinal());
         }
     }//GEN-LAST:event_fatiguePropertyChange
 
     private void movePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_movePropertyChange
         if(actorLoaded && evt.getPropertyName().equals("value")) {
-    		Actor actor = actorModel.getActor(initTable.getSelectedRow());
-    		actor.Move = ((Long) move.getValue()).intValue();
-        	//actorModel.setValueAt(((Long) move.getValue()).intValue(), selectedActor, ActorTableModel.columns.Move.ordinal());
+         	actorModel.setValueAt(((Long) move.getValue()).intValue(), selectedActor, ActorTableModel.columns.Move.ordinal());
         }
     }//GEN-LAST:event_movePropertyChange
 
     private void dodgePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_dodgePropertyChange
         if(actorLoaded && evt.getPropertyName().equals("value")) {
-    		Actor actor = actorModel.getActor(initTable.getSelectedRow());
-    		actor.Dodge = ((Long) dodge.getValue()).intValue();
-        	//actorModel.setValueAt(((Long) dodge.getValue()).intValue(), selectedActor, ActorTableModel.columns.Dodge.ordinal());
+         	actorModel.setValueAt(((Long) dodge.getValue()).intValue(), selectedActor, ActorTableModel.columns.Dodge.ordinal());
         }
     }//GEN-LAST:event_dodgePropertyChange
     
