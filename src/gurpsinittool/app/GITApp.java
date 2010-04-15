@@ -7,6 +7,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.ObjectInputStream.GetField;
 import java.util.Properties;
 
 import gurpsinittool.data.*;
@@ -53,7 +54,11 @@ public class GITApp // extends JPanel
         JToolBar toolbar = new JToolBar("Encounter Control Toolbar");
         //first button
         JButton button = new JButton();
-        button.setIcon(new ImageIcon("src/resources/images/control_play_blue.png", "Next Actor"));
+        java.net.URL imageURL = GITApp.class.getResource("/resources/images/control_play_blue.png");
+        if (imageURL != null) {
+        	button.setIcon(new ImageIcon(imageURL, "Next Actor")); 
+        }
+        //button.setIcon(new ImageIcon("src/resources/images/control_play_blue.png", "Next Actor"));
         button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
         //button.setText("Forward");
         button.setToolTipText("Step to next actor");
@@ -76,7 +81,7 @@ public class GITApp // extends JPanel
         toolbar.add(label);
         // Reset round counter buffer
         button = new JButton();
-        button.setIcon(new ImageIcon("src/resources/images/control_start_blue.png", "Reset Encounter"));
+        button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/control_start_blue.png"), "Reset Encounter"));
         button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
         button.setToolTipText("Reset the round counter");
         button.setActionCommand("resetRound");
@@ -86,7 +91,7 @@ public class GITApp // extends JPanel
         //Group manager button & horizontal glue
         toolbar.add(Box.createHorizontalGlue());
         button = new JButton();
-        button.setIcon(new ImageIcon("src/resources/images/group.png", "Group Manager"));
+        button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/group.png"), "Group Manager"));
         button.setToolTipText("Manage Actor Groups");
         button.setActionCommand("openGroupManager");
         button.setMnemonic(KeyEvent.VK_N);
