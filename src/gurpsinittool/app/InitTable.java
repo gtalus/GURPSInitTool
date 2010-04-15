@@ -349,7 +349,7 @@ public class InitTable extends JTable
 			
 			Actor a = ((ActorTableModel)table.getModel()).getActor(row);
 			if (column == 0 && (tableModel.getActiveActor() == row)) {
-				c.setIcon(new ImageIcon("src/resources/images/go.png", "Current Actor"));  
+				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/go.png"), "Current Actor"));  
 			}
 			else {
 				c.setIcon(new ImageIcon());
