@@ -10,6 +10,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,6 +31,8 @@ import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 import javax.swing.plaf.basic.BasicComboBoxUI.FocusHandler;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
@@ -44,7 +47,7 @@ public class InitTable extends JTable
 	/**
 	 * Default Serial UID
 	 */
-	//private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
 	private static final boolean DEBUG = true;
 
@@ -121,6 +124,36 @@ public class InitTable extends JTable
        			tableModel.setValueAt(e.getActionCommand(), rows[i], ActorTableModel.columns.Type.ordinal());
        		}
     	}
+    }
+    
+    /**
+     * Auto re-size the column widths to optimally fit information
+     */
+    public void autoSizeColumns() {
+    	if (DEBUG) { System.out.println("autoSizeColumns: starting."); }
+    	//this.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+    	TableColumn column = null;
+    	for (int i = 0; i < this.getColumnCount(); i++) {
+    	    column = this.getColumnModel().getColumn(i);
+    	    
+    	    // Get width of column header 
+    	    TableCellRenderer renderer = column.getHeaderRenderer(); 
+    	    if (renderer == null) 
+    	    { renderer = this.getTableHeader().getDefaultRenderer(); } 
+    	    Component comp = renderer.getTableCellRendererComponent( this, column.getHeaderValue(), false, false, 0, 0); 
+    	    int width = comp.getPreferredSize().width; 
+     	    
+    	    // Check width of all the cells
+    	    // Get maximum width of column data
+    	    for (int j=0; j < getRowCount(); j++) {
+    	        renderer = getCellRenderer(j, i);
+    	        comp = renderer.getTableCellRendererComponent(this, getValueAt(j, i), false, false, j, i);
+    	        width = Math.max(width, comp.getPreferredSize().width);
+    	    }
+    	    
+       	    column.setPreferredWidth(width);
+    	}
+    	//this.resizeAndRepaint();
     }
     
     /**

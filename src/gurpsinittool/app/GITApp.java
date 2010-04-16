@@ -88,13 +88,24 @@ public class GITApp // extends JPanel
         button.setMnemonic(KeyEvent.VK_R);
         button.addActionListener(mainApp);
         toolbar.add(button);
+        // Auto-resize table columns
+        toolbar.addSeparator();
+        button = new JButton();
+        button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/script_code.png"), "Auto-size columns"));
+        button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
+        button.setToolTipText("Auto re-size the table columns to best fit");
+        button.setActionCommand("sizeColumns");
+        button.setMnemonic(KeyEvent.VK_A);
+        button.addActionListener(mainApp);
+        toolbar.add(button);
         //Group manager button & horizontal glue
+        toolbar.addSeparator();
         toolbar.add(Box.createHorizontalGlue());
         button = new JButton();
         button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/group.png"), "Group Manager"));
         button.setToolTipText("Manage Actor Groups");
         button.setActionCommand("openGroupManager");
-        button.setMnemonic(KeyEvent.VK_N);
+        button.setMnemonic(KeyEvent.VK_G);
         button.addActionListener(mainApp);
         toolbar.add(button);
         toolbar.setRollover(true);
@@ -128,8 +139,8 @@ public class GITApp // extends JPanel
 
     public static void main(String[] args) {
     	try {
-			//UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-			UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			//UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
 			//UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
 			//UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
 			//UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
@@ -168,12 +179,16 @@ public class GITApp // extends JPanel
     			if (DEBUG) { System.out.println("Minimum round cunter size = " + roundCounter.getMinimumSize().toString()); }
     		}
     	}	
-    	if ("resetRound".equals(e.getActionCommand())) {
+    	else if ("resetRound".equals(e.getActionCommand())) {
     		roundCounter.setText("0");
     		initTable.resetEncounter();
     	}	
     	else if ("openGroupManager".equals(e.getActionCommand())) {
     		groupManager.setVisible(true);
+    	}
+       	else if ("sizeColumns".equals(e.getActionCommand())) {
+    		initTable.autoSizeColumns();
     	}	
+
 	}
 }
