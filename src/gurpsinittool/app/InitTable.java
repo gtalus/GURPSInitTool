@@ -5,6 +5,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -26,6 +28,7 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
+import javax.swing.plaf.basic.BasicComboBoxUI.FocusHandler;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
@@ -136,6 +139,7 @@ public class InitTable extends JTable
         setDefaultRenderer(Object.class, new InitTableCellRenderer());
         setDefaultRenderer(new Integer(0).getClass(), new InitTableCellRenderer());
         setDefaultEditor(String.class, new InitTableTextCellEditor());
+        setDefaultEditor(new Integer(0).getClass(), new InitTableIntegerCellEditor());
         setTransferHandler(new InitTableTransferHandler("name"));
         setPreferredScrollableViewportSize(new Dimension(800, 270));
         setFillsViewportHeight(true);
@@ -143,7 +147,7 @@ public class InitTable extends JTable
         setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         setDragEnabled(true);
         setDropMode(DropMode.INSERT_ROWS);
-        this.setSurrendersFocusOnKeystroke(true);
+        this.setSurrendersFocusOnKeystroke(false);
 
 		// Set column editors
         JComboBox initTableStateEditor = new JComboBox();
@@ -250,7 +254,35 @@ public class InitTable extends JTable
 	 * @param component : the component to modify
 	 * @param actor
 	 */
-	public void formatComponentColor(JComponent c, Actor a, boolean isSelected, ActorTableModel.columns col) {
+	public static void formatComponentAlignment(JLabel c, Actor a) {
+		c.setHorizontalAlignment(SwingConstants.LEFT);		
+		switch (a.State) {
+		case Waiting:
+			c.setHorizontalAlignment(SwingConstants.RIGHT);
+			break;
+		}
+	}
+	
+	/**
+	 * Modify a component to match it's conditions
+	 * @param component : the component to modify
+	 * @param actor
+	 */
+	public static void formatComponentAlignment(JTextField c, Actor a) {
+		c.setHorizontalAlignment(SwingConstants.LEFT);		
+		switch (a.State) {
+		case Waiting:
+			c.setHorizontalAlignment(SwingConstants.RIGHT);
+			break;
+		}
+	}
+
+		/**
+	 * Modify a component to match it's conditions
+	 * @param component : the component to modify
+	 * @param actor
+	 */
+	public static void formatComponentColor(JComponent c, Actor a, boolean isSelected, ActorTableModel.columns col) {
 		
 		if (col == columns.Damage || col == columns.Fatigue) {
 			c.setForeground(new Color(220,0,0));
@@ -334,11 +366,6 @@ public class InitTable extends JTable
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 			
 			JLabel c = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-			//JLabel l = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);	
-			//columnModel.getColumn(column).
-			//table.getColumnModel().getColumn(column).
-			ActorTableModel.columns col = ActorTableModel.columns.valueOf(table.getColumnName(column));
-			//ActorTableModel.columns col = ActorTableModel.columns.values()[column];
 			if (row == table.getRowCount() -1) {
 				c.setBackground(new Color(255,255,255));
 				c.setForeground(new Color(128,128,128));
@@ -347,6 +374,8 @@ public class InitTable extends JTable
 				return c;
 			}
 			
+			ActorTableModel.columns col = ActorTableModel.columns.valueOf(table.getColumnName(column));
+			//ActorTableModel.columns col = ActorTableModel.columns.values()[column];
 			Actor a = ((ActorTableModel)table.getModel()).getActor(row);
 			if (column == 0 && (tableModel.getActiveActor() == row)) {
 				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/go.png"), "Current Actor"));  
@@ -356,13 +385,77 @@ public class InitTable extends JTable
 			}
 			
 			formatComponentColor((JComponent)c, a, isSelected, col);
+			formatComponentAlignment(c, a);
+			return c;
+		}
+	}
+	
+	/**
+	 * Renderer to deal with all the customizations based on Actor state/type/etc.
+	 * Assumes that the table model being used is an ActorTableModel.
+	 * @author dsmall
+	 *
+	 */
+	class InitTableIntegerCellEditor extends DefaultCellEditor {
+
+		/**
+		 * Default serial UID
+		 */
+		private static final long serialVersionUID = 1L;
+
+		/**
+		 * Super does not define default constructor, so must define one.
+		 * @param comboBox
+		 */
+		public InitTableIntegerCellEditor() {
+			super(new JTextField());
+		}
+		
+		//Make sure the value remains an Integer.
+		@Override
+	    public Object getCellEditorValue() {
+	        JTextField tf = (JTextField)getComponent();
+	        try {
+	        	Integer value = new Integer(tf.getText());
+	        	return value;
+	        } catch (NumberFormatException e) {
+	        	return 0;
+	        }
+	    }
+
+		// Do a final check to make sure everything is ok.
+	    public boolean stopCellEditing() {
+	        JTextField tf = (JTextField)getComponent();
+	        String text = tf.getText();
+	        try {
+	        	new Integer(text);
+	        	tf.setText(text);
+	        	return super.stopCellEditing();
+	        } catch (NumberFormatException e) {
+	        	tf.setBorder(new LineBorder(new Color(220,0,0)));
+	        	
+	        	return false;
+	        }
+	    }
+	    
+		@Override
+		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
 			
-			c.setHorizontalAlignment(SwingConstants.LEFT);
-			switch (a.State) {
-			case Waiting:
-				c.setHorizontalAlignment(SwingConstants.RIGHT);
-				break;
+			JTextField c = (JTextField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
+
+			if (row == table.getRowCount() -1) {
+				c.setBackground(new Color(255,255,255));
+				c.setForeground(new Color(128,128,128));
+				c.setHorizontalAlignment(SwingConstants.LEFT);
+				return c;
 			}
+			
+			ActorTableModel.columns col = ActorTableModel.columns.valueOf(table.getColumnName(column));
+			Actor a = ((ActorTableModel)table.getModel()).getActor(row);
+						
+			formatComponentColor((JComponent)c, a, isSelected, col);
+			formatComponentAlignment(c, a);
+			c.setBorder(new LineBorder(new Color(255,255,255)));
 			return c;
 		}
 	}
@@ -423,7 +516,6 @@ public class InitTable extends JTable
 			
 			JTextField c = (JTextField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
 
-			ActorTableModel.columns col = ActorTableModel.columns.values()[column];
 			if (row == table.getRowCount() -1) {
 				c.setBackground(new Color(255,255,255));
 				c.setForeground(new Color(128,128,128));
@@ -432,17 +524,11 @@ public class InitTable extends JTable
 				return c;
 			}
 			
+			ActorTableModel.columns col = ActorTableModel.columns.valueOf(table.getColumnName(column));
 			Actor a = ((ActorTableModel)table.getModel()).getActor(row);
 						
 			formatComponentColor((JComponent)c, a, isSelected, col);
-				
-			c.setHorizontalAlignment(SwingConstants.LEFT);		
-			switch (a.State) {
-			case Waiting:
-				c.setHorizontalAlignment(SwingConstants.RIGHT);
-				break;
-			}
-
+			formatComponentAlignment(c, a);
 			return c;
 		}
 		
@@ -463,10 +549,10 @@ public class InitTable extends JTable
 		
 		public InitTableDamageCellEditor() {
 			super(new JTextField());
+			DamageDocumentFilter df = new DamageDocumentFilter();
 			JTextField tf = (JTextField)getComponent();
-			((AbstractDocument) tf.getDocument()).setDocumentFilter(new DamageDocumentFilter());
-			
-			//tf.getDocument().addDocumentListener(this);
+			tf.addFocusListener(df);
+			((AbstractDocument) tf.getDocument()).setDocumentFilter(df);
 		}
 		
 		//Make sure the value remains an Integer.
@@ -515,8 +601,7 @@ public class InitTable extends JTable
 		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
 			
 			JTextField c = (JTextField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
-			
-			ActorTableModel.columns col = ActorTableModel.columns.values()[column];
+
 			if (row == table.getRowCount() -1) {
 				c.setBackground(new Color(255,255,255));
 				c.setForeground(new Color(128,128,128));
@@ -524,24 +609,20 @@ public class InitTable extends JTable
 				return c;
 			}
 			
+			ActorTableModel.columns col = ActorTableModel.columns.valueOf(table.getColumnName(column));
 			Actor a = ((ActorTableModel)table.getModel()).getActor(row);
 						
 			formatComponentColor((JComponent)c, a, isSelected, col);
-				
-			c.setHorizontalAlignment(SwingConstants.LEFT);		
-			switch (a.State) {
-			case Waiting:
-				c.setHorizontalAlignment(SwingConstants.RIGHT);
-				break;
-			}
-
+			formatComponentAlignment(c, a);
 			c.setBorder(new LineBorder(new Color(255,255,255)));
 			return c;
 		}
 		
-		private class DamageDocumentFilter extends DocumentFilter {
+		private class DamageDocumentFilter extends DocumentFilter implements FocusListener {
 			
-			boolean startingNew = false;
+			boolean startingNew = true;
+			boolean firstEdit = true; // For some reason, the first edit is different than the rest
+			boolean hasFocus = false;
 			
 			@Override
 			public void remove(FilterBypass fb, int offs, int length) throws BadLocationException {
@@ -563,19 +644,34 @@ public class InitTable extends JTable
 			public void replace(FilterBypass fb, int offs, int length, String str, javax.swing.text.AttributeSet a) throws BadLocationException {
 				System.out.println("InitTableDamageCellEditor: DamageDocumentFilter: Replace: '" + str + "', Offs=" + offs + ", Length=" + length + ".");
 				
-				if (length > 0) {
-					startingNew = true;
-					super.replace(fb, offs, length, str, a);
+				if (str.matches("[\\d\\+-]+")) {
+					if (hasFocus || firstEdit || (length > 0)) {
+						firstEdit = false;
+						startingNew = true;
+						super.replace(fb, offs, length, str, a);
+					}
+					else if (startingNew && str.matches("\\d")) {
+						startingNew = false;
+						super.replace(fb, offs, 0, "+", null);
+						super.replace(fb, offs+1, 0, str, a);
+					}
+					else {
+						startingNew = false;
+						super.replace(fb, offs, 0, str, a);
+					}
 				}
-				else if (startingNew && str.matches("\\d")) {
-					startingNew = false;
-					super.replace(fb, offs, 0, "+", null);
-					super.replace(fb, offs+1, 0, str, a);
-				}
-				else if (str.matches("[\\d\\+-]+")) {
-					startingNew = false;
-					super.replace(fb, offs, 0, str, a);
-				}
+			}
+
+			@Override
+			public void focusGained(FocusEvent arg0) {
+				hasFocus = true;
+				System.out.println("InitTableDamageCellEditor: DamageDocumentFilter: TextField focus gained.");
+			}
+
+			@Override
+			public void focusLost(FocusEvent arg0) {
+				hasFocus = false;
+				System.out.println("InitTableDamageCellEditor: DamageDocumentFilter: TextField focus lost.");
 			}
 		}
 	}
