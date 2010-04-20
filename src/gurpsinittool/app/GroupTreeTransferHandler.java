@@ -17,9 +17,7 @@ import javax.swing.tree.TreePath;
 
 public class GroupTreeTransferHandler extends TransferHandler {
 
-	/**
-	 * Default serialization UID
-	 */
+	// Default serialization UID
 	private static final long serialVersionUID = 1L;
 	
 	private static final boolean DEBUG = true;
@@ -154,6 +152,7 @@ public class GroupTreeTransferHandler extends TransferHandler {
 		        	if (DEBUG) { System.out.println("GroupTreeTransferHandler: Adding actor # " + i); }
 		        	actorList.add(actorList.size()-1, actorRows[i]);
 		        }
+		        tree.setDirty(); // must set the tree as dirty, since we didn't add the actors through the regular interface.
 	        }
  		}
  		

@@ -30,7 +30,10 @@ import gurpsinittool.data.Actor;
 public class ActorDetailsPanel extends javax.swing.JPanel 
 	implements ListSelectionListener, TableModelListener{
 
-	private static final boolean DEBUG = true;
+	// Default SVUID
+	private static final long serialVersionUID = 1L;
+
+	private static final boolean DEBUG = false;
 	
 	private InitTable initTable;
 	private ActorTableModel actorModel;

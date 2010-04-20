@@ -10,7 +10,6 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,7 +28,6 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
-import javax.swing.plaf.basic.BasicComboBoxUI.FocusHandler;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -39,7 +37,7 @@ import javax.swing.text.DocumentFilter;
 
 import gurpsinittool.app.ActorTableModel.columns;
 import gurpsinittool.data.*;
-import gurpsinittool.test.RandomData;
+//import gurpsinittool.test.RandomData;
 
 public class InitTable extends JTable 
 	implements ActionListener {
@@ -244,6 +242,14 @@ public class InitTable extends JTable
 	 */
 	public boolean nextActor() {	
 		return tableModel.nextActor();
+	}
+	
+	/**
+	 * Access method for the actorTableModel.
+	 * @return The ActorTableModel underlying the table.
+	 */
+	public ActorTableModel getActorTableModel() {
+		return tableModel;
 	}
 	
 	/**

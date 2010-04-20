@@ -6,11 +6,13 @@ import java.util.Arrays;
 import gurpsinittool.data.Actor;
 import gurpsinittool.data.Actor.ActorState;
 import gurpsinittool.data.Actor.ActorType;
-import gurpsinittool.test.RandomData;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
 public class GroupTreeNode extends DefaultMutableTreeNode {
+
+	// Default SVUID
+	private static final long serialVersionUID = 1L;
 	
 	private boolean isFolder;
 	private ArrayList<Actor> actorList;
