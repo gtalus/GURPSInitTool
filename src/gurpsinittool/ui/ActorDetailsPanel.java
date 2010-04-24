@@ -12,10 +12,15 @@
 package gurpsinittool.ui;
 
 import java.awt.Color;
+
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 
@@ -33,7 +38,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 	// Default SVUID
 	private static final long serialVersionUID = 1L;
 
-	private static final boolean DEBUG = false;
+	private static final boolean DEBUG = true;
 	
 	private InitTable initTable;
 	private ActorTableModel actorModel;
@@ -50,6 +55,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     private javax.swing.JFormattedTextField fp;
     private javax.swing.JFormattedTextField hp;
     private javax.swing.JFormattedTextField ht;
+    private javax.swing.JFormattedTextField jFormattedTextField1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
@@ -81,6 +87,8 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     	actorModel.addTableModelListener(this);
 
         initComponents();
+        name.getDocument().addDocumentListener(new ActorTextDocumentListener(textListenField.Name));
+        notes.getDocument().addDocumentListener(new ActorTextDocumentListener(textListenField.Notes));
         disablePanel();
     }
 
@@ -93,6 +101,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jFormattedTextField1 = new javax.swing.JFormattedTextField();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
@@ -102,7 +111,6 @@ public class ActorDetailsPanel extends javax.swing.JPanel
         add_timer = new javax.swing.JButton();
         attacks = new javax.swing.JPanel();
         add_attack = new javax.swing.JButton();
-        name = new javax.swing.JTextField();
         status = new javax.swing.JComboBox();
         type = new javax.swing.JComboBox();
         jLabel7 = new javax.swing.JLabel();
@@ -121,6 +129,9 @@ public class ActorDetailsPanel extends javax.swing.JPanel
         jLabel6 = new javax.swing.JLabel();
         dodge = new javax.swing.JFormattedTextField();
         jSeparator2 = new javax.swing.JSeparator();
+        name = new javax.swing.JTextField();
+
+        jFormattedTextField1.setText("jFormattedTextField1");
 
         jLabel2.setFont(jLabel2.getFont().deriveFont(jLabel2.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel2.setText("Status:");
@@ -148,7 +159,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
         timersLayout.setHorizontalGroup(
             timersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, timersLayout.createSequentialGroup()
-                .addContainerGap(74, Short.MAX_VALUE)
+                .addContainerGap(78, Short.MAX_VALUE)
                 .addComponent(add_timer))
         );
         timersLayout.setVerticalGroup(
@@ -172,7 +183,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
         attacksLayout.setHorizontalGroup(
             attacksLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, attacksLayout.createSequentialGroup()
-                .addContainerGap(70, Short.MAX_VALUE)
+                .addContainerGap(74, Short.MAX_VALUE)
                 .addComponent(add_attack))
         );
         attacksLayout.setVerticalGroup(
@@ -181,21 +192,6 @@ public class ActorDetailsPanel extends javax.swing.JPanel
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(add_attack))
         );
-
-        name.setBackground(new java.awt.Color(236, 233, 216));
-        name.setFont(name.getFont().deriveFont(name.getFont().getStyle() | java.awt.Font.BOLD, name.getFont().getSize()+9));
-        name.setText("name");
-        name.setBorder(null);
-        name.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                nameActionPerformed(evt);
-            }
-        });
-        name.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                nameFocusLost(evt);
-            }
-        });
 
         status.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Active", "Waiting", "Disabled", "Unconscious", "Dead" }));
         status.addActionListener(new java.awt.event.ActionListener() {
@@ -259,16 +255,6 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 
         notes.setColumns(20);
         notes.setRows(5);
-        notes.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                namePropertyChange(evt);
-            }
-        });
-        notes.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                nameTextChanged(evt);
-            }
-        });
         jScrollPane1.setViewportView(notes);
 
         jLabel9.setFont(new java.awt.Font("Tahoma", 1, 11));
@@ -336,18 +322,22 @@ public class ActorDetailsPanel extends javax.swing.JPanel
             }
         });
 
+        name.setBackground(new java.awt.Color(236, 233, 216));
+        name.setFont(new java.awt.Font("Tahoma", 1, 20));
+        name.setText("name");
+        name.setBorder(null);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(name, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 191, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel1)
-                .addContainerGap(146, Short.MAX_VALUE))
+                .addContainerGap(150, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 171, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 175, Short.MAX_VALUE)
                 .addContainerGap())
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
@@ -360,58 +350,51 @@ public class ActorDetailsPanel extends javax.swing.JPanel
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jSeparator2, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE)))
+                        .addComponent(jSeparator2, javax.swing.GroupLayout.DEFAULT_SIZE, 169, Short.MAX_VALUE)))
                 .addContainerGap())
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                        .addGroup(layout.createSequentialGroup()
-                                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                                .addComponent(jLabel9)
-                                                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addComponent(jLabel4))
-                                            .addGap(21, 21, 21))
-                                        .addGroup(layout.createSequentialGroup()
-                                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                                .addComponent(jLabel6)
-                                                .addComponent(jLabel5))
-                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
-                                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addGroup(layout.createSequentialGroup()
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jLabel9)
+                                        .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(jLabel4))
+                                    .addGap(21, 21, 21))
+                                .addComponent(jLabel6)
+                                .addComponent(jLabel5))
+                            .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                    .addComponent(move, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(fatigue, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(fp, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(ht, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE)
+                                    .addComponent(dodge, javax.swing.GroupLayout.DEFAULT_SIZE, 41, Short.MAX_VALUE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                            .addComponent(move, javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(fatigue, javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(fp, javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(ht, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE)
-                                            .addComponent(dodge, javax.swing.GroupLayout.DEFAULT_SIZE, 41, Short.MAX_VALUE))
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jLabel8)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                            .addComponent(damage)
-                                            .addComponent(hp, javax.swing.GroupLayout.DEFAULT_SIZE, 39, Short.MAX_VALUE)))
-                                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                        .addComponent(type, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(status, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                                .addGap(13, 13, 13))
-                            .addComponent(jLabel10))
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel7)
-                        .addContainerGap(165, Short.MAX_VALUE))))
+                                .addComponent(jLabel8)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                    .addComponent(damage)
+                                    .addComponent(hp, javax.swing.GroupLayout.DEFAULT_SIZE, 39, Short.MAX_VALUE)))
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addComponent(type, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(status, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                    .addComponent(jLabel10)
+                    .addComponent(jLabel7))
+                .addContainerGap(23, Short.MAX_VALUE))
+            .addComponent(name, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(name, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(6, 6, 6)
+                .addComponent(name, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
                     .addComponent(status, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -455,7 +438,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 113, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 114, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(timers, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -474,103 +457,67 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     
     private void htPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_htPropertyChange
         if(actorLoaded && evt.getPropertyName().equals("value")) {
-            actorModel.setValueAt(((Long) ht.getValue()).intValue(), selectedActor, ActorTableModel.columns.HT.ordinal());
+            setActorValue(ActorTableModel.columns.HT.ordinal(), ((Long) ht.getValue()).intValue());
         }
     }//GEN-LAST:event_htPropertyChange
 
     private void hpPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_hpPropertyChange
         if(actorLoaded && evt.getPropertyName().equals("value")) {
-           	if (DEBUG) { System.out.println("ActorDetailsPanel: HP Property change event (" + evt.getNewValue() + ") " + evt.getPropertyName() + ": " + evt.toString()); }
-            actorModel.setValueAt(((Long) hp.getValue()).intValue(), selectedActor, ActorTableModel.columns.HP.ordinal());
+            //if (DEBUG) { System.out.println("ActorDetailsPanel: HP Property change event (" + evt.getNewValue() + ") " + evt.getPropertyName() + ": " + evt.toString()); }
+            setActorValue(ActorTableModel.columns.HP.ordinal(), ((Long) hp.getValue()).intValue());
         }
     }//GEN-LAST:event_hpPropertyChange
 
     private void damagePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_damagePropertyChange
         if(actorLoaded && evt.getPropertyName().equals("value")) {
-        	actorModel.setValueAt(((Long) damage.getValue()).intValue(), selectedActor, ActorTableModel.columns.Damage.ordinal());
+        	setActorValue(ActorTableModel.columns.Damage.ordinal(), ((Long) damage.getValue()).intValue());
         }
     }//GEN-LAST:event_damagePropertyChange
 
     private void fpPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_fpPropertyChange
         if(actorLoaded && evt.getPropertyName().equals("value")) {
-         	actorModel.setValueAt(((Long) fp.getValue()).intValue(), selectedActor, ActorTableModel.columns.FP.ordinal());
+        	setActorValue(ActorTableModel.columns.FP.ordinal(), ((Long) fp.getValue()).intValue());
         }	
     }//GEN-LAST:event_fpPropertyChange
 
     private void fatiguePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_fatiguePropertyChange
         if(actorLoaded && evt.getPropertyName().equals("value")) {
-        	actorModel.setValueAt(((Long) fatigue.getValue()).intValue(), selectedActor, ActorTableModel.columns.Fatigue.ordinal());
+        	setActorValue(ActorTableModel.columns.Fatigue.ordinal(), ((Long) fatigue.getValue()).intValue());
         }
     }//GEN-LAST:event_fatiguePropertyChange
 
     private void movePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_movePropertyChange
         if(actorLoaded && evt.getPropertyName().equals("value")) {
-         	actorModel.setValueAt(((Long) move.getValue()).intValue(), selectedActor, ActorTableModel.columns.Move.ordinal());
+        	setActorValue(ActorTableModel.columns.Move.ordinal(), ((Long) move.getValue()).intValue());
         }
     }//GEN-LAST:event_movePropertyChange
 
     private void dodgePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_dodgePropertyChange
         if(actorLoaded && evt.getPropertyName().equals("value")) {
-         	actorModel.setValueAt(((Long) dodge.getValue()).intValue(), selectedActor, ActorTableModel.columns.Dodge.ordinal());
-        }
+            setActorValue(ActorTableModel.columns.Dodge.ordinal(), ((Long) dodge.getValue()).intValue());
+       }
     }//GEN-LAST:event_dodgePropertyChange
     
     private void statusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_statusActionPerformed
         if(actorLoaded) {
-        	//String newValue = ((JComboBox)evt.getSource()).getSelectedItem().toString();
-        	//String oldValue = actorModel.getActor(initTable.getSelectedRow()).State.toString();
-            //if (!newValue.equals(oldValue)) {
-        		if (DEBUG) { System.out.println("ActorDetailsPanel: State action performed event " + evt.toString()); }
-            	actorModel.setValueAt(((JComboBox)evt.getSource()).getSelectedItem().toString(), selectedActor, ActorTableModel.columns.State.ordinal());
-            //}
+            //if (DEBUG) { System.out.println("ActorDetailsPanel: State action performed event " + evt.toString()); }
+            setActorValue(ActorTableModel.columns.State.ordinal(), ((JComboBox)evt.getSource()).getSelectedItem().toString());
         }
     }//GEN-LAST:event_statusActionPerformed
 
     private void typeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_typeActionPerformed
         if(actorLoaded) {
-        	//String newValue = ((JComboBox)evt.getSource()).getSelectedItem().toString();
-        	//String oldValue = actorModel.getActor(initTable.getSelectedRow()).Type.toString();
-            //if (!newValue.equals(oldValue)) {
-            	actorModel.setValueAt(((JComboBox)evt.getSource()).getSelectedItem().toString(), selectedActor, ActorTableModel.columns.Type.ordinal());
-            //}
+        	setActorValue(ActorTableModel.columns.Type.ordinal(), ((JComboBox)evt.getSource()).getSelectedItem().toString());
+            refreshActor(); // need to refresh actor, since this may cause a change in formatting
         }
     }//GEN-LAST:event_typeActionPerformed
 
-    private void nameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameActionPerformed
-        if(actorLoaded) {
-            actorModel.setValueAt(name.getText(), selectedActor, ActorTableModel.columns.Name.ordinal());
-        }
-    }//GEN-LAST:event_nameActionPerformed
-
-    private void nameFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_nameFocusLost
-        if(actorLoaded) {
-            actorModel.setValueAt(name.getText(), selectedActor, ActorTableModel.columns.Name.ordinal());
-        }
-    }//GEN-LAST:event_nameFocusLost
-
     private void fieldFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldFocusGained
-        // TODO add your handling code here:
     	if (DEBUG) { System.out.println("ActorDetailsPanel: Focus gained on " + evt.toString()); }
     	JFormattedTextField t = (JFormattedTextField) evt.getComponent();
     	t.setText(t.getText());
     	t.selectAll();
     }//GEN-LAST:event_fieldFocusGained
-
-    private void namePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_namePropertyChange
-        // TODO add your handling code here:
-    	//if (DEBUG) { System.out.println("ActorDetailsPanel: Changing text to: " + notes.getText()); }
-    	//if (selectedActor >= 0)
-    	//	actorModel.getActor(selectedActor).Notes = notes.getText();
-   }//GEN-LAST:event_namePropertyChange
-
-    private void nameTextChanged(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_nameTextChanged
-        // TODO add your handling code here:
-        if (DEBUG) { System.out.println("ActorDetailsPanel: Changing text to: " + notes.getText()); }
-        if(actorLoaded)
-    		actorModel.getActor(selectedActor).Notes = notes.getText();
-    }//GEN-LAST:event_nameTextChanged
-
-
 
     /**
      * Disable the panel, setting all values to default
@@ -681,6 +628,17 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 	}
 
 	/**
+	 * Method to set a value in the actorModel. Disables refreshes while it occurs.
+	 * @param column - the column of the table to modify
+	 * @param value - the value to set
+	 */
+	protected void setActorValue(int column, Object value){
+		actorLoaded = false;
+        actorModel.setValueAt(value, selectedActor, column);
+        actorLoaded = true;
+	}
+	
+	/**
 	 * Set the actor table model used for displaying actors.
 	 * @param model : the model to use.
 	 */
@@ -697,7 +655,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
  	@Override
 	public void tableChanged(TableModelEvent e) {
 		if (DEBUG) { System.out.println("ActorDetailsPanel: Table Model event: type = " + e.getType() + ", " + e.toString()); }
-		refreshActor();
+		if (actorLoaded) { refreshActor();}
 	}
 	
 	@Override
@@ -707,4 +665,53 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 			refreshActor();
 		}
 	}
+
+	protected enum textListenField {Name, Notes};
+
+	/**
+	 * Internal class to listen to the changes in text components
+	 */
+	protected class ActorTextDocumentListener implements DocumentListener {
+		
+		private textListenField lField;
+		
+		public ActorTextDocumentListener(textListenField field) {
+			lField = field;
+		}
+	
+	    public void insertUpdate(DocumentEvent e) {
+	        processTextChanges(e);
+	    }
+	    public void removeUpdate(DocumentEvent e) {
+	    	processTextChanges(e);
+	    }
+	    public void changedUpdate(DocumentEvent e) {
+	    	processTextChanges(e);
+	    }
+	    private void processTextChanges(DocumentEvent e) {
+	    	if (actorLoaded) {
+	    		Document document = (Document)e.getDocument();
+	    		try {
+	    			switch (lField) {
+	    			case Name:
+	    				setActorValue(ActorTableModel.columns.Name.ordinal(), document.getText(0,document.getLength()));
+	    				break;
+	    			case Notes:
+	    				// Need to be careful about triggering infinite updates. 
+	    				// Right now, the notes field in the Actor does not fire a refresh event when it is updated.
+	    				// If it did, this might trigger a text change, which would re-trigger this change, etc.
+	    				if (DEBUG) { System.out.println("ActorTextDocumentListener: processTextChanges: Notes: updating actor"); }
+	    				actorModel.getActor(selectedActor).Notes = document.getText(0,document.getLength());
+	    				actorModel.setDirty();
+	    				//setActorValue(ActorTableModel.columns.Notes.ordinal(), document.getText(0,document.getLength()));
+	    				break;
+	    			}
+					
+				} catch (BadLocationException e1) {
+					e1.printStackTrace();
+				}
+            }
+	    }
+	} 
+
 }
