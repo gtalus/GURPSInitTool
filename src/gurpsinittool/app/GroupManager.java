@@ -57,6 +57,7 @@ public class GroupManager extends JFrame
 	public GroupManager(Properties propertyBag) {
 		super("Group Manager");
 		this.propertyBag = propertyBag;
+		setDefaultProperties();
 		
         //Create and set up the window.	
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
@@ -92,7 +93,7 @@ public class GroupManager extends JFrame
         jMenu.setMnemonic(KeyEvent.VK_V);
         menuItem = new JCheckBoxMenuItem("Actor Details");
         //((JCheckBoxMenuItem) menuItem).setSelected(true);
-        menuItem.setSelected(true);
+        menuItem.setSelected(Boolean.valueOf(propertyBag.getProperty("Manager.actorDetails.visible")));
         menuItem.setMnemonic(KeyEvent.VK_D);
         menuItem.addItemListener(this);
         jMenu.add(menuItem);
@@ -112,60 +113,43 @@ public class GroupManager extends JFrame
         jSplitPaneVertical= new JSplitPane(JSplitPane.VERTICAL_SPLIT, jScrollPaneTree, jScrollPaneTable);
         jSplitPaneHorizontal= new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, jSplitPaneVertical, jScrollPaneDetails);
         
-        jSplitPaneVertical.setDividerLocation(200);
+        jSplitPaneVertical.setDividerLocation(Integer.valueOf(propertyBag.getProperty("Manager.splitVertical.dividerLocation")));
         jSplitPaneVertical.setContinuousLayout(true);
         jSplitPaneVertical.setResizeWeight(.95);
  
-        jSplitPaneHorizontal.setDividerLocation(340);
+        jSplitPaneHorizontal.setDividerLocation(Integer.valueOf(propertyBag.getProperty("Manager.splitHorizontal.dividerLocation")));
         jSplitPaneHorizontal.setContinuousLayout(true);
         jSplitPaneHorizontal.setResizeWeight(.95);
         
-        GroupLayout layout = new GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-        		layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-        		.addComponent(jSplitPaneHorizontal, GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-        	layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-        	.addComponent(jSplitPaneHorizontal, GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
-        );
+        layoutActorPanel();
         
-        setLocation(500,300);
-        setSize(620,450);
+        setLocation(Integer.valueOf(propertyBag.getProperty("Manager.location.x")),
+                Integer.valueOf(propertyBag.getProperty("Manager.location.y")));
+        setSize(Integer.valueOf(propertyBag.getProperty("Manager.size.width")),
+        		Integer.valueOf(propertyBag.getProperty("Manager.size.height")));
 
+        // Auto-load a group file if requested:
+        if (propertyBag.containsKey("Manager.currentLoadedFile")) {
+        	saveAsFile = new File(propertyBag.getProperty("Manager.currentLoadedFile"));
+        	loadGroupFile(saveAsFile);
+        }
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
     	if (DEBUG) { System.out.println("GroupManager: actionPerformed: Received action command " + e.getActionCommand()); }
-    	if ("Save As...".equals(e.getActionCommand())) {
+    	if ("Save As...".equals(e.getActionCommand())) { // Save group list with prompt for the file name
     		saveGroupFile(null);
     	}
     	else if ("Save".equals(e.getActionCommand())) { // Save group list
          	saveGroupFile(saveAsFile);
     	}
-       	else if ("Open".equals(e.getActionCommand()) && querySaveChanges()) { // Save group list
-    		int retVal = fileChooser.showOpenDialog(this);
-    		if (retVal == JFileChooser.APPROVE_OPTION) {
-        		File openFile = fileChooser.getSelectedFile();
-            	if (DEBUG) { System.out.println("GroupManager: actionPerformed: Opening file: " + openFile.getName()); }
-        		ActorGroupFile.OpenActorGroup(groupTree, openFile);
-        		saveAsFile = openFile;
-        		groupTree.setClean();
-        		groupTable.getActorTableModel().setClean();
-        		super.setTitle("Group Manager - " + saveAsFile.getName());
-    		}
+       	else if ("Open".equals(e.getActionCommand()) && querySaveChanges()) { // Load group list
+    		loadGroupFile(null);
     	}
     	else if ("New".equals(e.getActionCommand()) && querySaveChanges()) { // Create new group list
-          	if (DEBUG) { System.out.println("GroupManager: Creating new group list"); }
-        	groupTree.setModel(new DefaultTreeModel(new GroupTreeNode("Groups",true)));
-        	saveAsFile = null;
-        	groupTree.setClean();
-    		groupTable.getActorTableModel().setClean();
-        	super.setTitle("Group Manager");
+          	newGroupFile();
     	}
-
 	}
 
 	@Override
@@ -175,36 +159,8 @@ public class GroupManager extends JFrame
     	if ("Actor Details".equals(source.getText())) { // Show/hide the actor details panel
          	boolean selected = (e.getStateChange() == ItemEvent.SELECTED);
          	if (DEBUG) { System.out.println("GroupManager: itemStateChanged: View/Actor Details item state changed. Selected = " + selected); }
-         	if (selected) {
-                getContentPane().remove(jSplitPaneVertical);
-                jSplitPaneHorizontal.setLeftComponent(jSplitPaneVertical);
-                jSplitPaneHorizontal.setDividerLocation(Integer.valueOf(propertyBag.getProperty("Manager.splitHorizontal.dividerLocation")));
-
-                GroupLayout layout = new GroupLayout(getContentPane());
-                getContentPane().setLayout(layout);
-                layout.setHorizontalGroup(
-                		layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                		.addComponent(jSplitPaneHorizontal, GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
-                );
-                layout.setVerticalGroup(
-                	layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                	.addComponent(jSplitPaneHorizontal, GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
-                );           
-         	}
-         	else {
-         		propertyBag.setProperty("Manager.splitHorizontal.dividerLocation", String.valueOf(jSplitPaneHorizontal.getDividerLocation()));
-            	getContentPane().remove(jSplitPaneHorizontal);
-                GroupLayout layout = new GroupLayout(getContentPane());
-                getContentPane().setLayout(layout);
-                layout.setHorizontalGroup(
-                		layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                		.addComponent(jSplitPaneVertical, GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
-                );
-                layout.setVerticalGroup(
-                	layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                	.addComponent(jSplitPaneVertical, GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
-                );
-         	}
+         	propertyBag.setProperty("Manager.actorDetails.visible", String.valueOf(selected));
+         	layoutActorPanel();
     	}
 	}
 	
@@ -249,6 +205,43 @@ public class GroupManager extends JFrame
    		}
 		return true;
 	}
+	
+	/**
+	 * Create a new group file. Will discard all unsaved changes WITHOUT PROMPTING!
+	 * use querySaveChanges() if you want to query the user to save changes.
+	 */
+	public void newGroupFile() {
+		if (DEBUG) { System.out.println("GroupManager: newGroupFile: Creating new group list"); }
+    	groupTree.setModel(new DefaultTreeModel(new GroupTreeNode("Groups",true)));
+    	saveAsFile = null;
+    	groupTree.setClean();
+		groupTable.getActorTableModel().setClean();
+    	super.setTitle("Group Manager");
+	}
+	
+	/**
+	 * Load the group from a file
+	 * @param file - the file to load from. Open File dialog used if file is null.
+	 * @return whether the load was completed successfully.
+	 */
+	public boolean loadGroupFile(File file) {
+		if (file == null) {
+        	if (DEBUG) { System.out.println("GroupManager: loadGroupFile: Opening file: Displaying file chooser"); }
+			int retVal = fileChooser.showOpenDialog(this);
+			if (retVal == JFileChooser.APPROVE_OPTION) {
+				file = fileChooser.getSelectedFile();
+			}
+			else { return false; }
+		}
+		if (DEBUG) { System.out.println("GroupManager: loadGroupFile: Opening file: " + file.getName()); }
+    	ActorGroupFile.OpenActorGroup(groupTree, file);
+    	saveAsFile = file;
+		groupTree.setClean();
+		groupTable.getActorTableModel().setClean();
+		super.setTitle("Group Manager - " + saveAsFile.getName());
+		return true;
+	}
+	
 	/**
 	 * Save the group list to a file.
 	 * @param file - the file to save as. Save As dialog used if file is null.
@@ -284,6 +277,80 @@ public class GroupManager extends JFrame
     		return true;
 	 }
 	    	
+	 /**
+	  * Show/Hide the actor panel
+	  */
+	 private void layoutActorPanel() {
+		 if(Boolean.valueOf(propertyBag.getProperty("Manager.actorDetails.visible"))) {
+	         getContentPane().remove(jSplitPaneVertical);
+	         jSplitPaneHorizontal.setLeftComponent(jSplitPaneVertical);
+	         jSplitPaneHorizontal.setDividerLocation(Integer.valueOf(propertyBag.getProperty("Manager.splitHorizontal.dividerLocation")));
+	
+	         GroupLayout layout = new GroupLayout(getContentPane());
+	         getContentPane().setLayout(layout);
+	         layout.setHorizontalGroup(
+	         		layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+	         		.addComponent(jSplitPaneHorizontal, GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+	         );
+	         layout.setVerticalGroup(
+	         	layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+	         	.addComponent(jSplitPaneHorizontal, GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
+	         );       
+		 }
+		 else {
+			 propertyBag.setProperty("Manager.splitHorizontal.dividerLocation", String.valueOf(jSplitPaneHorizontal.getDividerLocation()));
+		 	 getContentPane().remove(jSplitPaneHorizontal);
+		     GroupLayout layout = new GroupLayout(getContentPane());
+		     getContentPane().setLayout(layout);
+		     layout.setHorizontalGroup(
+		     		layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+		     		.addComponent(jSplitPaneVertical, GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+		     );
+		     layout.setVerticalGroup(
+		     	layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+		     	.addComponent(jSplitPaneVertical, GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
+		     );
+		 }
+	 }
+	 
+	 /**
+	  * Set default properties if they are not already defined.
+	  */
+	 private void setDefaultProperties() {
+		 if (!propertyBag.containsKey("Manager.actorDetails.visible")) {
+			 propertyBag.setProperty("Manager.actorDetails.visible", "true"); }
+		 if (!propertyBag.containsKey("Manager.splitHorizontal.dividerLocation")) {
+			 propertyBag.setProperty("Manager.splitHorizontal.dividerLocation", "340"); }
+		 if (!propertyBag.containsKey("Manager.splitVertical.dividerLocation")) {
+			 propertyBag.setProperty("Manager.splitVertical.dividerLocation", "200"); }
+		 if (!propertyBag.containsKey("Manager.location.x")) {
+			 propertyBag.setProperty("Manager.location.x", "500"); }
+		 if (!propertyBag.containsKey("Manager.location.y")) {
+			 propertyBag.setProperty("Manager.location.y", "300"); }
+		 if (!propertyBag.containsKey("Manager.size.width")) {
+			 propertyBag.setProperty("Manager.size.width", "620"); }
+		 if (!propertyBag.containsKey("Manager.size.height")) {
+			 propertyBag.setProperty("Manager.size.height", "450"); }
+
+	 }
+	 
+	 /**
+	  * Update all the store-able properties to their current values
+	  */
+	 public void updateProperties() {
+		 // Kept up-to-date with event listeners
+		 // propertyBag.setProperty("Manager.actorDetails.visible", String.valueOf(jSplitPaneHorizontal.getDividerLocation()));
+		 propertyBag.setProperty("Manager.splitHorizontal.dividerLocation", String.valueOf(jSplitPaneHorizontal.getDividerLocation()));
+		 propertyBag.setProperty("Manager.splitVertical.dividerLocation", String.valueOf(jSplitPaneVertical.getDividerLocation()));
+		 propertyBag.setProperty("Manager.location.x", String.valueOf(getLocation().x));
+		 propertyBag.setProperty("Manager.location.y", String.valueOf(getLocation().y));
+		 propertyBag.setProperty("Manager.size.width", String.valueOf(getSize().width));
+		 propertyBag.setProperty("Manager.size.height", String.valueOf(getSize().height));
+		 // Optional properties
+		 if (saveAsFile != null) { propertyBag.setProperty("Manager.currentLoadedFile", saveAsFile.getAbsolutePath());}
+		 else { propertyBag.remove("Manager.currentLoadedFile");}
+	 }
+	 
 	 /**
      * An Inner class to monitor the file changes
      */

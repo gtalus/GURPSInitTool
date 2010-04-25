@@ -26,7 +26,7 @@ import gurpsinittool.data.Actor.ActorType;
  */
 public class ActorGroupFile {
 
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 
 	public static int currentSchemaVer = 2; // Schema version. Incremented when major changes to format are made
 	

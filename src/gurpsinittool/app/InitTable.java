@@ -18,6 +18,7 @@ import javax.swing.DropMode;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -534,7 +535,7 @@ public class InitTable extends JTable
 	 * Allow modification of the text cell editor
 	 * @author dsmall
 	 */
-	class InitTableTextCellEditor extends DefaultCellEditor {
+	class InitTableTextCellEditor extends DefaultCellEditor implements FocusListener {
 
 		/**
 		 * Default serial UID
@@ -548,6 +549,7 @@ public class InitTable extends JTable
 		public InitTableTextCellEditor() {
 			super(new JTextField());
 			setClickCountToStart(1);
+			editorComponent.addFocusListener(this);
 		}
 		
 		@Override
@@ -560,15 +562,33 @@ public class InitTable extends JTable
 				c.setForeground(new Color(128,128,128));
 				c.setHorizontalAlignment(SwingConstants.LEFT);
 				//c.setIcon(new ImageIcon());
+				//c.addFocusListener(this);
 				return c;
 			}
 			
 			ActorTableModel.columns col = ActorTableModel.columns.valueOf(table.getColumnName(column));
 			Actor a = ((ActorTableModel)table.getModel()).getActor(row);
 						
-			formatComponentColor((JComponent)c, a, isSelected, col);
+			formatComponentColor(c, a, isSelected, col);
 			formatComponentAlignment(c, a);
+			//c.removeFocusListener(this);
 			return c;
+		}
+		
+		@Override
+	    public void focusGained(FocusEvent evt) {
+	    	if (DEBUG) { System.out.println("InitTable: Focus gained on " + evt.toString()); }
+	    	if (getSelectedRow() == getRowCount() -1) {
+		    	JTextField t = (JTextField) evt.getComponent();
+		    	t.setText(t.getText());
+		    	t.selectAll();
+	    	}
+	    }
+
+		@Override
+		public void focusLost(FocusEvent evt) {
+			// TODO Auto-generated method stub
+			
 		}
 		
 	}

@@ -198,6 +198,16 @@ public class ActorTableModel extends AbstractTableModel {
                                + value.getClass() + ")");
         }
         
+        // Convert to actual enums to allow comparison with previous value
+        switch (columns.values()[col]) {
+        case State:
+        	value = ActorState.valueOf((String) value);
+        	break;
+        case Type:
+        	value = ActorType.valueOf((String) value);
+        	break;
+        }
+        
         // Check if there is any actual change
         if (getValueAt(row, col).equals(value)) {
     		if (DEBUG) { System.out.println("ActorTableModel: setValueAt: values are identical. Exiting."); }
@@ -238,10 +248,10 @@ public class ActorTableModel extends AbstractTableModel {
 			a.Fatigue = (Integer) value;
 			break;
 		case State:
-			a.State = ActorState.valueOf((String) value);
+			a.State = (ActorState) value;
 			break;
 		case Type:
-			a.Type = ActorType.valueOf((String) value);
+			a.Type = (ActorType) value;
 			break;
 		}
 		// Update the entire row, since changing state or type may affect formatting for all cells in the row.
