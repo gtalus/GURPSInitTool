@@ -94,7 +94,7 @@ public class GITApp extends JFrame implements ActionListener {
     			int minimumWidth = roundCounter.getMinimumSize().width/10 * 10;
     			if (roundCounter.getMinimumSize().width + 1  % 10 != 0) { minimumWidth += 10; }
     			roundCounter.setPreferredSize(new Dimension(minimumWidth, 20));
-    			if (DEBUG) { System.out.println("Minimum round cunter size = " + roundCounter.getMinimumSize().toString()); }
+    			if (DEBUG) { System.out.println("Minimum round counter size = " + roundCounter.getMinimumSize().toString()); }
     		}
     	}	
     	else if ("resetRound".equals(e.getActionCommand())) {

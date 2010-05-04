@@ -568,7 +568,6 @@ public class InitTable extends JTable
 			
 			ActorTableModel.columns col = ActorTableModel.columns.valueOf(table.getColumnName(column));
 			Actor a = ((ActorTableModel)table.getModel()).getActor(row);
-						
 			formatComponentColor(c, a, isSelected, col);
 			formatComponentAlignment(c, a);
 			//c.removeFocusListener(this);
