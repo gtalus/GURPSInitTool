@@ -141,7 +141,7 @@ public class GroupTreeTransferHandler extends TransferHandler {
 	        // Refresh current group table, since it might be selected
 	        if (parent.getSelectionPath().getLastPathComponent().equals(parentNode)) { // If data is being displayed, add new Actors through the ActorTableModel
 	        	if (DEBUG) { System.out.println("GroupTreeTransferHandler: Selected node is changing"); }
-	        	ActorTableModel model = (ActorTableModel) parent.getGroupTable().getModel();
+	        	InitTableModel model = (InitTableModel) parent.getGroupTable().getModel();
 	        	for (int i = actorRows.length-1; i >= 0; i--) { // Actors added from bottom up, excluding new row
 		        	if (DEBUG) { System.out.println("GroupTreeTransferHandler: Adding actor through ActorTableModel # " + i); }
 		        	model.addActor(actorRows[i], model.getRowCount()-1);

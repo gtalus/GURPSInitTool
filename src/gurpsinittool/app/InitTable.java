@@ -30,13 +30,15 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 
-import gurpsinittool.app.ActorTableModel.columns;
+import gurpsinittool.app.InitTableModel.columns;
 import gurpsinittool.data.*;
 //import gurpsinittool.test.RandomData;
 
@@ -51,16 +53,16 @@ public class InitTable extends JTable
 	private static final boolean DEBUG = true;
 
 	private JPopupMenu popupMenu;
-	private ActorTableModel tableModel;
+	private InitTableModel tableModel;
 	private boolean isInitTable;
 	
 	/**
 	 * Default Constructor
 	 */
 	public InitTable(boolean isInitTable) {
-		super(new ActorTableModel());
+		super(new InitTableModel());
 		this.isInitTable = isInitTable;
-		tableModel = (ActorTableModel) dataModel;
+		tableModel = (InitTableModel) dataModel;
 		initialize();
 	    
 //		if (isInitTable) {
@@ -84,8 +86,8 @@ public class InitTable extends JTable
       		int[] rows = getSelectedRows();
       		if (DEBUG) { System.out.println("InitTable: Resetting actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).Name); }   	
        		for (int i = 0; i < rows.length; i++) {
-       			tableModel.setValueAt("Active", rows[i], ActorTableModel.columns.State.ordinal());
-       			tableModel.setValueAt(0, rows[i], ActorTableModel.columns.Damage.ordinal());
+       			tableModel.setValueAt("Active", rows[i], InitTableModel.columns.State.ordinal());
+       			tableModel.setValueAt(0, rows[i], InitTableModel.columns.Damage.ordinal());
        		}
     	}
     	else if ("Set Active".equals(e.getActionCommand())) { // Clone selected rows at the end (as "Haste" spell)
@@ -93,7 +95,7 @@ public class InitTable extends JTable
       		if (DEBUG) { System.out.println("InitTable: Setting active actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).Name); }   	
       		tableModel.setActiveRow(rows[0]); // sets actor as current active, and sets state to active
        		for (int i = 0; i < rows.length; i++) {
-       			tableModel.setValueAt("Active", rows[i], ActorTableModel.columns.State.ordinal());
+       			tableModel.setValueAt("Active", rows[i], InitTableModel.columns.State.ordinal());
        		}
     	}
 //     	if ("Clone".equals(e.getActionCommand())) { // Clone selected rows at the end (as "Haste" spell)
@@ -110,7 +112,7 @@ public class InitTable extends JTable
     			| "Dead".equals(e.getActionCommand())) {
        		int[] rows = getSelectedRows();
        		for (int i = 0; i < rows.length; i++) {
-       			tableModel.setValueAt(e.getActionCommand(), rows[i], ActorTableModel.columns.State.ordinal());
+       			tableModel.setValueAt(e.getActionCommand(), rows[i], InitTableModel.columns.State.ordinal());
        		}
     	}
        	else if ("PC".equals(e.getActionCommand()) 
@@ -120,7 +122,7 @@ public class InitTable extends JTable
     			| "Special".equals(e.getActionCommand())) {
        		int[] rows = getSelectedRows();
        		for (int i = 0; i < rows.length; i++) {
-       			tableModel.setValueAt(e.getActionCommand(), rows[i], ActorTableModel.columns.Type.ordinal());
+       			tableModel.setValueAt(e.getActionCommand(), rows[i], InitTableModel.columns.Type.ordinal());
        		}
     	}
     }
@@ -151,6 +153,10 @@ public class InitTable extends JTable
     	    }
     	    
        	    column.setPreferredWidth(width);
+       	    if (isInitTable && i == 0) { // Set the 'Act' column size
+       	    	column.setMaxWidth(width);
+       	    	column.setMinWidth(width);
+       	    }
     	}
     	//this.resizeAndRepaint();
     }
@@ -181,6 +187,9 @@ public class InitTable extends JTable
         setDropMode(DropMode.INSERT_ROWS);
         this.setSurrendersFocusOnKeystroke(false);
 
+        // Freeze the 'Act' column size
+        getColumnModel().getColumn(InitTableModel.columns.Act.ordinal()).setResizable(false);       
+        
 		// Set column editors
         JComboBox initTableStateEditor = new JComboBox();
         initTableStateEditor.addItem("Active");
@@ -188,19 +197,19 @@ public class InitTable extends JTable
         initTableStateEditor.addItem("Disabled");
         initTableStateEditor.addItem("Unconscious");
         initTableStateEditor.addItem("Dead");
-        getColumnModel().getColumn(ActorTableModel.columns.State.ordinal()).setCellEditor(new InitTableComboCellEditor(initTableStateEditor));
-        ((DefaultCellEditor) getColumnModel().getColumn(ActorTableModel.columns.State.ordinal()).getCellEditor()).setClickCountToStart(2);
+        getColumnModel().getColumn(InitTableModel.columns.State.ordinal()).setCellEditor(new InitTableComboCellEditor(initTableStateEditor));
+        ((DefaultCellEditor) getColumnModel().getColumn(InitTableModel.columns.State.ordinal()).getCellEditor()).setClickCountToStart(2);
         JComboBox initTableTypeEditor = new JComboBox();
         initTableTypeEditor.addItem("PC");
         initTableTypeEditor.addItem("Ally");
         initTableTypeEditor.addItem("Enemy");
         initTableTypeEditor.addItem("Neutral");
         initTableTypeEditor.addItem("Special");
-        getColumnModel().getColumn(ActorTableModel.columns.Type.ordinal()).setCellEditor(new InitTableComboCellEditor(initTableTypeEditor));
-        ((DefaultCellEditor) getColumnModel().getColumn(ActorTableModel.columns.Type.ordinal()).getCellEditor()).setClickCountToStart(2);
+        getColumnModel().getColumn(InitTableModel.columns.Type.ordinal()).setCellEditor(new InitTableComboCellEditor(initTableTypeEditor));
+        ((DefaultCellEditor) getColumnModel().getColumn(InitTableModel.columns.Type.ordinal()).getCellEditor()).setClickCountToStart(2);
 
-        getColumnModel().getColumn(ActorTableModel.columns.Damage.ordinal()).setCellEditor(new InitTableDamageCellEditor());
-        getColumnModel().getColumn(ActorTableModel.columns.Fatigue.ordinal()).setCellEditor(new InitTableDamageCellEditor());
+        getColumnModel().getColumn(InitTableModel.columns.Damage.ordinal()).setCellEditor(new InitTableDamageCellEditor());
+        getColumnModel().getColumn(InitTableModel.columns.Fatigue.ordinal()).setCellEditor(new InitTableDamageCellEditor());
         //((DefaultCellEditor) getColumnModel().getColumn(ActorTableModel.columns.Damage.ordinal()).getCellEditor()).setClickCountToStart(1);
 
 		// Table popup menu
@@ -227,6 +236,13 @@ public class InitTable extends JTable
         popupMenu.add(createMenuItem("Delete", KeyEvent.VK_DELETE));
         MousePopupListener popupListener = new MousePopupListener();
         addMouseListener(popupListener);
+        
+        // Don't display 'Act' column in the group manager table
+        // Removing this column changes the indexes in the column model only - be careful when using getColumn(i)
+        if(!isInitTable) { getColumnModel().removeColumn(getColumnModel().getColumn(InitTableModel.columns.Act.ordinal())); }
+        
+        // Create initial column sizing
+        autoSizeColumns();
 	}
 	
 	/**
@@ -249,7 +265,7 @@ public class InitTable extends JTable
 	 * Access method for the actorTableModel.
 	 * @return The ActorTableModel underlying the table.
 	 */
-	public ActorTableModel getActorTableModel() {
+	public InitTableModel getActorTableModel() {
 		return tableModel;
 	}
 	
@@ -294,12 +310,15 @@ public class InitTable extends JTable
 	 * @param component : the component to modify
 	 * @param actor
 	 */
-	public static void formatComponentAlignment(JLabel c, Actor a) {
+	public static void formatComponentAlignment(JLabel c, Actor a, InitTableModel.columns col) {
 		c.setHorizontalAlignment(SwingConstants.LEFT);		
 		switch (a.State) {
 		case Waiting:
 			c.setHorizontalAlignment(SwingConstants.RIGHT);
 			break;
+		}
+		if (col == columns.Act) {
+			c.setHorizontalAlignment(SwingConstants.RIGHT);
 		}
 	}
 	
@@ -322,7 +341,7 @@ public class InitTable extends JTable
 	 * @param component : the component to modify
 	 * @param actor
 	 */
-	public static void formatComponentColor(JComponent c, Actor a, boolean isSelected, ActorTableModel.columns col) {
+	public static void formatComponentColor(JComponent c, Actor a, boolean isSelected, InitTableModel.columns col) {
 		
 		if (col == columns.Damage || col == columns.Fatigue) {
 			c.setForeground(new Color(220,0,0));
@@ -414,10 +433,10 @@ public class InitTable extends JTable
 				return c;
 			}
 			
-			ActorTableModel.columns col = ActorTableModel.columns.valueOf(table.getColumnName(column));
+			InitTableModel.columns col = InitTableModel.columns.valueOf(table.getColumnName(column));
 			//ActorTableModel.columns col = ActorTableModel.columns.values()[column];
-			Actor a = ((ActorTableModel)table.getModel()).getActor(row);
-			if (column == 0 && (tableModel.getActiveActor() == row)) {
+			Actor a = ((InitTableModel)table.getModel()).getActor(row);
+			if (col == columns.Act && (tableModel.getActiveActor() == row)) {
 				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/go.png"), "Current Actor"));  
 			}
 			else {
@@ -425,7 +444,7 @@ public class InitTable extends JTable
 			}
 			
 			formatComponentColor((JComponent)c, a, isSelected, col);
-			formatComponentAlignment(c, a);
+			formatComponentAlignment(c, a, col);
 			return c;
 		}
 	}
@@ -490,8 +509,8 @@ public class InitTable extends JTable
 				return c;
 			}
 			
-			ActorTableModel.columns col = ActorTableModel.columns.valueOf(table.getColumnName(column));
-			Actor a = ((ActorTableModel)table.getModel()).getActor(row);
+			InitTableModel.columns col = InitTableModel.columns.valueOf(table.getColumnName(column));
+			Actor a = ((InitTableModel)table.getModel()).getActor(row);
 						
 			formatComponentColor((JComponent)c, a, isSelected, col);
 			formatComponentAlignment(c, a);
@@ -566,8 +585,8 @@ public class InitTable extends JTable
 				return c;
 			}
 			
-			ActorTableModel.columns col = ActorTableModel.columns.valueOf(table.getColumnName(column));
-			Actor a = ((ActorTableModel)table.getModel()).getActor(row);
+			InitTableModel.columns col = InitTableModel.columns.valueOf(table.getColumnName(column));
+			Actor a = ((InitTableModel)table.getModel()).getActor(row);
 			formatComponentColor(c, a, isSelected, col);
 			formatComponentAlignment(c, a);
 			//c.removeFocusListener(this);
@@ -667,8 +686,8 @@ public class InitTable extends JTable
 				return c;
 			}
 			
-			ActorTableModel.columns col = ActorTableModel.columns.valueOf(table.getColumnName(column));
-			Actor a = ((ActorTableModel)table.getModel()).getActor(row);
+			InitTableModel.columns col = InitTableModel.columns.valueOf(table.getColumnName(column));
+			Actor a = ((InitTableModel)table.getModel()).getActor(row);
 						
 			formatComponentColor((JComponent)c, a, isSelected, col);
 			formatComponentAlignment(c, a);

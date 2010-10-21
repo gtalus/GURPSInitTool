@@ -3,7 +3,7 @@ package gurpsinittool.test;
 import java.util.ArrayList;
 import java.util.Random;
 
-import gurpsinittool.app.ActorTableModel;
+import gurpsinittool.app.InitTableModel;
 import gurpsinittool.data.Actor;
 import gurpsinittool.data.Actor.ActorState;
 import gurpsinittool.data.Actor.ActorType;
@@ -14,7 +14,7 @@ public class RandomData {
 	 * Generate some random actors for the ActorTableModel
 	 * @param actorModel : ActorTableModel to insert random actors into
 	 */
-	public static void RandomActors(ActorTableModel actorModel) {
+	public static void RandomActors(InitTableModel actorModel) {
 		Random r = new Random();		
 		int num_actors = r.nextInt(5)+5;
 		for (int i = 0; i < num_actors; i++) {

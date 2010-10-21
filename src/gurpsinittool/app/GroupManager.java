@@ -167,7 +167,7 @@ public class GroupManager extends JFrame
 	@Override
 	public void valueChanged(TreeSelectionEvent e) {
 		if (DEBUG) { System.out.println("GroupManager: valueChanged: TreeSelectionEvent: " + e.toString()); }
-		ActorTableModel tableModel = groupTable.getActorTableModel();
+		InitTableModel tableModel = groupTable.getActorTableModel();
 		if (groupTree.getLastSelectedPathComponent() != null) {
 			if (DEBUG) { System.out.println("GroupManager: valueChanged: Current Selection: " + groupTree.getLastSelectedPathComponent().toString()); }
 			GroupTreeNode node = (GroupTreeNode) groupTree.getLastSelectedPathComponent();
@@ -364,7 +364,7 @@ public class GroupManager extends JFrame
 		@Override
 		public void fileCleanStatusChanged(FileChangeEvent evt) {
 			Object source = evt.getSource();
-			if (source instanceof ActorTableModel) {
+			if (source instanceof InitTableModel) {
 				if (DEBUG) { System.out.println("GroupManager: FileCleanStatusChanged: ActorTableModel " + evt.isClean); }
 				tableIsClean = evt.isClean;
 			}

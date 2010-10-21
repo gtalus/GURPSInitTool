@@ -41,7 +41,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 	private static final boolean DEBUG = true;
 	
 	private InitTable initTable;
-	private ActorTableModel actorModel;
+	private InitTableModel actorModel;
 	private boolean actorLoaded = false;
 	private int selectedActor = -1;
 	
@@ -81,7 +81,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     /** Creates new form ActorDetailsPanel */
     public ActorDetailsPanel(InitTable initTable) {
     	this.initTable = initTable;
-    	this.actorModel= (ActorTableModel) initTable.getModel();
+    	this.actorModel= (InitTableModel) initTable.getModel();
     	initTable.add(this);
     	initTable.getSelectionModel().addListSelectionListener(this);
     	actorModel.addTableModelListener(this);
@@ -457,57 +457,57 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     
     private void htPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_htPropertyChange
         if(actorLoaded && evt.getPropertyName().equals("value")) {
-            setActorValue(ActorTableModel.columns.HT.ordinal(), ((Long) ht.getValue()).intValue());
+            setActorValue(InitTableModel.columns.HT.ordinal(), ((Long) ht.getValue()).intValue());
         }
     }//GEN-LAST:event_htPropertyChange
 
     private void hpPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_hpPropertyChange
         if(actorLoaded && evt.getPropertyName().equals("value")) {
             //if (DEBUG) { System.out.println("ActorDetailsPanel: HP Property change event (" + evt.getNewValue() + ") " + evt.getPropertyName() + ": " + evt.toString()); }
-            setActorValue(ActorTableModel.columns.HP.ordinal(), ((Long) hp.getValue()).intValue());
+            setActorValue(InitTableModel.columns.HP.ordinal(), ((Long) hp.getValue()).intValue());
         }
     }//GEN-LAST:event_hpPropertyChange
 
     private void damagePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_damagePropertyChange
         if(actorLoaded && evt.getPropertyName().equals("value")) {
-        	setActorValue(ActorTableModel.columns.Damage.ordinal(), ((Long) damage.getValue()).intValue());
+        	setActorValue(InitTableModel.columns.Damage.ordinal(), ((Long) damage.getValue()).intValue());
         }
     }//GEN-LAST:event_damagePropertyChange
 
     private void fpPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_fpPropertyChange
         if(actorLoaded && evt.getPropertyName().equals("value")) {
-        	setActorValue(ActorTableModel.columns.FP.ordinal(), ((Long) fp.getValue()).intValue());
+        	setActorValue(InitTableModel.columns.FP.ordinal(), ((Long) fp.getValue()).intValue());
         }	
     }//GEN-LAST:event_fpPropertyChange
 
     private void fatiguePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_fatiguePropertyChange
         if(actorLoaded && evt.getPropertyName().equals("value")) {
-        	setActorValue(ActorTableModel.columns.Fatigue.ordinal(), ((Long) fatigue.getValue()).intValue());
+        	setActorValue(InitTableModel.columns.Fatigue.ordinal(), ((Long) fatigue.getValue()).intValue());
         }
     }//GEN-LAST:event_fatiguePropertyChange
 
     private void movePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_movePropertyChange
         if(actorLoaded && evt.getPropertyName().equals("value")) {
-        	setActorValue(ActorTableModel.columns.Move.ordinal(), ((Long) move.getValue()).intValue());
+        	setActorValue(InitTableModel.columns.Move.ordinal(), ((Long) move.getValue()).intValue());
         }
     }//GEN-LAST:event_movePropertyChange
 
     private void dodgePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_dodgePropertyChange
         if(actorLoaded && evt.getPropertyName().equals("value")) {
-            setActorValue(ActorTableModel.columns.Dodge.ordinal(), ((Long) dodge.getValue()).intValue());
+            setActorValue(InitTableModel.columns.Dodge.ordinal(), ((Long) dodge.getValue()).intValue());
        }
     }//GEN-LAST:event_dodgePropertyChange
     
     private void statusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_statusActionPerformed
         if(actorLoaded) {
             //if (DEBUG) { System.out.println("ActorDetailsPanel: State action performed event " + evt.toString()); }
-            setActorValue(ActorTableModel.columns.State.ordinal(), ((JComboBox)evt.getSource()).getSelectedItem().toString());
+            setActorValue(InitTableModel.columns.State.ordinal(), ((JComboBox)evt.getSource()).getSelectedItem().toString());
         }
     }//GEN-LAST:event_statusActionPerformed
 
     private void typeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_typeActionPerformed
         if(actorLoaded) {
-        	setActorValue(ActorTableModel.columns.Type.ordinal(), ((JComboBox)evt.getSource()).getSelectedItem().toString());
+        	setActorValue(InitTableModel.columns.Type.ordinal(), ((JComboBox)evt.getSource()).getSelectedItem().toString());
             refreshActor(); // need to refresh actor, since this may cause a change in formatting
         }
     }//GEN-LAST:event_typeActionPerformed
@@ -642,7 +642,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 	 * Set the actor table model used for displaying actors.
 	 * @param model : the model to use.
 	 */
-	public void setActorModel(ActorTableModel model) {
+	public void setActorModel(InitTableModel model) {
 		if (actorModel != null)
 			actorModel.removeTableModelListener(this);
 		if(model != null) 
@@ -694,7 +694,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 	    		try {
 	    			switch (lField) {
 	    			case Name:
-	    				setActorValue(ActorTableModel.columns.Name.ordinal(), document.getText(0,document.getLength()));
+	    				setActorValue(InitTableModel.columns.Name.ordinal(), document.getText(0,document.getLength()));
 	    				break;
 	    			case Notes:
 	    				// Need to be careful about triggering infinite updates. 

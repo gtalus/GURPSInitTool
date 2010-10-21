@@ -90,7 +90,7 @@ public class InitTableTransferHandler extends TransferHandler {
     	if (DEBUG) { System.out.println("InitTreeTransferHandler:  Transferable data retrieved."); }
 
         InitTable table = (InitTable) support.getComponent();
-        ActorTableModel tableModel = (ActorTableModel) table.getModel();
+        InitTableModel tableModel = (InitTableModel) table.getModel();
         
         // Don't try to put items after the 'new' row
         // needed to preserve actor order
@@ -133,7 +133,7 @@ public class InitTableTransferHandler extends TransferHandler {
 			return null;
 		
 		java.util.Arrays.sort(rows);
-		ActorTableModel tableModel = (ActorTableModel) table.getModel();
+		InitTableModel tableModel = (InitTableModel) table.getModel();
 		Actor[] actorRows = tableModel.getActors(rows);
 		return new TransferableActor(actorRows, table.isInitTable());
 	}
@@ -153,7 +153,7 @@ public class InitTableTransferHandler extends TransferHandler {
 	        }
 	        for (int i = 0; i < actors.length; i++) {
 	        	if (DEBUG) { System.out.println("InitTreeTransferHandler: After move, deleting actor " + actors[i].Name + "..."); }
-	        	((ActorTableModel) table.getModel()).removeActor(actors[i]);
+	        	((InitTableModel) table.getModel()).removeActor(actors[i]);
 	        }
 		}
 		if (DEBUG) {
