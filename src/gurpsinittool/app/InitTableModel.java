@@ -11,7 +11,7 @@ import gurpsinittool.data.Actor.ActorType;
 import gurpsinittool.util.FileChangeEvent;
 import gurpsinittool.util.FileChangeEventListener;
 
-public class ActorTableModel extends AbstractTableModel {
+public class InitTableModel extends AbstractTableModel {
 
 	/**
 	 * Default UID
@@ -23,23 +23,16 @@ public class ActorTableModel extends AbstractTableModel {
 	private boolean clean = true;
 	protected EventListenerList fileChangeListenerList = new EventListenerList();
 
-	private String[] columnNames = {"Name", "Move", "Dodge", "HT", "HP", "Damage", "FP", "Fatigue", "State", "Type"};
-	private Class<?>[] columnClasses = {String.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, String.class, String.class};
-	public enum columns {Name, Move, Dodge, HT, HP, Damage, FP, Fatigue, State, Type};
-	private static int numColumns = 10;
+	private String[] columnNames = {"Act", "Name", "Move", "Dodge", "HT", "HP", "Damage", "FP", "Fatigue", "State", "Type"};
+	private Class<?>[] columnClasses = {String.class, String.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, String.class, String.class};
+	public enum columns {Act, Name, Move, Dodge, HT, HP, Damage, FP, Fatigue, State, Type};
+	private static int numColumns = 11;
 	
 	private ArrayList<Actor> actorList = new ArrayList<Actor>(Arrays.asList(
 //			new Actor("Damian", ActorState.Active, ActorType.PC),
-//			new Actor("Galen", ActorState.Active, ActorType.PC),	
-//			new Actor("Guard", ActorState.Active, ActorType.Ally),
-//			new Actor("Guard 2", ActorState.Active, ActorType.Ally),
-//			new Actor("Villager", ActorState.Active, ActorType.Neutral),
-//			new Actor("Vorpal Blade", ActorState.Active, ActorType.Special),
-//			new Actor("Monster", ActorState.Active, ActorType.Enemy),
-//			new Actor("Big Monster", ActorState.Active, ActorType.Enemy),
-//			new Actor("Demon", ActorState.Active, ActorType.Enemy),
+			// This is a special row which allows new actors to be added.
 			new Actor("new...", ActorState.Active, ActorType.Enemy))
-			);
+			);	
 	private int activeActor = -1;
 	
 	/**
@@ -264,7 +257,12 @@ public class ActorTableModel extends AbstractTableModel {
     
 	@Override
     public boolean isCellEditable(int row, int col) {
-       return true;
+        switch (columns.values()[col]) {
+        case Act:
+        	return false;
+        default:
+        	return true;
+        }
     }
 	
 	/**
