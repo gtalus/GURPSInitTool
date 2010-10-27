@@ -2,6 +2,7 @@ package gurpsinittool.app;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -236,6 +237,7 @@ public class InitTable extends JTable
         popupMenu.add(createMenuItem("Delete", KeyEvent.VK_DELETE));
         MousePopupListener popupListener = new MousePopupListener();
         addMouseListener(popupListener);
+        getTableHeader().addMouseListener(popupListener);
         
         // Don't display 'Act' column in the group manager table
         // Removing this column changes the indexes in the column model only - be careful when using getColumn(i)
@@ -759,7 +761,7 @@ public class InitTable extends JTable
 	class MousePopupListener extends MouseAdapter {
 	    	
 	    public void mousePressed(MouseEvent e) { checkPopup(e); }
-	    public void mouseClicked(MouseEvent e) { checkPopup(e); }
+	    public void mouseClicked(MouseEvent e) { checkPopup(e); checkResize(e);}
 	    public void mouseReleased(MouseEvent e) { checkPopup(e); }
 	 
 	    private void checkPopup(MouseEvent e) {
@@ -767,8 +769,20 @@ public class InitTable extends JTable
 	   			popupMenu.show(e.getComponent(), e.getX(), e.getY());
 	        }
 	    }
+	    
+	    private void checkResize(MouseEvent e) {
+	    	// See if it's a double click
+	    	if (e.getClickCount() == 2) {
+		        // Determine if cursor is the resize cursor
+		        Cursor currentCursor = getTableHeader().getCursor();
+				System.out.println("MouseClickListener: checkResize: double-click detected. Type is " + currentCursor.getType() + " (" + currentCursor.toString() + ")");
+				
+				if (currentCursor.getType() == Cursor.E_RESIZE_CURSOR) {
+					autoSizeColumns();
+					System.out.println("MouseClickListener: checkResize: auto-sizing columns.");
+				}
+	    	}
+	    }
 	}
-
 }
-
 
