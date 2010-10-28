@@ -12,6 +12,8 @@
 package gurpsinittool.ui;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.event.KeyEvent;
 
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -23,6 +25,8 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
 import gurpsinittool.app.*;
 import gurpsinittool.data.Actor;
@@ -87,8 +91,8 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     	actorModel.addTableModelListener(this);
 
         initComponents();
-        name.getDocument().addDocumentListener(new ActorTextDocumentListener(textListenField.Name));
-        notes.getDocument().addDocumentListener(new ActorTextDocumentListener(textListenField.Notes));
+        //name.getDocument().addDocumentListener(new ActorTextDocumentListener(textListenField.Name));
+        //notes.getDocument().addDocumentListener(new ActorTextDocumentListener(textListenField.Notes));
         disablePanel();
     }
 
@@ -199,11 +203,21 @@ public class ActorDetailsPanel extends javax.swing.JPanel
                 statusActionPerformed(evt);
             }
         });
+        status.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+        });
 
         type.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "PC", "Ally", "Enemy", "Neutral", "Special" }));
         type.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 typeActionPerformed(evt);
+            }
+        });
+        type.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
             }
         });
 
@@ -326,6 +340,19 @@ public class ActorDetailsPanel extends javax.swing.JPanel
         name.setFont(new java.awt.Font("Tahoma", 1, 20));
         name.setText("name");
         name.setBorder(null);
+        name.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                nameFocusLost(evt);
+            }
+        });
+        name.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                nameKeyTyped(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -514,10 +541,47 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 
     private void fieldFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldFocusGained
     	if (DEBUG) { System.out.println("ActorDetailsPanel: Focus gained on " + evt.toString()); }
-    	JFormattedTextField t = (JFormattedTextField) evt.getComponent();
-    	t.setText(t.getText());
-    	t.selectAll();
+    	// Make sure the table is not also editing anything
+    	if(initTable.getCellEditor() != null) { initTable.getCellEditor().stopCellEditing(); }
+    	Component com =  evt.getComponent();
+    	if (JFormattedTextField.class.equals(com.getClass())) {
+    		if (DEBUG) { System.out.println("ActorDetailsPanel: fieldFocusGained on a JFormattedTextField!"); }
+    		JFormattedTextField t = (JFormattedTextField) evt.getComponent();
+    		t.setText(t.getText());
+    		t.selectAll();
+    	}
+    	else if (JComboBox.class.equals(com.getClass())) {
+    		if (DEBUG) { System.out.println("ActorDetailsPanel: fieldFocusGained on a JComboBox!"); }
+    	}
+    	else if (JTextField.class.equals(com.getClass())) {
+    		if (DEBUG) { System.out.println("ActorDetailsPanel: fieldFocusGained on a JTextField!"); }
+    	}
+    	else if (JTextArea.class.equals(com.getClass())) {
+    		if (DEBUG) { System.out.println("ActorDetailsPanel: fieldFocusGained on a JTextArea!"); }   		
+    	}
+    	else {
+    		if (DEBUG) { System.out.println("ActorDetailsPanel: fieldFocusGained on a UNKNOWN component!"); }   		
+    	}
+    		
     }//GEN-LAST:event_fieldFocusGained
+
+    private void nameKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_nameKeyTyped
+        // Consume Esc and Enter keys
+    	char c = evt.getKeyChar();
+    	if (c == KeyEvent.VK_ESCAPE) {
+    	   	if (DEBUG) { System.out.println("ActorDetailsPanel: nameKeyTyped ESCAPE"); }
+    	   	name.setText(actorModel.getActor(selectedActor).Name);
+    	}
+    	else if (c == KeyEvent.VK_ENTER) {
+    	   	if (DEBUG) { System.out.println("ActorDetailsPanel: nameKeyTyped ENTER"); }
+        	setActorValue(InitTableModel.columns.Name.ordinal(), name.getText());
+        }
+    }//GEN-LAST:event_nameKeyTyped
+
+    private void nameFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_nameFocusLost
+    	if (DEBUG) { System.out.println("ActorDetailsPanel: nameFocusLost"); }
+    	setActorValue(InitTableModel.columns.Name.ordinal(), name.getText());
+    }//GEN-LAST:event_nameFocusLost
 
     /**
      * Disable the panel, setting all values to default

@@ -24,6 +24,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileFilter;
@@ -89,6 +91,15 @@ public class GroupManager extends JFrame
         menuItem.addActionListener(this);
         jMenu.add(menuItem);
         jMenuBar.add(jMenu);
+        jMenu = new JMenu("Tools");
+        jMenu.setMnemonic(KeyEvent.VK_T);
+        menuItem = new JCheckBoxMenuItem("Auto-fit columns");
+        menuItem.setMnemonic(KeyEvent.VK_A);
+        menuItem.setSelected(Boolean.valueOf(propertyBag.getProperty("Manager.groupTable.autoResize")));
+        menuItem.getAccessibleContext().setAccessibleDescription("Table columns auto-fit automatically");
+        menuItem.addItemListener(this);
+        jMenu.add(menuItem);
+        jMenuBar.add(jMenu);
         jMenu = new JMenu("View");
         jMenu.setMnemonic(KeyEvent.VK_V);
         menuItem = new JCheckBoxMenuItem("Actor Details");
@@ -98,11 +109,13 @@ public class GroupManager extends JFrame
         menuItem.addItemListener(this);
         jMenu.add(menuItem);
         jMenuBar.add(jMenu);
+
         setJMenuBar(jMenuBar);
         
         groupTable = new InitTable(false);
         groupTable.setVisible(false);
         groupTable.getActorTableModel().addFileChangeEventListener(new GroupFileChangeEventListener());
+        groupTable.getActorTableModel().addTableModelListener(new GroupInitTableModelListener());
         actorDetailsPanel = new ActorDetailsPanel(groupTable);
         groupTree = new GroupTree(groupTable);
         groupTree.addTreeSelectionListener(this);
@@ -162,11 +175,20 @@ public class GroupManager extends JFrame
          	propertyBag.setProperty("Manager.actorDetails.visible", String.valueOf(selected));
          	layoutActorPanel();
     	}
+    	else if ("Auto-fit columns".equals(source.getText())) { // Auto-fit columns automatically
+         	boolean selected = (e.getStateChange() == ItemEvent.SELECTED);
+         	if (DEBUG) { System.out.println("GroupManager: itemStateChanged: Tools/Auto-fit columns item state changed. Selected = " + selected); }
+         	propertyBag.setProperty("Manager.groupTable.autoResize", String.valueOf(selected));
+         	if (selected)
+         		groupTable.autoSizeColumns();
+    	}
 	}
 	
 	@Override
 	public void valueChanged(TreeSelectionEvent e) {
 		if (DEBUG) { System.out.println("GroupManager: valueChanged: TreeSelectionEvent: " + e.toString()); }
+		// Stop editing the table, if editing is currently in progress
+		if(groupTable.getCellEditor() != null) { groupTable.getCellEditor().stopCellEditing(); }
 		InitTableModel tableModel = groupTable.getActorTableModel();
 		if (groupTree.getLastSelectedPathComponent() != null) {
 			if (DEBUG) { System.out.println("GroupManager: valueChanged: Current Selection: " + groupTree.getLastSelectedPathComponent().toString()); }
@@ -319,6 +341,8 @@ public class GroupManager extends JFrame
 	 private void setDefaultProperties() {
 		 if (!propertyBag.containsKey("Manager.actorDetails.visible")) {
 			 propertyBag.setProperty("Manager.actorDetails.visible", "true"); }
+		 if (!propertyBag.containsKey("Manager.groupTable.autoResize")) {
+			 propertyBag.setProperty("Manager.groupTable.autoResize", "false"); }
 		 if (!propertyBag.containsKey("Manager.splitHorizontal.dividerLocation")) {
 			 propertyBag.setProperty("Manager.splitHorizontal.dividerLocation", "340"); }
 		 if (!propertyBag.containsKey("Manager.splitVertical.dividerLocation")) {
@@ -339,7 +363,8 @@ public class GroupManager extends JFrame
 	  */
 	 public void updateProperties() {
 		 // Kept up-to-date with event listeners
-		 // propertyBag.setProperty("Manager.actorDetails.visible", String.valueOf(jSplitPaneHorizontal.getDividerLocation()));
+		 // Manager.actorDetails.visible
+		 // Manager.groupTable.autoResize
 		 propertyBag.setProperty("Manager.splitHorizontal.dividerLocation", String.valueOf(jSplitPaneHorizontal.getDividerLocation()));
 		 propertyBag.setProperty("Manager.splitVertical.dividerLocation", String.valueOf(jSplitPaneVertical.getDividerLocation()));
 		 propertyBag.setProperty("Manager.location.x", String.valueOf(getLocation().x));
@@ -392,6 +417,20 @@ public class GroupManager extends JFrame
 					setTitle("Group Manager *");
 				}
 			}
+		}
+    }
+    
+	 /**
+     * An Inner class to monitor the table changes
+     */
+    class GroupInitTableModelListener implements TableModelListener {
+
+		@Override
+		public void tableChanged(TableModelEvent evt) {
+			if (DEBUG) { System.out.println("GroupManager: TableModelChange occured."); }
+			// Check for auto-resize
+			if(Boolean.valueOf(propertyBag.getProperty("Manager.groupTable.autoResize")))
+				groupTable.autoSizeColumns();
 		}
     }
     

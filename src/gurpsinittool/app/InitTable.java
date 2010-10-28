@@ -583,7 +583,6 @@ public class InitTable extends JTable
 				c.setForeground(new Color(128,128,128));
 				c.setHorizontalAlignment(SwingConstants.LEFT);
 				//c.setIcon(new ImageIcon());
-				//c.addFocusListener(this);
 				return c;
 			}
 			
@@ -591,24 +590,29 @@ public class InitTable extends JTable
 			Actor a = ((InitTableModel)table.getModel()).getActor(row);
 			formatComponentColor(c, a, isSelected, col);
 			formatComponentAlignment(c, a);
-			//c.removeFocusListener(this);
 			return c;
 		}
 		
 		@Override
 	    public void focusGained(FocusEvent evt) {
 	    	if (DEBUG) { System.out.println("InitTable: Focus gained on " + evt.toString()); }
+	    	// check for modifications in the base Actor
+	    	// This hack is only needed if setClickCountToStart = 1, since in that 
+	    	// case the table is not updated in time when there is a modification on focus lost
+	    	JTextField t = (JTextField) evt.getComponent();
+	    	t.setText(getSelectedActor().Name);
+	    	
+	    	// Select the 'new...' if this is the last row (so that a single key press will replace that text)
+	    	// Alternative is to delete it, and then replace it in case of canceling the edit
 	    	if (getSelectedRow() == getRowCount() -1) {
-		    	JTextField t = (JTextField) evt.getComponent();
-		    	t.setText(t.getText());
+	    		t.setText(t.getText());
 		    	t.selectAll();
 	    	}
 	    }
 
 		@Override
 		public void focusLost(FocusEvent evt) {
-			// TODO Auto-generated method stub
-			
+			if (DEBUG) { System.out.println("InitTable: Focus lost on " + evt.toString()); }
 		}
 		
 	}

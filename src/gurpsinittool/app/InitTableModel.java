@@ -335,9 +335,7 @@ public class InitTableModel extends AbstractTableModel {
 	public void removeActor(Actor actor) {
 		while (actorList.contains(actor)) {
 			int row = actorList.indexOf(actor);
-			actorList.remove(row);
-			setDirty();
-			fireTableRowsDeleted(row, row);
+			removeActor(row);
 		}
 	}
 
