@@ -1,6 +1,7 @@
 package gurpsinittool.app;
 
 import javax.swing.*;  
+import javax.swing.undo.UndoManager;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -35,6 +36,10 @@ public class GITApp extends JFrame implements ActionListener {
 	private Properties propertyBag = new Properties();
 	private JLabel roundCounter;
 	private JSplitPane jSplitPaneHorizontal;
+	
+	private UndoManager undoManager;
+	private JMenuItem undoMenuItem;
+	private JMenuItem redoMenuItem;
 	
     /**
      * Create the GUI and show it.  For thread safety,
@@ -94,7 +99,7 @@ public class GITApp extends JFrame implements ActionListener {
     			int minimumWidth = roundCounter.getMinimumSize().width/10 * 10;
     			if (roundCounter.getMinimumSize().width + 1  % 10 != 0) { minimumWidth += 10; }
     			roundCounter.setPreferredSize(new Dimension(minimumWidth, 20));
-    			if (DEBUG) { System.out.println("Minimum round counter size = " + roundCounter.getMinimumSize().toString()); }
+    			if (DEBUG) { System.out.println("GITApp: Minimum round counter size = " + roundCounter.getMinimumSize().toString()); }
     		}
     	}	
     	else if ("resetRound".equals(e.getActionCommand())) {
@@ -107,6 +112,9 @@ public class GITApp extends JFrame implements ActionListener {
        	else if ("sizeColumns".equals(e.getActionCommand())) {
     		initTable.autoSizeColumns();
     	}	
+       	else {
+   			if (DEBUG) { System.out.println("GITApp: Unknown action performed: " + e.getActionCommand()); }
+       	}
 
 	}
     
@@ -120,10 +128,18 @@ public class GITApp extends JFrame implements ActionListener {
         
         // The main menu bar
         JMenuBar menubar = new JMenuBar();
-        JMenu menuFile = new JMenu("Test");
-        menuFile.add("test item1");
-        menuFile.add("test item2");
-        menuFile.add("test item3");
+        JMenu menuFile = new JMenu("Edit");
+        menuFile.setMnemonic(KeyEvent.VK_E);
+        undoMenuItem = new JMenuItem("Undo", KeyEvent.VK_U);
+        undoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK));
+        undoMenuItem.getAccessibleContext().setAccessibleDescription("Undo the last reversible action");
+        undoMenuItem.addActionListener(this);
+        menuFile.add(undoMenuItem);
+        redoMenuItem = new JMenuItem("Redo", KeyEvent.VK_R);
+        redoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, ActionEvent.CTRL_MASK));
+        redoMenuItem.getAccessibleContext().setAccessibleDescription("Redo the last undone action");
+        redoMenuItem.addActionListener(this);
+        menuFile.add(redoMenuItem);
         menubar.add(menuFile);
         setJMenuBar(menubar);
   
@@ -204,6 +220,10 @@ public class GITApp extends JFrame implements ActionListener {
         jSplitPaneHorizontal.setResizeWeight(.95);
         getContentPane().add(jSplitPaneHorizontal, BorderLayout.CENTER);
        
+        // Undo support
+        undoManager = new UndoManager();
+        refreshUndoRedo();
+        
         //Display the window.
         setLocation(Integer.valueOf(propertyBag.getProperty("GITApp.location.x")),
                 Integer.valueOf(propertyBag.getProperty("GITApp.location.y")));
@@ -297,22 +317,37 @@ public class GITApp extends JFrame implements ActionListener {
 		 //else { propertyBag.remove("GITApp.currentLoadedFile");}
 	 }
 	 
+	 /**
+	  * This method is called after each undoable operation
+	  * in order to refresh the presentation state of the
+	  * undo/redo GUI
+	  */
+	  public void refreshUndoRedo() {
+	     // refresh undo
+		 undoMenuItem.setText(undoManager.getUndoPresentationName());
+		 undoMenuItem.setEnabled(undoManager.canUndo());
+
+	     // refresh redo
+	     redoMenuItem.setText(undoManager.getRedoPresentationName());
+	     redoMenuItem.setEnabled(undoManager.canRedo());
+	  }
+
+	 /**
+	  * Accessor method for undoManager
+	  */
+	 public UndoManager getUndoManager() {
+		 return undoManager;
+	 }
+	 
     /**
      * An Inner class to monitor the window events
      */
     class GITAppWindowListener implements WindowListener {
 
 		@Override
-		public void windowActivated(WindowEvent arg0) {
-			// TODO Auto-generated method stub
-			
-		}
-
+		public void windowActivated(WindowEvent arg0) {}
 		@Override
-		public void windowClosed(WindowEvent arg0) {
-			// TODO Auto-generated method stub
-			
-		}
+		public void windowClosed(WindowEvent arg0) {}
 
 		@Override
 		public void windowClosing(WindowEvent evt) {
@@ -326,27 +361,12 @@ public class GITApp extends JFrame implements ActionListener {
 		}
 
 		@Override
-		public void windowDeactivated(WindowEvent arg0) {
-			// TODO Auto-generated method stub
-			
-		}
-
+		public void windowDeactivated(WindowEvent arg0) {}
 		@Override
-		public void windowDeiconified(WindowEvent arg0) {
-			// TODO Auto-generated method stub
-			
-		}
-
+		public void windowDeiconified(WindowEvent arg0) {}
 		@Override
-		public void windowIconified(WindowEvent arg0) {
-			// TODO Auto-generated method stub
-			
-		}
-
+		public void windowIconified(WindowEvent arg0) {}
 		@Override
-		public void windowOpened(WindowEvent arg0) {
-			// TODO Auto-generated method stub
-			
-		}
+		public void windowOpened(WindowEvent arg0) {}
     }
 }

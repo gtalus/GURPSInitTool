@@ -23,6 +23,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JTextArea;
@@ -92,7 +93,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 
         initComponents();
         //name.getDocument().addDocumentListener(new ActorTextDocumentListener(textListenField.Name));
-        //notes.getDocument().addDocumentListener(new ActorTextDocumentListener(textListenField.Notes));
+        notes.getDocument().addDocumentListener(new ActorTextDocumentListener(textListenField.Notes));
         disablePanel();
     }
 
@@ -197,7 +198,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
                 .addComponent(add_attack))
         );
 
-        status.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Active", "Waiting", "Disabled", "Unconscious", "Dead" }));
+        status.setModel(new DefaultComboBoxModel(Actor.ActorState.values()));
         status.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 statusActionPerformed(evt);
@@ -209,7 +210,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
             }
         });
 
-        type.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "PC", "Ally", "Enemy", "Neutral", "Special" }));
+        type.setModel(new DefaultComboBoxModel(Actor.ActorType.values()));
         type.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 typeActionPerformed(evt);
@@ -541,8 +542,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 
     private void fieldFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldFocusGained
     	if (DEBUG) { System.out.println("ActorDetailsPanel: Focus gained on " + evt.toString()); }
-    	// Make sure the table is not also editing anything
-    	if(initTable.getCellEditor() != null) { initTable.getCellEditor().stopCellEditing(); }
+    	initTable.stopCellEditing();
     	Component com =  evt.getComponent();
     	if (JFormattedTextField.class.equals(com.getClass())) {
     		if (DEBUG) { System.out.println("ActorDetailsPanel: fieldFocusGained on a JFormattedTextField!"); }
@@ -579,8 +579,10 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     }//GEN-LAST:event_nameKeyTyped
 
     private void nameFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_nameFocusLost
-    	if (DEBUG) { System.out.println("ActorDetailsPanel: nameFocusLost"); }
-    	setActorValue(InitTableModel.columns.Name.ordinal(), name.getText());
+    	if (DEBUG) { System.out.println("ActorDetailsPanel: nameFocusLost" + evt.toString()); }
+    	if (!evt.isTemporary()) {
+    		setActorValue(InitTableModel.columns.Name.ordinal(), name.getText());
+    	}
     }//GEN-LAST:event_nameFocusLost
 
     /**
@@ -665,12 +667,8 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 		}
 		name.setForeground(new Color(0,0,0));
 		switch (actor.State) {
-		case Active:
-			break;
 		case Waiting:
 			//name.setHorizontalAlignment(SwingConstants.RIGHT);
-			break;
-		case Disabled:
 			break;
 		case Unconscious:
 		case Dead:
@@ -678,8 +676,8 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 			break;
 		}
 	
-	    status.setSelectedItem(actor.State.toString());
-	    type.setSelectedItem(actor.Type.toString());
+	    status.setSelectedItem(actor.State);
+	    type.setSelectedItem(actor.Type);
 	    ht.setValue(((Integer)actor.HT).longValue());
 	    hp.setValue(((Integer)actor.HP).longValue());
 	    damage.setValue(((Integer)actor.Damage).longValue());

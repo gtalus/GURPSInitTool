@@ -95,6 +95,7 @@ public class InitTableTransferHandler extends TransferHandler {
         // Don't try to put items after the 'new' row
         // needed to preserve actor order
         JTable.DropLocation dl = (JTable.DropLocation) support.getDropLocation();
+        table.stopCellEditing(); // Don't allow the table to be in edit mode while we change the structure
         int row = dl.getRow(); 
         if (row >= tableModel.getRowCount()) { row = tableModel.getRowCount() - 1; }
 

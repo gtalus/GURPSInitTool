@@ -291,14 +291,8 @@
     </Container>
     <Component class="javax.swing.JComboBox" name="status">
       <Properties>
-        <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-          <StringArray count="5">
-            <StringItem index="0" value="Active"/>
-            <StringItem index="1" value="Waiting"/>
-            <StringItem index="2" value="Disabled"/>
-            <StringItem index="3" value="Unconscious"/>
-            <StringItem index="4" value="Dead"/>
-          </StringArray>
+        <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="new DefaultComboBoxModel(Actor.ActorState.values())" type="code"/>
         </Property>
       </Properties>
       <Events>
@@ -308,14 +302,8 @@
     </Component>
     <Component class="javax.swing.JComboBox" name="type">
       <Properties>
-        <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-          <StringArray count="5">
-            <StringItem index="0" value="PC"/>
-            <StringItem index="1" value="Ally"/>
-            <StringItem index="2" value="Enemy"/>
-            <StringItem index="3" value="Neutral"/>
-            <StringItem index="4" value="Special"/>
-          </StringArray>
+        <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="new DefaultComboBoxModel(Actor.ActorType.values())" type="code"/>
         </Property>
       </Properties>
       <Events>

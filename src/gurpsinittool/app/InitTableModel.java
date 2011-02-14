@@ -311,7 +311,9 @@ public class InitTableModel extends AbstractTableModel {
 				activeActor = 0;
 				isNewRound = true;
 			}
-		} while (actorList.get(activeActor).State != Actor.ActorState.Active & actorList.get(activeActor).State != Actor.ActorState.Disabled);
+		} while (actorList.get(activeActor).State != Actor.ActorState.Active 
+				& actorList.get(activeActor).State != Actor.ActorState.Disabled
+				& actorList.get(activeActor).State != Actor.ActorState.Stunned);
 		return isNewRound;
 	}
 

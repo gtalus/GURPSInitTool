@@ -16,7 +16,7 @@ public class Actor
 	public String Name;
 	//public int Order; // what is this?
 	
-	public enum ActorState {Active, Waiting, Disabled, Unconscious, Dead};
+	public enum ActorState {Active, Waiting, Stunned, Disabled, Unconscious, Dead};
 	public ActorState State;
 
 	public enum ActorType {PC, Enemy, Ally, Neutral, Special};

@@ -19,7 +19,6 @@ import javax.swing.DropMode;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -31,10 +30,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
-import javax.swing.table.TableModel;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
@@ -74,6 +71,7 @@ public class InitTable extends JTable
     public void actionPerformed(ActionEvent e) {
     	if (DEBUG) { System.out.println("InitTable: Received action command " + e.getActionCommand()); }
     	if ("Delete".equals(e.getActionCommand())) { // Delete selected rows
+    		stopCellEditing();
     		int[] rows = getSelectedRows();
     		int result = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete these rows?", "Confirm Row Delete", JOptionPane.OK_CANCEL_OPTION);
     		if (result == JOptionPane.OK_OPTION) {
@@ -106,25 +104,24 @@ public class InitTable extends JTable
 //    			tableModel.addActor(actors[i], tableModel.getRowCount()-1); // Add actor to the end of the table
 //    		}
 //    	}
-    	else if ("Active".equals(e.getActionCommand()) 
-    			| "Waiting".equals(e.getActionCommand()) 
-    			| "Disabled".equals(e.getActionCommand()) 
-    			| "Unconscious".equals(e.getActionCommand()) 
-    			| "Dead".equals(e.getActionCommand())) {
-       		int[] rows = getSelectedRows();
-       		for (int i = 0; i < rows.length; i++) {
-       			tableModel.setValueAt(e.getActionCommand(), rows[i], InitTableModel.columns.State.ordinal());
-       		}
-    	}
-       	else if ("PC".equals(e.getActionCommand()) 
-    			| "Ally".equals(e.getActionCommand()) 
-    			| "Enemy".equals(e.getActionCommand()) 
-    			| "Neutral".equals(e.getActionCommand()) 
-    			| "Special".equals(e.getActionCommand())) {
-       		int[] rows = getSelectedRows();
-       		for (int i = 0; i < rows.length; i++) {
-       			tableModel.setValueAt(e.getActionCommand(), rows[i], InitTableModel.columns.Type.ordinal());
-       		}
+    	else {
+    		// Check actor states and types
+            for (Actor.ActorState s : Actor.ActorState.values()) {
+            	if (s.toString().equals(e.getActionCommand())) {
+               		int[] rows = getSelectedRows();
+               		for (int i = 0; i < rows.length; i++) {
+               			tableModel.setValueAt(s.toString(), rows[i], InitTableModel.columns.State.ordinal());
+               		}
+            	}
+            }
+            for (Actor.ActorType t : Actor.ActorType.values()) {
+            	if (t.toString().equals(e.getActionCommand())) {
+            		int[] rows = getSelectedRows();
+               		for (int i = 0; i < rows.length; i++) {
+               			tableModel.setValueAt(t.toString(), rows[i], InitTableModel.columns.Type.ordinal());
+               		}
+            	}
+            }
     	}
     }
     
@@ -193,19 +190,15 @@ public class InitTable extends JTable
         
 		// Set column editors
         JComboBox initTableStateEditor = new JComboBox();
-        initTableStateEditor.addItem("Active");
-        initTableStateEditor.addItem("Waiting");
-        initTableStateEditor.addItem("Disabled");
-        initTableStateEditor.addItem("Unconscious");
-        initTableStateEditor.addItem("Dead");
+        for (Actor.ActorState a : Actor.ActorState.values()) {
+        	initTableStateEditor.addItem(a.toString());
+        }
         getColumnModel().getColumn(InitTableModel.columns.State.ordinal()).setCellEditor(new InitTableComboCellEditor(initTableStateEditor));
         ((DefaultCellEditor) getColumnModel().getColumn(InitTableModel.columns.State.ordinal()).getCellEditor()).setClickCountToStart(2);
         JComboBox initTableTypeEditor = new JComboBox();
-        initTableTypeEditor.addItem("PC");
-        initTableTypeEditor.addItem("Ally");
-        initTableTypeEditor.addItem("Enemy");
-        initTableTypeEditor.addItem("Neutral");
-        initTableTypeEditor.addItem("Special");
+        for (Actor.ActorType a : Actor.ActorType.values()) {
+        	initTableTypeEditor.addItem(a.toString());
+        }
         getColumnModel().getColumn(InitTableModel.columns.Type.ordinal()).setCellEditor(new InitTableComboCellEditor(initTableTypeEditor));
         ((DefaultCellEditor) getColumnModel().getColumn(InitTableModel.columns.Type.ordinal()).getCellEditor()).setClickCountToStart(2);
 
@@ -219,6 +212,7 @@ public class InitTable extends JTable
         menuFile.setMnemonic(KeyEvent.VK_S);
         menuFile.add(createMenuItem("Active", KeyEvent.VK_A));
         menuFile.add(createMenuItem("Waiting", KeyEvent.VK_W));
+        menuFile.add(createMenuItem("Stunned", KeyEvent.VK_S));
         menuFile.add(createMenuItem("Disabled", KeyEvent.VK_D));
         menuFile.add(createMenuItem("Unconscious", KeyEvent.VK_U));
         menuFile.add(createMenuItem("Dead", KeyEvent.VK_E));
@@ -308,12 +302,21 @@ public class InitTable extends JTable
 	}
 	
 	/**
+	 * Halt cell editing, if it is occurring.
+	 */
+	public void stopCellEditing() {
+		// Don't allow editing to continue while the table is changed
+		if(getCellEditor() != null) { getCellEditor().stopCellEditing(); }
+	}
+	
+	/**
 	 * Modify a component to match it's conditions
 	 * @param component : the component to modify
 	 * @param actor
 	 */
 	public static void formatComponentAlignment(JLabel c, Actor a, InitTableModel.columns col) {
-		c.setHorizontalAlignment(SwingConstants.LEFT);		
+		c.setHorizontalAlignment(SwingConstants.LEFT);
+		c.setHorizontalTextPosition(JLabel.LEADING);
 		switch (a.State) {
 		case Waiting:
 			c.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -330,7 +333,7 @@ public class InitTable extends JTable
 	 * @param actor
 	 */
 	public static void formatComponentAlignment(JTextField c, Actor a) {
-		c.setHorizontalAlignment(SwingConstants.LEFT);		
+		c.setHorizontalAlignment(SwingConstants.LEFT);	
 		switch (a.State) {
 		case Waiting:
 			c.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -393,12 +396,6 @@ public class InitTable extends JTable
 		}
 		
 		switch (a.State) {
-		case Active:
-			break;
-		case Waiting:
-			break;
-		case Disabled:
-			break;
 		case Unconscious:
 		case Dead:
 			c.setForeground(new Color(128,128,128));
@@ -440,6 +437,21 @@ public class InitTable extends JTable
 			Actor a = ((InitTableModel)table.getModel()).getActor(row);
 			if (col == columns.Act && (tableModel.getActiveActor() == row)) {
 				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/go.png"), "Current Actor"));  
+			}
+			else if ((col == columns.Move || col == columns.Dodge) && (a.Damage > 2*a.HP/3 && a.Fatigue > 2*a.FP/3)) {
+				int currentValue = Integer.parseInt(c.getText());
+				int newValue = (int) Math.ceil((double)currentValue/4);
+				c.setText("<html>" + c.getText() + " <strong>(" + newValue + ")</strong></html>");
+				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/exclamation.png"), "Greatly reduced state"));
+			}
+			else if ((col == columns.Move || col == columns.Dodge) && (a.Damage > 2*a.HP/3 || a.Fatigue > 2*a.FP/3)) {
+				int currentValue = Integer.parseInt(c.getText());
+				int newValue = (int) Math.ceil((double)currentValue/2);
+				c.setText("<html>" + c.getText() + " <strong>(" + newValue + ")</strong></html>");
+				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png"), "Reduced state"));
+			}
+			else if (col == columns.HT && a.Damage >= a.HP) {
+				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png"), "Must check to stay conscious"));
 			}
 			else {
 				c.setIcon(new ImageIcon());
@@ -562,6 +574,9 @@ public class InitTable extends JTable
 		 * Default serial UID
 		 */
 		private static final long serialVersionUID = 1L;
+		
+		// The original actor name that the editor started with
+		private String actorName;
 
 		/**
 		 * Super does not define default constructor, so must define one.
@@ -588,6 +603,7 @@ public class InitTable extends JTable
 			
 			InitTableModel.columns col = InitTableModel.columns.valueOf(table.getColumnName(column));
 			Actor a = ((InitTableModel)table.getModel()).getActor(row);
+			actorName = a.Name;
 			formatComponentColor(c, a, isSelected, col);
 			formatComponentAlignment(c, a);
 			return c;
@@ -599,12 +615,16 @@ public class InitTable extends JTable
 	    	// check for modifications in the base Actor
 	    	// This hack is only needed if setClickCountToStart = 1, since in that 
 	    	// case the table is not updated in time when there is a modification on focus lost
-	    	JTextField t = (JTextField) evt.getComponent();
-	    	t.setText(getSelectedActor().Name);
+	    	if (!getSelectedActor().Name.equals(actorName)) {
+	    		JTextField t = (JTextField) evt.getComponent();
+	    		actorName = getSelectedActor().Name;
+	    		t.setText(actorName);
+	    	}
 	    	
 	    	// Select the 'new...' if this is the last row (so that a single key press will replace that text)
 	    	// Alternative is to delete it, and then replace it in case of canceling the edit
 	    	if (getSelectedRow() == getRowCount() -1) {
+	    		JTextField t = (JTextField) evt.getComponent();
 	    		t.setText(t.getText());
 		    	t.selectAll();
 	    	}
