@@ -19,9 +19,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Properties;
 
-import gurpsinittool.data.*;
 import gurpsinittool.ui.*;
-import gurpsinittool.util.FileChangeEventListener;
 
 public class GITApp extends JFrame implements ActionListener {
 
