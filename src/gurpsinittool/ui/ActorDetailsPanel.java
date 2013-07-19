@@ -15,6 +15,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
+import java.util.Arrays;
 
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -24,6 +25,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableRowSorter;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.DefaultComboBoxModel;
@@ -33,6 +35,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import gurpsinittool.app.*;
+import gurpsinittool.app.AttackTableModel.AttackTableCellRenderer;
 import gurpsinittool.data.Actor;
 
 
@@ -91,6 +94,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JFormattedTextField move;
     private javax.swing.JTextField name;
@@ -99,6 +103,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     private javax.swing.JLabel numParryLabel;
     private javax.swing.JFormattedTextField parry;
     private javax.swing.JButton remove_attack;
+    private javax.swing.JButton resizeAttackTable;
     private javax.swing.JLabel shieldDamageLabel;
     private javax.swing.JPanel shieldPanel;
     private javax.swing.JFormattedTextField shield_dr;
@@ -119,7 +124,8 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     	attackTableModel = new AttackTableModel(actorModel);
     	
         initComponents();
-        //name.getDocument().addDocumentListener(new ActorTextDocumentListener(textListenField.Name));
+        attacksTable.setDefaultRenderer(String.class, attackTableModel.new AttackTableCellRenderer());
+        attacksTable.setDefaultRenderer(Integer.class, attackTableModel.new AttackTableCellRenderer());
         notes.getDocument().addDocumentListener(new ActorTextDocumentListener(textListenField.Notes));
         disablePanel();
     }
@@ -144,6 +150,8 @@ public class ActorDetailsPanel extends javax.swing.JPanel
         add_attack = new javax.swing.JButton();
         remove_attack = new javax.swing.JButton();
         default_attack = new javax.swing.JButton();
+        jSeparator2 = new javax.swing.JToolBar.Separator();
+        resizeAttackTable = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
         attacksTable = new javax.swing.JTable();
         status = new javax.swing.JComboBox();
@@ -228,14 +236,32 @@ public class ActorDetailsPanel extends javax.swing.JPanel
         jToolBar1.add(remove_attack);
 
         default_attack.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/wrench_orange.png"))); // NOI18N
-        default_attack.setEnabled(false);
         default_attack.setFocusable(false);
         default_attack.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         default_attack.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        default_attack.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                default_attackActionPerformed(evt);
+            }
+        });
         jToolBar1.add(default_attack);
+        jToolBar1.add(jSeparator2);
 
+        resizeAttackTable.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/script_code.png"))); // NOI18N
+        resizeAttackTable.setFocusable(false);
+        resizeAttackTable.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        resizeAttackTable.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        resizeAttackTable.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                resizeAttackTableActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(resizeAttackTable);
+
+        attacksTable.setAutoCreateRowSorter(true);
         attacksTable.setModel(attackTableModel);
         attacksTable.setAutoscrolls(false);
+        attacksTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane2.setViewportView(attacksTable);
 
         javax.swing.GroupLayout attacksLayout = new javax.swing.GroupLayout(attacks);
@@ -861,10 +887,28 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     }//GEN-LAST:event_add_attackActionPerformed
 
     private void remove_attackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_remove_attackActionPerformed
-    	attackTableModel.removeAttacks(attacksTable.getSelectedRows());
+    	// Convert from sorted row numbers to model row numbers
+    	// Most of this is not necessary, since the table has a single row selection model
+    	int viewRows[] = attacksTable.getSelectedRows();
+    	int modelRows[] = new int[viewRows.length];
+    	for (int i = 0; i < viewRows.length; ++i) {
+    		modelRows[i] = attacksTable.getRowSorter().convertRowIndexToModel(viewRows[i]);
+    	}
+    	Arrays.sort(modelRows);
+    	attackTableModel.removeAttacks(modelRows);
         resizeAttacksTable();
     	actorModel.setDirty();
     }//GEN-LAST:event_remove_attackActionPerformed
+
+    private void default_attackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_default_attackActionPerformed
+        int modelRow = attacksTable.getRowSorter().convertRowIndexToModel(attacksTable.getSelectedRow());
+        attackTableModel.setDefaultAttack(modelRow);
+        resizeAttacksTable();
+    }//GEN-LAST:event_default_attackActionPerformed
+
+    private void resizeAttackTableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resizeAttackTableActionPerformed
+        resizeAttacksTable();
+    }//GEN-LAST:event_resizeAttackTableActionPerformed
 
 
     /**
@@ -906,7 +950,11 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     	name.setEnabled(false);
     	add_attack.setEnabled(false);
        	remove_attack.setEnabled(false);
-   	//add_timer.setEnabled(false);
+      	default_attack.setEnabled(false);
+      	resizeAttackTable.setEnabled(false);
+      	attackTableModel.setActor(null);
+      	resizeAttacksTable();
+  	//add_timer.setEnabled(false);
     	notes.setText("");
     	notes.setEnabled(false);
     }
@@ -933,6 +981,8 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     	name.setEnabled(true);
     	add_attack.setEnabled(true);
        	remove_attack.setEnabled(true);
+      	default_attack.setEnabled(true);
+      	resizeAttackTable.setEnabled(true);
     	//add_timer.setEnabled(true);
     	notes.setEnabled(true);
     }

@@ -2,6 +2,10 @@ package gurpsinittool.app;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Locale.Category;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.table.AbstractTableModel;
 
@@ -417,6 +421,109 @@ public class InitTableModel extends AbstractTableModel {
 		setDirty();
 		fireTableCellUpdated(activeActor, 0);
 	}
+	
+    // Tag active, non-tagged, enemy actors with available tags
+    public void autoTagActors() {
+    	// Generate list of tags, and clean unneeded tags
+    	HashSet<String> tags = catalogTags(true);
+    	
+    	// Now go thorough and add tags to non-unconscious/dead enemy actors
+    	for (int i = 0; i < actorList.size()-1; ++i) {
+    		Actor a = actorList.get(i);
+    		if (a.Type == ActorType.Enemy && (a.State != ActorState.Unconscious && a.State != ActorState.Dead && a.State != ActorState.Waiting)) {
+	    		tagActor(a, tags);
+    		}
+    	}
+    }
+    
+    /**
+     * Remove the tag from an actor
+     * @param actor The actor to remove the tag from
+     */
+    public void removeTag(Actor actor) {
+    	Matcher matcher;
+		Pattern nameTag = Pattern.compile("^(.*) \\[([^\\s]+)\\]$");
+		if ((matcher = nameTag.matcher(actor.Name)).matches()) {
+    		String name = matcher.group(1);
+    		actor.Name = name;
+    		fireRefresh(actor);
+		}
+    }
+    
+    /**
+     * Tag an actor with the next available tag. This version automatically generates the list of tags in current use.
+     * @param actor The actor to tag
+     */
+    public void tagActor(Actor actor) {
+    	tagActor(actor, catalogTags(false));
+    }
+    
+    /**
+     * Tag an actor with the next available tag if not already tagged
+     * @param actor The actor to tag
+     * @param tags A list of all tags currently in use
+     */
+    public void tagActor(Actor actor, HashSet<String> tags) {
+		if (!nameTag.matcher(actor.Name).matches()) {
+			String tag = getNextTag(tags);
+			if (DEBUG) System.out.println("InitTableModel:tagActor: Tagging actor " + actor.Name + " with " + "[" + tag + "]");
+			actor.Name += " [" + tag + "]";
+			tags.add(tag);
+			fireRefresh(actor);
+		}
+    }
+    
+    /**
+     * Helper method to catalog all tags currently in use
+     * @param clean Whether to clear out stale tags (from enemies that are dead/unconscious)
+     * @return a HashSet of all tags currently in use
+     */
+    public HashSet<String> catalogTags(boolean clean) {
+		Matcher matcher;
+		Pattern nameTag = Pattern.compile("^(.*) \\[([^\\s]+)\\]$");
+		HashSet<String> tags = new HashSet<String>();
+		
+    	// First go through actors, removing unneeded tags (unconscious/dead) and logging existing ones
+    	for (int i = 0; i < actorList.size()-1; ++i) {
+    		Actor a = actorList.get(i);
+    		if (DEBUG) System.out.println("catalogTags: Cataloging actor: " + a.Name);
+    		if ((matcher = nameTag.matcher(a.Name)).matches()) {
+    			String name = matcher.group(1);
+    			String tag = matcher.group(2);
+    			// Check if tag should be cleared
+    			if (clean && a.Type == ActorType.Enemy && (a.State == ActorState.Unconscious || a.State == ActorState.Dead)) {
+    	    		System.out.println("catalogTags: cleaning tag: " + tag);
+    				a.Name = name;
+    				fireRefresh(a);
+    			} else {
+	    			if (tags.contains(tag)) 
+	    				System.out.println("-W- InitTableModel::catalogTags: Duplicate tag detected! " + tag);
+	    			tags.add(tag);
+    			}
+    		}
+    	}
+    	return tags;
+    }
+    
+    /**
+     * Helper function to iterate through possible tags and select the next unused one
+     * @param tags Hash of all used tags
+     * @return the next unused tag
+     */
+	public static Pattern nameTag = Pattern.compile("^(.*) \\[([^\\s]+)\\]$");
+	public static enum flagColors {R, B};
+	public static int flagMaxNum = 6;
+    private static String getNextTag(HashSet<String> tags) {
+    	for (flagColors color: flagColors.values()) {
+    		for (int i = 1; i <= flagMaxNum; ++i) {
+    			String tag = color.toString() + i;
+    			if (!tags.contains(tag))
+    				return tag;
+    		}
+    	}
+    	System.out.println("-W- InitTableModel:getNextTag: no free tags!");
+    	return "S99";
+    }
 	
 	protected EncounterLogEventSource encounterLogEventSource = new EncounterLogEventSource();
 	

@@ -53,6 +53,7 @@ public class Actor
 	
 	// Volatile (not currently stored)
 	// public int Shock = 0;
+	//public String tag;
 	public int ShieldDamage = 0;
 	public int numParry = 0;
 	public int numBlock = 0;
@@ -67,12 +68,13 @@ public class Actor
 	/* also need extra data collection*/
 	
 	/* also need attacks info */
+	public int DefaultAttack = 0;
 	public ArrayList<Attack> Attacks;
 
 	/**
 	 * Basic constructor specifying all options
 	 */
-	public Actor(String name, ActorState state, ActorType type, int ht, int hp, int damage, int fp, int fatigue, int move, int parry, int block, int dodge, int dr, int db, int shield_dr, int shield_hp)
+	public Actor(String name, ActorState state, ActorType type, int ht, int hp, int damage, int fp, int fatigue, int move, int parry, int block, int dodge, int dr, int db, int shield_dr, int shield_hp, int default_attack)
 	{
 		Name = name;
 		State = state;
@@ -92,6 +94,7 @@ public class Actor
 		ShieldDR = shield_dr;
 		ShieldHP = shield_hp;
 		//Active = false;
+		DefaultAttack = default_attack;
 		Attacks = new ArrayList<Attack>();
 	}
 	
@@ -102,7 +105,7 @@ public class Actor
 	 * @param type : Actor type (PC, NPC, etc)
 	 */
 	public Actor(String name, ActorState state, ActorType type) {
-		this(name,state,type,10,10,0,10,0,5,9,9,8,0,2,4,20);
+		this(name,state,type,10,10,0,10,0,5,9,9,8,0,2,4,20,0);
 	}
 	
 	/**
@@ -110,7 +113,7 @@ public class Actor
 	 * @param anActor reference Actor
 	 */
 	public Actor(Actor anActor) {
-		this(anActor.Name,anActor.State,anActor.Type,anActor.HT,anActor.HP,anActor.Injury,anActor.FP,anActor.Fatigue,anActor.Move,anActor.Parry,anActor.Block,anActor.Dodge,anActor.DR,anActor.DB,anActor.ShieldDR,anActor.ShieldHP);
+		this(anActor.Name,anActor.State,anActor.Type,anActor.HT,anActor.HP,anActor.Injury,anActor.FP,anActor.Fatigue,anActor.Move,anActor.Parry,anActor.Block,anActor.Dodge,anActor.DR,anActor.DB,anActor.ShieldDR,anActor.ShieldHP,anActor.DefaultAttack);
 		for(int i = 0; i < anActor.Attacks.size(); ++i) {
 			Attacks.add(anActor.Attacks.get(i));
 		}
@@ -125,14 +128,18 @@ public class Actor
 	public String Attack() {
 		if (Attacks.size() < 1) {
 			return "<i><font color=gray>" + Name + " has no attacks defined!</font></i>";
+		}	
+		if (DefaultAttack < 0 || DefaultAttack >= Attacks.size()) {
+			return "<i><font color=gray>" + Name + " has invalid default attack: " + DefaultAttack + "</font></i>";
 		}
-		// Always use first attack (eventually get some method of picking which attack to use)
-		Attack attack = Attacks.get(0);
+		Attack attack = Attacks.get(DefaultAttack);
 		int strike = DieRoller.roll3d6();
 		int margin = attack.Skill - strike;
 		String hit_miss = (margin >= 0)?"<b>hit</b>":"miss";
 		Damage damage = Damage.ParseDamage(attack.Damage);
-		
+		if (attack.Unbalanced) {
+			++numParry;
+		}
 		return "<b> " + Name + "</b> attacks with " + attack.Name + ": " + hit_miss +  " (" + strike + "/" + attack.Skill + "=" + margin + ") for damage <font color=red><b>" + damage.BasicDamage + " " + damage.Type + "</b></font> (" + attack.Damage + ")";
 	}
 	

@@ -2,6 +2,7 @@ package gurpsinittool.app;
 
 import javax.swing.*;  
 import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.undo.UndoManager;
@@ -28,7 +29,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import gurpsinittool.app.InitTableModel.columns;
 import gurpsinittool.data.Actor;
@@ -291,6 +295,28 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
         redoMenuItem.getAccessibleContext().setAccessibleDescription("Redo the last undone action");
         redoMenuItem.addActionListener(this);
         menuFile.add(redoMenuItem);
+
+        JMenuItem menuItem = new JMenuItem(new DefaultEditorKit.CutAction());
+        menuItem.setText("Cut");
+        menuItem.setMnemonic(KeyEvent.VK_T);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK));
+        menuItem.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/cut.png"), "Cut"));
+        menuFile.add(menuItem);
+
+        menuItem = new JMenuItem(new DefaultEditorKit.CopyAction());
+        menuItem.setText("Copy");
+        menuItem.setMnemonic(KeyEvent.VK_C);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK));
+        menuItem.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/page_copy.png"), "Copy"));
+        menuFile.add(menuItem);
+
+        menuItem = new JMenuItem(new DefaultEditorKit.PasteAction());
+        menuItem.setText("Paste");
+        menuItem.setMnemonic(KeyEvent.VK_P);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, ActionEvent.CTRL_MASK));
+        menuItem.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/paste_plain.png"), "Paste"));
+        menuFile.add(menuItem);
+
         menubar.add(menuFile);
         setJMenuBar(menubar);
   
@@ -378,6 +404,19 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
         };
         button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("control D"), "actorDefend");
         button.getActionMap().put("actorDefend", action);
+        //button.setMnemonic(KeyEvent.VK_D);
+        button.addActionListener(action);
+        toolbar.add(button);
+        // Tag
+        button = new JButton();
+        button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/tag_blue_add.png"), "Tag"));
+        button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
+        button.setToolTipText("Add enemy tags (Ctrl+T)");
+        action = new AbstractAction("tagActors") {
+        	public void actionPerformed(ActionEvent e) { initTable.getActorTableModel().autoTagActors(); initTable.autoSizeColumns(); }
+        };
+        button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("control T"), "tagActors");
+        button.getActionMap().put("tagActors", action);
         //button.setMnemonic(KeyEvent.VK_D);
         button.addActionListener(action);
         toolbar.add(button);

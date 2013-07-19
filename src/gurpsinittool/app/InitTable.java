@@ -101,6 +101,20 @@ public class InitTable extends JTable
        			tableModel.setValueAt("Active", rows[i], InitTableModel.columns.State.ordinal());
        		}
     	}
+    	else if ("Tag".equals(e.getActionCommand())) { // Add tag to selected rows
+      		int[] rows = getSelectedRows();
+      		if (DEBUG) { System.out.println("InitTable: Tagging actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).Name); }   	
+       		for (int i = 0; i < rows.length; i++) {
+       			tableModel.tagActor(tableModel.getActor(rows[i]));
+       		}
+    	}
+    	else if ("Remove Tag".equals(e.getActionCommand())) { // Remove tag from selected rows
+      		int[] rows = getSelectedRows();
+      		if (DEBUG) { System.out.println("InitTable: Un-tagging actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).Name); }   	
+       		for (int i = 0; i < rows.length; i++) {
+       			tableModel.removeTag(tableModel.getActor(rows[i]));
+       		}
+    	}
 //     	if ("Clone".equals(e.getActionCommand())) { // Clone selected rows at the end (as "Haste" spell)
 //     		Actor[] actors = tableModel.getActors(getSelectedRows());
 //    		for (int i = 0; i < actors.length; i++) {
@@ -235,6 +249,8 @@ public class InitTable extends JTable
         //popupMenu.add(createMenuItem("Clone", KeyEvent.VK_C));
         popupMenu.add(createMenuItem("Reset", KeyEvent.VK_R));
         popupMenu.add(createMenuItem("Delete", KeyEvent.VK_DELETE));
+        popupMenu.add(createMenuItem("Tag", KeyEvent.VK_T));
+        popupMenu.add(createMenuItem("Remove Tag", KeyEvent.VK_V));
         MousePopupListener popupListener = new MousePopupListener();
         addMouseListener(popupListener);
         getTableHeader().addMouseListener(popupListener);

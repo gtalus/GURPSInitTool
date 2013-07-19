@@ -1,7 +1,17 @@
 package gurpsinittool.app;
 
-import javax.swing.table.AbstractTableModel;
+import java.awt.Color;
+import java.awt.Component;
 
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JTable;
+import javax.swing.SwingConstants;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+
+import gurpsinittool.app.InitTableModel.columns;
 import gurpsinittool.data.*;
 
 public class AttackTableModel extends AbstractTableModel {
@@ -20,19 +30,11 @@ public class AttackTableModel extends AbstractTableModel {
 	
 	private InitTableModel actorModel = null;
 	private Actor currentActor = null;
-	private int activeAttack = -1;
 
 	
 	public AttackTableModel(InitTableModel actorModel) {
 		super();
 		this.actorModel = actorModel;
-	}
-	/**
-	 * Get index of current active actor
-	 * @return
-	 */
-	public int getActiveAttack() {
-		return activeAttack;
 	}
 
 	@Override
@@ -127,7 +129,6 @@ public class AttackTableModel extends AbstractTableModel {
 	 */
 	public void setActor(Actor actor) {
 		currentActor = actor;
-		fireTableRowsDeleted(0, getRowCount()); // remove current selection
 		fireTableDataChanged();
 	}
 
@@ -137,7 +138,7 @@ public class AttackTableModel extends AbstractTableModel {
     public void addAttack() {
     	if (currentActor != null) {
     		currentActor.Attacks.add(new Attack());
-    		fireTableRowsInserted(getRowCount(), getRowCount());
+    		fireTableRowsInserted(getRowCount()-1, getRowCount()-1);
     	}
     }
 
@@ -149,9 +150,29 @@ public class AttackTableModel extends AbstractTableModel {
 			for (int i = rows.length-1; i >= 0; i--) {  // Go from bottom up to preserve numbering
 				if (DEBUG) { System.out.println("AttackTableModel: Deleting row: " + rows[i]); }   			
 				currentActor.Attacks.remove(rows[i]); // Just remove the rows indicated: not all instances of clones
+				if (rows[i] < currentActor.DefaultAttack)
+					--currentActor.DefaultAttack;
+				if (rows[i] == currentActor.DefaultAttack)
+					currentActor.DefaultAttack = 0;
 			}
     		fireTableRowsDeleted(rows[0], rows[rows.length-1]);
     	}
+    }
+    
+    /**
+     * Set the current actor's default attack
+     * @param row the model row to set as default
+     */
+    public void setDefaultAttack(int row) {
+    	if (row < 0 || row >= currentActor.Attacks.size()) {
+    		System.out.println("AttackTableModel:setDefaultAttack: row out of range! " + row);
+    		return;
+    	}
+    	int oldDefault = currentActor.DefaultAttack;
+    	currentActor.DefaultAttack = row;
+    	fireTableRowsUpdated(oldDefault, oldDefault);
+    	fireTableRowsUpdated(row, row);
+    	actorModel.setDirty();
     }
  
     /**
@@ -160,4 +181,27 @@ public class AttackTableModel extends AbstractTableModel {
     public void setDirty() {
     	actorModel.setDirty();
     }
+    
+	/**
+	 * Renderer to deal with all the customizations based on Actor state/type/etc.
+	 * Assumes that the table model being used is an ActorTableModel.
+	 * @author dsmall
+	 *
+	 */
+	public class AttackTableCellRenderer extends DefaultTableCellRenderer {
+
+		/**
+		 * This class is not really serializable, I think.
+		 */
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+			JLabel c = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+			if (table.getRowSorter().convertRowIndexToModel(row) == currentActor.DefaultAttack) {
+				c.setText("<html><strong>" + c.getText() + "</strong></html>");
+			}
+			return c;
+		}
+	}
 }

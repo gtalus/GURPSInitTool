@@ -170,6 +170,7 @@ public class ActorGroupFile {
 				+ "\" db=\"" + actor.DB
 				+ "\" shield_dr=\"" + actor.ShieldDR
 				+ "\" shield_hp=\"" + actor.ShieldHP
+				+ "\" default_attack=\"" + actor.DefaultAttack
 				+ "\" state=\"" + actor.State.toString()
 				+ "\" type=\"" + actor.Type.toString()
 				+ "\">\n");
@@ -211,7 +212,7 @@ public class ActorGroupFile {
 			Pattern endFolder = Pattern.compile("^</GroupFolder>$");
 			Pattern startGroup = Pattern.compile("^<ActorGroup name=\"([^\"]+)\">$");
 			Pattern endGroup = Pattern.compile("^</ActorGroup>$");
-			Pattern startActor = Pattern.compile("^<Actor name=\"([^\"]+)\" ht=\"([^\"]+)\" hp=\"([^\"]+)\" damage=\"([^\"]+)\" fp=\"([^\"]+)\" fatigue=\"([^\"]+)\" move=\"([^\"]+)\" parry=\"([^\"]+)\" block=\"([^\"]+)\" dodge=\"([^\"]+)\" dr=\"([^\"]+)\" db=\"([^\"]+)\" shield_dr=\"([^\"]+)\" shield_hp=\"([^\"]+)\" state=\"([^\"]+)\" type=\"([^\"]+)\">$");
+			Pattern startActor = Pattern.compile("^<Actor name=\"([^\"]+)\" ht=\"([^\"]+)\" hp=\"([^\"]+)\" damage=\"([^\"]+)\" fp=\"([^\"]+)\" fatigue=\"([^\"]+)\" move=\"([^\"]+)\" parry=\"([^\"]+)\" block=\"([^\"]+)\" dodge=\"([^\"]+)\" dr=\"([^\"]+)\" db=\"([^\"]+)\" shield_dr=\"([^\"]+)\" shield_hp=\"([^\"]+)\" default_attack=\"([^\"]+)\" state=\"([^\"]+)\" type=\"([^\"]+)\">$");
 			Pattern attack = Pattern.compile("^<Attack name=\"([^\"]+)\" skill=\"([^\"]+)\" damage=\"([^\"]+)\" unbalanced=\"([^\"]+)\" />$");
 			Pattern endActor = Pattern.compile("^</Actor>$");
 			Pattern notes = Pattern.compile("^<notes>(.*)</notes>$");
@@ -237,11 +238,12 @@ public class ActorGroupFile {
 					currentNode = newNode;
 				}
 				else if ((matcher = startActor.matcher(line)).matches()) {
-					Actor currentActor = new Actor(matcher.group(1), ActorState.valueOf(matcher.group(15)), ActorType.valueOf(matcher.group(16)), 
+					Actor currentActor = new Actor(matcher.group(1), ActorState.valueOf(matcher.group(16)), ActorType.valueOf(matcher.group(17)), 
 							Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)), Integer.parseInt(matcher.group(4)), 
 							Integer.parseInt(matcher.group(5)), Integer.parseInt(matcher.group(6)), Integer.parseInt(matcher.group(7)), 
 							Integer.parseInt(matcher.group(8)), Integer.parseInt(matcher.group(9)), Integer.parseInt(matcher.group(10)), 
-							Integer.parseInt(matcher.group(11)), Integer.parseInt(matcher.group(12)), Integer.parseInt(matcher.group(13)), Integer.parseInt(matcher.group(14)));
+							Integer.parseInt(matcher.group(11)), Integer.parseInt(matcher.group(12)), Integer.parseInt(matcher.group(13)), 
+							Integer.parseInt(matcher.group(14)), Integer.parseInt(matcher.group(15)));
 					ArrayList<Actor> actorList = currentNode.getActorList();
 					actorList.add(actorList.size()-1, currentActor);
 					// Inside Actor
@@ -335,7 +337,7 @@ public class ActorGroupFile {
 				else if ((matcher = startActor.matcher(line)).matches()) {
 					Actor currentActor = new Actor(matcher.group(1), ActorState.valueOf(matcher.group(9)), ActorType.valueOf(matcher.group(10)), 
 							Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)), Integer.parseInt(matcher.group(4)), 
-							Integer.parseInt(matcher.group(5)), Integer.parseInt(matcher.group(6)), Integer.parseInt(matcher.group(7)), 9, 9, Integer.parseInt(matcher.group(8)), 0, 0, 4, 20);
+							Integer.parseInt(matcher.group(5)), Integer.parseInt(matcher.group(6)), Integer.parseInt(matcher.group(7)), 9, 9, Integer.parseInt(matcher.group(8)), 0, 0, 4, 20, 0);
 					ArrayList<Actor> actorList = currentNode.getActorList();
 					actorList.add(actorList.size()-1, currentActor);
 					// Inside Actor
@@ -424,7 +426,7 @@ public class ActorGroupFile {
 				}
 				else if ((matcher = startActor.matcher(line)).matches()) {
 					Actor currentActor = new Actor(matcher.group(1), ActorState.valueOf(matcher.group(5)), ActorType.valueOf(matcher.group(6)), 
-							Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)),10,0,5,9,9,8,0,0,4,20);
+							Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)),10,0,5,9,9,8,0,0,4,20,0);
 					ArrayList<Actor> actorList = currentNode.getActorList();
 					actorList.add(actorList.size()-1, currentActor);
 					// Inside Actor
@@ -510,7 +512,7 @@ public class ActorGroupFile {
 				}
 				else if ((matcher = actor.matcher(line)).matches()) {
 					Actor currentActor = new Actor(matcher.group(1), ActorState.valueOf(matcher.group(5)), ActorType.valueOf(matcher.group(6)), 
-							Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)),10,0,5,9,9,8,0,0,4,20);
+							Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)),10,0,5,9,9,8,0,0,4,20,0);
 					ArrayList<Actor> actorList = currentNode.getActorList();
 					actorList.add(actorList.size()-1, currentActor);
 				}
