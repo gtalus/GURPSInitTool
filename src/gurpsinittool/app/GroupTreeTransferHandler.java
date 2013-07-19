@@ -94,24 +94,32 @@ public class GroupTreeTransferHandler extends TransferHandler {
 	        	return false;
 	        }
 			TreePath transferPath = new TreePath(transferNode.getPath());
-	
-	        // Check whether the destination is within the source, and disallow for move (will cause entire tree to be deleted)
-	 		if (action == MOVE && insertPath.getPathCount() >= transferPath.getPathCount()) { // Insert path must be longer or equal
-	 	        if (DEBUG) { System.out.println("GroupTreeTransferHandler: Comparing paths: " + insertPath + " vs " + transferPath); }
-		        for (int i = 0; i < transferPath.getPathCount(); i++) {
-		            if (DEBUG) { System.out.println("GroupTreeTransferHandler: Checking node path: " + (insertPath.getPath())[i] + " vs " + (transferPath.getPath())[i]); }
-		        	if (!(insertPath.getPath())[i].toString().equals((transferPath.getPath())[i].toString())) {
-			            if (DEBUG) { System.out.println("GroupTreeTransferHandler:  Paths are NOT identical: allowing move"); }
-		        		break;
-		        	}
-		        	if (i == transferPath.getPathCount()-1) {
-			            if (DEBUG) { System.out.println("GroupTreeTransferHandler:  Paths are identical: disallowing move"); }
-		        		return false;
-		        	}
-		        }
-	 		}
-        
-	        if (DEBUG) { System.out.println("GroupTreeTransferHandler: Inserting node " + transferPath.toString() + " @ " + insertIndex); }
+
+			if (action == MOVE && !tree.isSelectionEmpty()) {
+				TreePath selectionPath = tree.getSelectionPath();
+		        // Check whether the destination is within the source, and disallow for move (will cause entire tree to be deleted)
+		 		if (transferPath.getPathCount() == selectionPath.getPathCount() &&
+		 				insertPath.getPathCount() >= selectionPath.getPathCount()) { // Insert path must be longer or equal
+		 	        if (DEBUG) { System.out.println("GroupTreeTransferHandler: Comparing paths: " + insertPath + " vs " + selectionPath + " vs " + transferPath); }
+		            for (int i = 0; i < selectionPath.getPathCount(); i++) {
+			            if (DEBUG) { System.out.println("GroupTreeTransferHandler: Checking node path: " + (insertPath.getPath())[i] + " vs " + (selectionPath.getPath())[i]); }
+			            if (!(transferPath.getPathComponent(i).toString().equals(selectionPath.getPathComponent(i).toString()))) {
+				            if (DEBUG) { System.out.println("GroupTreeTransferHandler: Paths are NOT identical (transfer != selection): allowing move"); }
+			        		break;
+			        	}
+			            if (!(insertPath.getPathComponent(i).equals(selectionPath.getPathComponent(i)))) {
+				            if (DEBUG) { System.out.println("GroupTreeTransferHandler: Paths are NOT identical (insert != selection): allowing move"); }
+			        		break;
+			        	}
+			        	if (i == selectionPath.getPathCount()-1) {
+				            if (DEBUG) { System.out.println("GroupTreeTransferHandler: Paths are identical: disallowing move"); }
+			        		return false;
+			        	}
+			        }
+		 		}
+			}
+       
+			if (DEBUG) { System.out.println("GroupTreeTransferHandler: Inserting node " + transferPath.toString() + " @ " + insertIndex); }
 			// Detect whether to insert at end, or in the middle of the list
 	 		if (insertIndex >= 0) {
 				treeModel.insertNodeInto(transferNode, parentNode, insertIndex);

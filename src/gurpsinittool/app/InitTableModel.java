@@ -3,12 +3,15 @@ package gurpsinittool.app;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import javax.swing.event.EventListenerList;
 import javax.swing.table.AbstractTableModel;
+
 import gurpsinittool.data.*;
 import gurpsinittool.data.Actor.ActorState;
 import gurpsinittool.data.Actor.ActorType;
-import gurpsinittool.util.FileChangeEvent;
+import gurpsinittool.util.CleanFileChangeEventSource;
+import gurpsinittool.util.EncounterLogEvent;
+import gurpsinittool.util.EncounterLogEventListener;
+import gurpsinittool.util.EncounterLogEventSource;
 import gurpsinittool.util.FileChangeEventListener;
 
 public class InitTableModel extends AbstractTableModel {
@@ -19,20 +22,16 @@ public class InitTableModel extends AbstractTableModel {
 	private static final long serialVersionUID = 1L;
 
 	private static final boolean DEBUG = true;
-	
-	private boolean clean = true;
-	protected EventListenerList fileChangeListenerList = new EventListenerList();
 
 	private String[] columnNames = {"Act", "Name", "Move", "Dodge", "HT", "HP", "Damage", "FP", "Fatigue", "State", "Type"};
 	private Class<?>[] columnClasses = {String.class, String.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, String.class, String.class};
 	public enum columns {Act, Name, Move, Dodge, HT, HP, Damage, FP, Fatigue, State, Type};
 	private static int numColumns = 11;
 	
+	Actor newActor = new Actor("", ActorState.Active, ActorType.Enemy);
 	private ArrayList<Actor> actorList = new ArrayList<Actor>(Arrays.asList(
-//			new Actor("Damian", ActorState.Active, ActorType.PC),
 			// This is a special row which allows new actors to be added.
-			new Actor("new...", ActorState.Active, ActorType.Enemy))
-			);	
+			new Actor(newActor)));	
 	private int activeActor = -1;
 	
 	/**
@@ -81,8 +80,18 @@ public class InitTableModel extends AbstractTableModel {
 	 * Get index of current active actor
 	 * @return
 	 */
-	public int getActiveActor() {
+	public int getActiveActorIndex() {
 		return activeActor;
+	}
+	
+	/**
+	 * Retrieve the currently active Actor
+	 * @return The currently active Actor
+	 */
+	public Actor getActiveActor() {
+		if (activeActor < 0)
+			return null;
+		return getActor(activeActor);
 	}
 	
 	/**
@@ -161,7 +170,7 @@ public class InitTableModel extends AbstractTableModel {
 		case HP:
 			return actor.HP;
 		case Damage:
-			return actor.Damage;
+			return actor.Injury;
 		case FP:
 			return actor.FP;
 		case Fatigue:
@@ -194,11 +203,11 @@ public class InitTableModel extends AbstractTableModel {
         // Convert to actual enums to allow comparison with previous value
         switch (columns.values()[col]) {
         case State:
-        	value = ActorState.valueOf((String) value);
+        	value = ActorState.valueOf(value.toString());
         	break;
         case Type:
-        	value = ActorType.valueOf((String) value);
-        	break;
+        	value = ActorType.valueOf(value.toString());
+        default:
         }
         
         // Check if there is any actual change
@@ -209,12 +218,14 @@ public class InitTableModel extends AbstractTableModel {
 
         // Create a new row if necessary (editing the 'new...' row)
         if (row == actorList.size() -1) {
-        	actorList.add(new Actor("new...", ActorState.Active, ActorType.Enemy));
+        	actorList.add(new Actor(newActor));
     		setDirty();
         	fireTableRowsInserted(row+1,row+1);
         }
         
         Actor a = (Actor) actorList.get(row);
+        int newValue;
+        int diff;
 		switch (columns.values()[col]) {
 		case Name:
 			a.Name = (String) value;
@@ -232,20 +243,38 @@ public class InitTableModel extends AbstractTableModel {
 			a.HP = (Integer) value;
 			break;
 		case Damage:
-			a.Damage = (Integer) value;
+			newValue = (Integer) value;
+			diff = a.Injury - newValue;
+			if (diff < 0) {
+				encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + a.Name + "</b> took <b><font color=red>" + (-1*diff) + "</font></b> damage (now " + (a.HP - newValue) + " HP)."));
+			} else {
+				encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + a.Name + "</b> healed <b><font color=blue>" + diff + "</font></b> (now " + (a.HP - newValue) + " HP)."));		
+			}
+			a.Injury = newValue;
 			break;
 		case FP:
 			a.FP = (Integer) value;
 			break;
 		case Fatigue:
-			a.Fatigue = (Integer) value;
+			newValue = (Integer) value;
+			diff = a.Fatigue - newValue;
+			if (diff < 0) {
+				encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + a.Name + "</b> lost <b>" + (-1*diff) + "</b> fatigue (now " + (a.FP - newValue) + " FP)."));
+			} else {
+				encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + a.Name + "</b> recoverd <b>" + diff + "</b> fatigue (now " + (a.FP - newValue) + " FP)."));		
+			}
+			a.Fatigue = newValue;
 			break;
 		case State:
-			a.State = (ActorState) value;
+			ActorState newState = (ActorState) value;
+			encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + a.Name + "</b> status changed to <b>" + newState + "</b>"));
+			a.State = newState;
 			break;
 		case Type:
-			a.Type = (ActorType) value;
-			break;
+			ActorType newType = (ActorType) value;
+			encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + a.Name + "</b> type changed to <b>" + newType + "</b>"));
+			a.Type = newType;
+		default:
 		}
 		// Update the entire row, since changing state or type may affect formatting for all cells in the row.
 		setDirty();
@@ -295,7 +324,9 @@ public class InitTableModel extends AbstractTableModel {
 			fireTableCellUpdated(activeActor, 0);
 		}
 		boolean isNewRound = nextActorInternal();
-		fireTableCellUpdated(activeActor, 0);
+		if (activeActor != -1) {
+			fireTableCellUpdated(activeActor, 0);
+		}
 		return isNewRound;
 	}
 	
@@ -309,8 +340,13 @@ public class InitTableModel extends AbstractTableModel {
 			activeActor++;
 			if (activeActor >= actorList.size() - 1) { // Remember that the last entry is 'new...'
 				activeActor = 0;
+				if (isNewRound) { // Went around again - no valid actors found
+					activeActor = -1;
+					return true;
+				}
 				isNewRound = true;
 			}
+			getActiveActor().NextTurn();
 		} while (actorList.get(activeActor).State != Actor.ActorState.Active 
 				& actorList.get(activeActor).State != Actor.ActorState.Disabled
 				& actorList.get(activeActor).State != Actor.ActorState.Stunned);
@@ -346,8 +382,10 @@ public class InitTableModel extends AbstractTableModel {
 	 */
 	public void resetEncounter() {
 		setDirty();
-		fireTableCellUpdated(activeActor, 0);
-		activeActor = -1;
+		if (activeActor != -1) {
+			fireTableCellUpdated(activeActor, 0);	
+			activeActor = -1;
+		}
 	}
 	
 	/**
@@ -357,7 +395,7 @@ public class InitTableModel extends AbstractTableModel {
 	public void setActorList(ArrayList<Actor> actorList) {
 		fireTableRowsDeleted(0, getRowCount()); // remove current selection
 		if (actorList == null) 
-			this.actorList = new ArrayList<Actor>(Arrays.asList(new Actor("new...", ActorState.Active, ActorType.Enemy)));
+			this.actorList = new ArrayList<Actor>(Arrays.asList(new Actor(newActor)));
 		else 
 			this.actorList = actorList;
 		fireTableDataChanged();
@@ -380,33 +418,46 @@ public class InitTableModel extends AbstractTableModel {
 		fireTableCellUpdated(activeActor, 0);
 	}
 	
-
-    
+	protected EncounterLogEventSource encounterLogEventSource = new EncounterLogEventSource();
+	
+	/**
+	 * Add an event listener for EncounterLogEvents
+	 * @param listener - the listener to add
+	 */
+	public void addEncounterLogEventListener(EncounterLogEventListener listener) {
+		encounterLogEventSource.addEncounterLogEventListener(listener);
+	}
+	
+	/**
+	 * Remove an event listener for EncounterLogEvents
+	 * @param listener - the listener to remove
+	 */
+	public void removeEncounterLogEventListener(EncounterLogEventListener listener) {
+		encounterLogEventSource.removeEncounterLogEventListener(listener);
+	}
+	
+	protected CleanFileChangeEventSource cleanFileChangeEventSource = new CleanFileChangeEventSource(this);
+   
     /**
      * Method to get the clean status of the groupTree
      * @return whether the group tree has had changes since the last checkpoint
      */
     public boolean isClean() {
-    	return clean;
+    	return cleanFileChangeEventSource.isClean();
     }
     
     /**
      * Set the status of the groupTree as clean. Should be called after saving the file.
      */
     public void setClean() {
-    	if(!clean) { fireFileCleanStatusChangedEvent(new FileChangeEvent(this, true)); }
-    	clean = true;
+    	cleanFileChangeEventSource.setClean();
     }
     
     /**
      * Set the status of the groupTree as dirty. Should be called after making any changes.
      */
     public void setDirty() {
-		if (DEBUG) { System.out.println("GroupTree: setDirty"); }
-
-    	if(clean) { fireFileCleanStatusChangedEvent(new FileChangeEvent(this, false)); }
-    	fireFileChangedEvent(new FileChangeEvent(this));
-    	clean = false;
+    	cleanFileChangeEventSource.setDirty();
     }
     
 	/**
@@ -414,7 +465,7 @@ public class InitTableModel extends AbstractTableModel {
 	 * @param listener - the listener to add
 	 */
 	public void addFileChangeEventListener(FileChangeEventListener listener) {
-		fileChangeListenerList.add(FileChangeEventListener.class, listener);
+		cleanFileChangeEventSource.addFileChangeEventListener(listener);
 	}
 	
 	/**
@@ -422,37 +473,6 @@ public class InitTableModel extends AbstractTableModel {
 	 * @param listener - the listener to remove
 	 */
 	public void removeFileChangeEventListener(FileChangeEventListener listener) {
-		fileChangeListenerList.remove(FileChangeEventListener.class, listener);
+		cleanFileChangeEventSource.removeFileChangeEventListener(listener);
 	}
-	
-	/**
-	 * Fire an event indicating that the file has changed
-	 * @param evt - the event details
-	 */
-	void fireFileChangedEvent(FileChangeEvent evt) {
-		Object[] listeners = fileChangeListenerList.getListenerList(); 
-		// Each listener occupies two elements - the first is the listener class 
-		// and the second is the listener instance 
-		for (int i=0; i<listeners.length; i+=2) { 
-			if (listeners[i]==FileChangeEventListener.class) { 
-				((FileChangeEventListener)listeners[i+1]).fileChangeOccured(evt); 
-			} 
-		} 
-	}
-	
-	/**
-	 * Fire an event indicating that the file clean status has changed (clean -> dirty or dirty -> clean)
-	 * @param evt - the event details
-	 */
-	void fireFileCleanStatusChangedEvent(FileChangeEvent evt) {
-		Object[] listeners = fileChangeListenerList.getListenerList(); 
-		// Each listener occupies two elements - the first is the listener class 
-		// and the second is the listener instance 
-		for (int i=0; i<listeners.length; i+=2) { 
-			if (listeners[i]==FileChangeEventListener.class) { 
-				((FileChangeEventListener)listeners[i+1]).fileCleanStatusChanged(evt); 
-			} 
-		} 
-	}
-
 }

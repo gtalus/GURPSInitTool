@@ -13,6 +13,7 @@ package gurpsinittool.ui;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 
 import javax.swing.event.DocumentEvent;
@@ -21,6 +22,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.DefaultComboBoxModel;
@@ -43,19 +46,25 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 	// Default SVUID
 	private static final long serialVersionUID = 1L;
 
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	
 	private InitTable initTable;
 	private InitTableModel actorModel;
 	private boolean actorLoaded = false;
 	private int selectedActor = -1;
+	private AttackTableModel attackTableModel;
 	
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton add_attack;
-    private javax.swing.JButton add_timer;
     private javax.swing.JPanel attacks;
+    private javax.swing.JTable attacksTable;
+    private javax.swing.JFormattedTextField block;
     private javax.swing.JFormattedTextField damage;
+    private javax.swing.JFormattedTextField db;
+    private javax.swing.JPanel debugPanel;
+    private javax.swing.JButton default_attack;
     private javax.swing.JFormattedTextField dodge;
+    private javax.swing.JFormattedTextField dr;
     private javax.swing.JFormattedTextField fatigue;
     private javax.swing.JFormattedTextField fp;
     private javax.swing.JFormattedTextField hp;
@@ -63,22 +72,38 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     private javax.swing.JFormattedTextField jFormattedTextField1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel15;
+    private javax.swing.JLabel jLabel16;
+    private javax.swing.JLabel jLabel17;
+    private javax.swing.JLabel jLabel18;
+    private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JSeparator jSeparator2;
+    private javax.swing.JToolBar jToolBar1;
     private javax.swing.JFormattedTextField move;
     private javax.swing.JTextField name;
     private javax.swing.JTextArea notes;
+    private javax.swing.JLabel numBlockLabel;
+    private javax.swing.JLabel numParryLabel;
+    private javax.swing.JFormattedTextField parry;
+    private javax.swing.JButton remove_attack;
+    private javax.swing.JLabel shieldDamageLabel;
+    private javax.swing.JPanel shieldPanel;
+    private javax.swing.JFormattedTextField shield_dr;
+    private javax.swing.JFormattedTextField shield_hp;
     private javax.swing.JComboBox status;
-    private javax.swing.JPanel timers;
     private javax.swing.JComboBox type;
     // End of variables declaration//GEN-END:variables
     
@@ -91,6 +116,8 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     	initTable.getSelectionModel().addListSelectionListener(this);
     	actorModel.addTableModelListener(this);
 
+    	attackTableModel = new AttackTableModel(actorModel);
+    	
         initComponents();
         //name.getDocument().addDocumentListener(new ActorTextDocumentListener(textListenField.Name));
         notes.getDocument().addDocumentListener(new ActorTextDocumentListener(textListenField.Notes));
@@ -112,10 +139,13 @@ public class ActorDetailsPanel extends javax.swing.JPanel
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
-        timers = new javax.swing.JPanel();
-        add_timer = new javax.swing.JButton();
         attacks = new javax.swing.JPanel();
+        jToolBar1 = new javax.swing.JToolBar();
         add_attack = new javax.swing.JButton();
+        remove_attack = new javax.swing.JButton();
+        default_attack = new javax.swing.JButton();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        attacksTable = new javax.swing.JTable();
         status = new javax.swing.JComboBox();
         type = new javax.swing.JComboBox();
         jLabel7 = new javax.swing.JLabel();
@@ -127,14 +157,32 @@ public class ActorDetailsPanel extends javax.swing.JPanel
         notes = new javax.swing.JTextArea();
         jLabel9 = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
-        jLabel8 = new javax.swing.JLabel();
         fp = new javax.swing.JFormattedTextField();
         move = new javax.swing.JFormattedTextField();
         fatigue = new javax.swing.JFormattedTextField();
         jLabel6 = new javax.swing.JLabel();
-        dodge = new javax.swing.JFormattedTextField();
-        jSeparator2 = new javax.swing.JSeparator();
+        parry = new javax.swing.JFormattedTextField();
         name = new javax.swing.JTextField();
+        jLabel11 = new javax.swing.JLabel();
+        block = new javax.swing.JFormattedTextField();
+        jLabel12 = new javax.swing.JLabel();
+        dodge = new javax.swing.JFormattedTextField();
+        jLabel13 = new javax.swing.JLabel();
+        dr = new javax.swing.JFormattedTextField();
+        shieldPanel = new javax.swing.JPanel();
+        jLabel15 = new javax.swing.JLabel();
+        jLabel16 = new javax.swing.JLabel();
+        jLabel17 = new javax.swing.JLabel();
+        db = new javax.swing.JFormattedTextField();
+        shield_dr = new javax.swing.JFormattedTextField();
+        shield_hp = new javax.swing.JFormattedTextField();
+        debugPanel = new javax.swing.JPanel();
+        jLabel18 = new javax.swing.JLabel();
+        jLabel19 = new javax.swing.JLabel();
+        jLabel20 = new javax.swing.JLabel();
+        shieldDamageLabel = new javax.swing.JLabel();
+        numParryLabel = new javax.swing.JLabel();
+        numBlockLabel = new javax.swing.JLabel();
 
         jFormattedTextField1.setText("jFormattedTextField1");
 
@@ -150,52 +198,60 @@ public class ActorDetailsPanel extends javax.swing.JPanel
         jLabel5.setFont(jLabel5.getFont().deriveFont(jLabel5.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel5.setText("Damage:");
 
-        timers.setBorder(javax.swing.BorderFactory.createTitledBorder("Timers"));
-
-        add_timer.setText("Add Timer");
-        add_timer.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                add_timerActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout timersLayout = new javax.swing.GroupLayout(timers);
-        timers.setLayout(timersLayout);
-        timersLayout.setHorizontalGroup(
-            timersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, timersLayout.createSequentialGroup()
-                .addContainerGap(78, Short.MAX_VALUE)
-                .addComponent(add_timer))
-        );
-        timersLayout.setVerticalGroup(
-            timersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(timersLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(add_timer))
-        );
-
         attacks.setBorder(javax.swing.BorderFactory.createTitledBorder("Attacks"));
 
-        add_attack.setText("Add Attack");
+        jToolBar1.setBorder(null);
+        jToolBar1.setFloatable(false);
+        jToolBar1.setRollover(true);
+
+        add_attack.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/add.png"))); // NOI18N
+        add_attack.setFocusable(false);
+        add_attack.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        add_attack.setIconTextGap(1);
+        add_attack.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         add_attack.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 add_attackActionPerformed(evt);
             }
         });
+        jToolBar1.add(add_attack);
+
+        remove_attack.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/delete.png"))); // NOI18N
+        remove_attack.setFocusable(false);
+        remove_attack.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        remove_attack.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        remove_attack.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                remove_attackActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(remove_attack);
+
+        default_attack.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/wrench_orange.png"))); // NOI18N
+        default_attack.setEnabled(false);
+        default_attack.setFocusable(false);
+        default_attack.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        default_attack.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar1.add(default_attack);
+
+        attacksTable.setModel(attackTableModel);
+        attacksTable.setAutoscrolls(false);
+        jScrollPane2.setViewportView(attacksTable);
 
         javax.swing.GroupLayout attacksLayout = new javax.swing.GroupLayout(attacks);
         attacks.setLayout(attacksLayout);
         attacksLayout.setHorizontalGroup(
             attacksLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, attacksLayout.createSequentialGroup()
-                .addContainerGap(74, Short.MAX_VALUE)
-                .addComponent(add_attack))
+            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+            .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         attacksLayout.setVerticalGroup(
             attacksLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(attacksLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(add_attack))
+                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 27, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         status.setModel(new DefaultComboBoxModel(Actor.ActorState.values()));
@@ -268,18 +324,18 @@ public class ActorDetailsPanel extends javax.swing.JPanel
         jLabel1.setFont(jLabel1.getFont().deriveFont(jLabel1.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel1.setText("Notes:");
 
-        notes.setColumns(20);
+        jScrollPane1.setPreferredSize(new java.awt.Dimension(50, 50));
+        jScrollPane1.setRequestFocusEnabled(false);
+
+        notes.setFont(new java.awt.Font("Tahoma", 0, 11)); // NOI18N
         notes.setRows(5);
         jScrollPane1.setViewportView(notes);
 
-        jLabel9.setFont(new java.awt.Font("Tahoma", 1, 11));
+        jLabel9.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel9.setText("Move:");
 
-        jLabel10.setFont(new java.awt.Font("Tahoma", 1, 11));
-        jLabel10.setText("Dodge:");
-
-        jLabel8.setFont(jLabel8.getFont().deriveFont(jLabel8.getFont().getStyle() | java.awt.Font.BOLD));
-        jLabel8.setText("/");
+        jLabel10.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel10.setText("Dodge");
 
         fp.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
         fp.setText("99");
@@ -324,21 +380,21 @@ public class ActorDetailsPanel extends javax.swing.JPanel
         jLabel6.setFont(jLabel6.getFont().deriveFont(jLabel6.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel6.setText("Fatigue:");
 
-        dodge.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
-        dodge.setText("99");
-        dodge.addFocusListener(new java.awt.event.FocusAdapter() {
+        parry.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
+        parry.setText("99");
+        parry.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
                 fieldFocusGained(evt);
             }
         });
-        dodge.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+        parry.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
             public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                dodgePropertyChange(evt);
+                parryPropertyChange(evt);
             }
         });
 
         name.setBackground(new java.awt.Color(236, 233, 216));
-        name.setFont(new java.awt.Font("Tahoma", 1, 20));
+        name.setFont(new java.awt.Font("Tahoma", 1, 20)); // NOI18N
         name.setText("name");
         name.setBorder(null);
         name.addFocusListener(new java.awt.event.FocusAdapter() {
@@ -355,68 +411,242 @@ public class ActorDetailsPanel extends javax.swing.JPanel
             }
         });
 
+        jLabel11.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel11.setText("Parry");
+
+        block.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
+        block.setText("99");
+        block.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+        });
+        block.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                blockPropertyChange(evt);
+            }
+        });
+
+        jLabel12.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel12.setText("Block");
+
+        dodge.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
+        dodge.setText("99");
+        dodge.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+        });
+        dodge.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                dodgePropertyChange(evt);
+            }
+        });
+
+        jLabel13.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel13.setText("DR:");
+
+        dr.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
+        dr.setText("99");
+        dr.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+        });
+        dr.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                drPropertyChange(evt);
+            }
+        });
+
+        shieldPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Shield"));
+        shieldPanel.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+
+        jLabel15.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel15.setText("DB");
+
+        jLabel16.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel16.setText("DR");
+
+        jLabel17.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel17.setText("HP");
+
+        db.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
+        db.setText("99");
+        db.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+        });
+        db.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                dbPropertyChange(evt);
+            }
+        });
+
+        shield_dr.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
+        shield_dr.setText("99");
+        shield_dr.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+        });
+        shield_dr.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                shield_drPropertyChange(evt);
+            }
+        });
+
+        shield_hp.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
+        shield_hp.setText("99");
+        shield_hp.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+        });
+        shield_hp.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                shield_hpPropertyChange(evt);
+            }
+        });
+
+        javax.swing.GroupLayout shieldPanelLayout = new javax.swing.GroupLayout(shieldPanel);
+        shieldPanel.setLayout(shieldPanelLayout);
+        shieldPanelLayout.setHorizontalGroup(
+            shieldPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(shieldPanelLayout.createSequentialGroup()
+                .addComponent(jLabel15, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(10, 10, 10)
+                .addComponent(jLabel16, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(10, 10, 10)
+                .addComponent(jLabel17, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(shieldPanelLayout.createSequentialGroup()
+                .addComponent(db, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(10, 10, 10)
+                .addComponent(shield_dr, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(10, 10, 10)
+                .addComponent(shield_hp, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+        shieldPanelLayout.setVerticalGroup(
+            shieldPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(shieldPanelLayout.createSequentialGroup()
+                .addGroup(shieldPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel15, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel16, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel17, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(shieldPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(db, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(shield_dr, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(shield_hp, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+        );
+
+        debugPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Debug"));
+        debugPanel.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+
+        jLabel18.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel18.setText("Shield Damage:");
+
+        jLabel19.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel19.setText("numParry:");
+
+        jLabel20.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel20.setText("numBlock:");
+
+        shieldDamageLabel.setText("asdf");
+
+        numParryLabel.setText("asdf");
+
+        numBlockLabel.setText("asdf");
+
+        javax.swing.GroupLayout debugPanelLayout = new javax.swing.GroupLayout(debugPanel);
+        debugPanel.setLayout(debugPanelLayout);
+        debugPanelLayout.setHorizontalGroup(
+            debugPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(debugPanelLayout.createSequentialGroup()
+                .addGroup(debugPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(debugPanelLayout.createSequentialGroup()
+                        .addGroup(debugPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(jLabel20, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel19, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(debugPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(numParryLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(numBlockLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(debugPanelLayout.createSequentialGroup()
+                        .addComponent(jLabel18, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(shieldDamageLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        debugPanelLayout.setVerticalGroup(
+            debugPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(debugPanelLayout.createSequentialGroup()
+                .addGroup(debugPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel18)
+                    .addComponent(shieldDamageLabel))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(debugPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(numParryLabel)
+                    .addComponent(jLabel19))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(debugPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel20)
+                    .addComponent(numBlockLabel)))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(name, javax.swing.GroupLayout.Alignment.TRAILING)
+            .addComponent(attacks, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jLabel11)
+                                .addComponent(parry, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(jLabel13, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel9, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, 53, Short.MAX_VALUE)
+                        .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.TRAILING))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(type, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(status, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel12)
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel10))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(damage)
+                            .addComponent(move)
+                            .addComponent(fatigue)
+                            .addComponent(fp)
+                            .addComponent(ht, javax.swing.GroupLayout.DEFAULT_SIZE, 41, Short.MAX_VALUE)
+                            .addComponent(block, javax.swing.GroupLayout.DEFAULT_SIZE, 41, Short.MAX_VALUE)
+                            .addComponent(dr, javax.swing.GroupLayout.DEFAULT_SIZE, 41, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(dodge, javax.swing.GroupLayout.DEFAULT_SIZE, 41, Short.MAX_VALUE)
+                            .addComponent(hp))))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
                 .addComponent(jLabel1)
-                .addContainerGap(150, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 175, Short.MAX_VALUE)
-                .addContainerGap())
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(timers, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(attacks, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jSeparator2, javax.swing.GroupLayout.DEFAULT_SIZE, 169, Short.MAX_VALUE)))
-                .addContainerGap())
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addGroup(layout.createSequentialGroup()
-                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jLabel9)
-                                        .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jLabel4))
-                                    .addGap(21, 21, 21))
-                                .addComponent(jLabel6)
-                                .addComponent(jLabel5))
-                            .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                    .addComponent(move, javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(fatigue, javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(fp, javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(ht, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE)
-                                    .addComponent(dodge, javax.swing.GroupLayout.DEFAULT_SIZE, 41, Short.MAX_VALUE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel8)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                    .addComponent(damage)
-                                    .addComponent(hp, javax.swing.GroupLayout.DEFAULT_SIZE, 39, Short.MAX_VALUE)))
-                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                .addComponent(type, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(status, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                    .addComponent(jLabel10)
-                    .addComponent(jLabel7))
-                .addContainerGap(23, Short.MAX_VALUE))
-            .addComponent(name, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE)
+                .addGap(0, 0, Short.MAX_VALUE))
+            .addComponent(shieldPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(debugPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -433,7 +663,6 @@ public class ActorDetailsPanel extends javax.swing.JPanel
                 .addGap(12, 12, 12)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(ht, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel8)
                     .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(hp, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -454,34 +683,32 @@ public class ActorDetailsPanel extends javax.swing.JPanel
                     .addComponent(move, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel10)
-                    .addComponent(dodge, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel11)
+                    .addComponent(jLabel12)
+                    .addComponent(jLabel10))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(7, 7, 7)
-                        .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 9, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(block, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(parry, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(dodge, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 9, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel13)
+                    .addComponent(dr, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(shieldPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(1, 1, 1)
+                .addComponent(attacks, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(1, 1, 1)
+                .addComponent(debugPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 114, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(timers, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(attacks, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 35, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
-
-    private void add_timerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_add_timerActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_add_timerActionPerformed
-
-    private void add_attackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_add_attackActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_add_attackActionPerformed
     
     private void htPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_htPropertyChange
         if(actorLoaded && evt.getPropertyName().equals("value")) {
@@ -526,6 +753,48 @@ public class ActorDetailsPanel extends javax.swing.JPanel
        }
     }//GEN-LAST:event_dodgePropertyChange
     
+    private void parryPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_parryPropertyChange
+        if(actorLoaded && evt.getPropertyName().equals("value")) {
+        	actorModel.getActor(selectedActor).Parry = ((Long) parry.getValue()).intValue();
+			actorModel.setDirty();
+        }
+    }//GEN-LAST:event_parryPropertyChange
+
+    private void blockPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_blockPropertyChange
+        if(actorLoaded && evt.getPropertyName().equals("value")) {
+        	actorModel.getActor(selectedActor).Block = ((Long) block.getValue()).intValue();
+			actorModel.setDirty();
+		}
+    }//GEN-LAST:event_blockPropertyChange
+
+    private void drPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_drPropertyChange
+        if(actorLoaded && evt.getPropertyName().equals("value")) {
+            actorModel.getActor(selectedActor).DR = ((Long) dr.getValue()).intValue();
+            actorModel.setDirty();
+        }
+    }//GEN-LAST:event_drPropertyChange
+
+    private void dbPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_dbPropertyChange
+        if(actorLoaded && evt.getPropertyName().equals("value")) {
+            actorModel.getActor(selectedActor).DB = ((Long) db.getValue()).intValue();
+            actorModel.setDirty();
+        }
+    }//GEN-LAST:event_dbPropertyChange
+    
+    private void shield_drPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_shield_drPropertyChange
+        if(actorLoaded && evt.getPropertyName().equals("value")) {
+            actorModel.getActor(selectedActor).ShieldDR = ((Long) shield_dr.getValue()).intValue();
+            actorModel.setDirty();
+        }
+    }//GEN-LAST:event_shield_drPropertyChange
+
+    private void shield_hpPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_shield_hpPropertyChange
+        if(actorLoaded && evt.getPropertyName().equals("value")) {
+            actorModel.getActor(selectedActor).ShieldHP = ((Long) shield_hp.getValue()).intValue();
+            actorModel.setDirty();
+        }
+    }//GEN-LAST:event_shield_hpPropertyChange
+
     private void statusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_statusActionPerformed
         if(actorLoaded) {
             //if (DEBUG) { System.out.println("ActorDetailsPanel: State action performed event " + evt.toString()); }
@@ -585,6 +854,19 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     	}
     }//GEN-LAST:event_nameFocusLost
 
+    private void add_attackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_add_attackActionPerformed
+    	attackTableModel.addAttack();
+    	resizeAttacksTable();
+    	actorModel.setDirty();
+    }//GEN-LAST:event_add_attackActionPerformed
+
+    private void remove_attackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_remove_attackActionPerformed
+    	attackTableModel.removeAttacks(attacksTable.getSelectedRows());
+        resizeAttacksTable();
+    	actorModel.setDirty();
+    }//GEN-LAST:event_remove_attackActionPerformed
+
+
     /**
      * Disable the panel, setting all values to default
      */
@@ -601,8 +883,20 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     	fatigue.setEnabled(false);
     	move.setValue(5);
     	move.setEnabled(false);
-    	dodge.setValue(8);
+    	parry.setValue(9);
+    	parry.setEnabled(false);
+    	block.setValue(9);
+    	block.setEnabled(false);
+     	dodge.setValue(8);
     	dodge.setEnabled(false);
+     	dr.setValue(0);
+    	dr.setEnabled(false);
+     	db.setValue(2);
+    	db.setEnabled(false);
+     	shield_dr.setValue(4);
+    	shield_dr.setEnabled(false);
+     	shield_hp.setValue(20);
+    	shield_hp.setEnabled(false);
     	status.setSelectedIndex(0);
     	status.setEnabled(false);
     	type.setSelectedIndex(0);
@@ -611,7 +905,8 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     	name.setBackground(new java.awt.Color(236, 233, 216));
     	name.setEnabled(false);
     	add_attack.setEnabled(false);
-    	add_timer.setEnabled(false);
+       	remove_attack.setEnabled(false);
+   	//add_timer.setEnabled(false);
     	notes.setText("");
     	notes.setEnabled(false);
     }
@@ -626,15 +921,54 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     	fp.setEnabled(true);
     	fatigue.setEnabled(true);
     	move.setEnabled(true);
+    	parry.setEnabled(true);
+    	block.setEnabled(true);
     	dodge.setEnabled(true);
+    	dr.setEnabled(true);
+    	db.setEnabled(true);
+    	shield_dr.setEnabled(true);
+    	shield_hp.setEnabled(true);
     	status.setEnabled(true);
     	type.setEnabled(true);
     	name.setEnabled(true);
     	add_attack.setEnabled(true);
-    	add_timer.setEnabled(true);
+       	remove_attack.setEnabled(true);
+    	//add_timer.setEnabled(true);
     	notes.setEnabled(true);
     }
 
+    /** 
+     * Resize the attacks table to fit all rows
+     */
+    public void resizeAttacksTable () {
+        attacks.setPreferredSize(new Dimension(0, attacks.getMinimumSize().height+attacksTable.getRowHeight()*(attackTableModel.getRowCount())));
+        if (DEBUG) { System.out.println("ActorDetailsPanel:autoSizeColumns: starting."); }
+    	//this.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+    	TableColumn column = null;
+    	for (int i = 0; i < attacksTable.getColumnCount(); i++) {
+    	    column = attacksTable.getColumnModel().getColumn(i);
+    	    
+    	    // Get width of column header 
+    	    TableCellRenderer renderer = column.getHeaderRenderer(); 
+    	    if (renderer == null) 
+    	    { renderer = attacksTable.getTableHeader().getDefaultRenderer(); } 
+    	    Component comp = renderer.getTableCellRendererComponent( attacksTable, column.getHeaderValue(), false, false, 0, 0); 
+    	    int width = comp.getPreferredSize().width; 
+     	    
+    	    // Check width of all the cells
+    	    // Get maximum width of column data
+    	    for (int j=0; j < attacksTable.getRowCount(); j++) {
+    	        renderer = attacksTable.getCellRenderer(j, i);
+    	        comp = renderer.getTableCellRendererComponent(attacksTable, attacksTable.getValueAt(j, i), false, false, j, i);
+    	        width = Math.max(width, comp.getPreferredSize().width);
+    	    }
+    	    
+       	    column.setPreferredWidth(width);
+    	}
+    	//this.resizeAndRepaint();
+        attacks.revalidate();
+    }
+    
     /**
      * Refresh the actor in the display
      */
@@ -673,19 +1007,34 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 		case Unconscious:
 		case Dead:
 			name.setForeground(new Color(128,128,128));
-			break;
+		default:
 		}
 	
 	    status.setSelectedItem(actor.State);
 	    type.setSelectedItem(actor.Type);
 	    ht.setValue(((Integer)actor.HT).longValue());
 	    hp.setValue(((Integer)actor.HP).longValue());
-	    damage.setValue(((Integer)actor.Damage).longValue());
+	    damage.setValue(((Integer)actor.Injury).longValue());
 	    fp.setValue(((Integer)actor.FP).longValue());
 	    fatigue.setValue(((Integer)actor.Fatigue).longValue());
 	    move.setValue(((Integer)actor.Move).longValue());
+	    parry.setValue(((Integer)actor.Parry).longValue());
+	    block.setValue(((Integer)actor.Block).longValue());
 	    dodge.setValue(((Integer)actor.Dodge).longValue());
+	    dr.setValue(((Integer)actor.DR).longValue());
+	    db.setValue(((Integer)actor.DB).longValue());
+	    shield_dr.setValue(((Integer)actor.ShieldDR).longValue());
+	    shield_hp.setValue(((Integer)actor.ShieldHP).longValue());
 	    notes.setText(actor.Notes);
+	    attackTableModel.setActor(actor);
+            
+        // Debug
+	    shieldDamageLabel.setText(String.valueOf(actor.ShieldDamage));
+	    numParryLabel.setText(String.valueOf(actor.numParry));
+	    numBlockLabel.setText(String.valueOf(actor.numBlock));
+	    //turnLabel.setText(String.valueOf(actor.turn));
+            
+	    resizeAttacksTable();
 		actorLoaded = true; // turn property updates back on
 	}
 
@@ -713,7 +1062,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 		actorModel = model;
 		refreshActor();
 	}
-	
+    
  	@Override
 	public void tableChanged(TableModelEvent e) {
 		if (DEBUG) { System.out.println("ActorDetailsPanel: Table Model event: type = " + e.getType() + ", " + e.toString()); }

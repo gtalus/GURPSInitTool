@@ -28,14 +28,14 @@ public class ActorGroupFile {
 
 	private static final boolean DEBUG = false;
 
-	public static int currentSchemaVer = 2; // Schema version. Incremented when major changes to format are made
+	public static int currentSchemaVer = 3; // Schema version. Incremented when major changes to format are made
 	
 	/**
 	 * Open a file and populate the GroupTree with its contents
 	 * @param groupTree : the GroupTree to populate. Overwrites previous contents.
 	 * @param openFile : the file to load
 	 */
-	public static void OpenActorGroup(GroupTree groupTree, File openFile) {
+	public static void OpenActorGroupTree(GroupTree groupTree, File openFile) {
 		// Open the file
 		FileReader file;
 		BufferedReader input;
@@ -58,6 +58,7 @@ public class ActorGroupFile {
 				
 			line = input.readLine();
 			if (!(matcher = startFile.matcher(line)).matches()) {
+				input.close();
 				System.err.println("Error: first line does not specify start of ActorGroupList!");
 				return;
 			}
@@ -73,6 +74,9 @@ public class ActorGroupFile {
 					break;
 				case 2:
 					readSchema2(input,treeModel);
+					break;
+				case 3:
+					readSchema3(input,treeModel);
 					break;
 				default:
 					if (DEBUG) { System.out.println("ActorGroupFile: Unknown schema verision!"); }   
@@ -95,7 +99,7 @@ public class ActorGroupFile {
 	 * @param groupTree : The GroupTree to get the Actor & hierarchy data from
 	 * @param filename : File to save to
 	 */
-	public static void SaveActorGroup(GroupTree groupTree, File saveFile) {
+	public static void SaveActorGroupTree(GroupTree groupTree, File saveFile) {
 		StringBuffer buffer = new StringBuffer();
 		
 		// Traverse tree
@@ -155,11 +159,17 @@ public class ActorGroupFile {
 		stringWriter.append("<Actor name=\"" + actor.Name 
 				+ "\" ht=\"" + actor.HT
 				+ "\" hp=\"" + actor.HP
-				+ "\" damage=\"" + actor.Damage
+				+ "\" damage=\"" + actor.Injury
 				+ "\" fp=\"" + actor.FP
 				+ "\" fatigue=\"" + actor.Fatigue
 				+ "\" move=\"" + actor.Move
+				+ "\" parry=\"" + actor.Parry
+				+ "\" block=\"" + actor.Block
 				+ "\" dodge=\"" + actor.Dodge
+				+ "\" dr=\"" + actor.DR
+				+ "\" db=\"" + actor.DB
+				+ "\" shield_dr=\"" + actor.ShieldDR
+				+ "\" shield_hp=\"" + actor.ShieldHP
 				+ "\" state=\"" + actor.State.toString()
 				+ "\" type=\"" + actor.Type.toString()
 				+ "\">\n");
@@ -167,10 +177,121 @@ public class ActorGroupFile {
 		if (actor.Notes != null)
 			stringWriter.append("<notes>" + actor.Notes + "</notes>\n");
 		
+		for (int i=0; i < actor.Attacks.size(); ++i) {
+			stringWriter.append(SerializeAttack(actor.Attacks.get(i)));
+		}
+		
 		stringWriter.append("</Actor>\n");
 		return stringWriter.toString();
 	}
+	
+	public static String SerializeAttack(Attack attack) {
+		StringWriter stringWriter = new StringWriter();
+		stringWriter.append("<Attack name=\"" + attack.Name
+				+ "\" skill=\"" + attack.Skill
+				+ "\" damage=\"" + attack.Damage
+				+ "\" unbalanced=\"" + attack.Unbalanced
+				+ "\" />\n");
+		return stringWriter.toString();
+	}
 
+	/**
+	 * Read data formatted using schema 3
+	 * @param input : The data to read, starting after the schema data
+	 * @param treeModel : DefaultTreeModel to populate
+	 */
+	public static void readSchema3(BufferedReader input, DefaultTreeModel treeModel) {
+		GroupTreeNode currentNode = (GroupTreeNode) treeModel.getRoot();
+
+		try {
+			String line;
+			Matcher matcher;
+			Pattern endFile = Pattern.compile("^</GURPSActorGroupList>$");
+			Pattern startFolder = Pattern.compile("^<GroupFolder name=\"([^\"]+)\">$");
+			Pattern endFolder = Pattern.compile("^</GroupFolder>$");
+			Pattern startGroup = Pattern.compile("^<ActorGroup name=\"([^\"]+)\">$");
+			Pattern endGroup = Pattern.compile("^</ActorGroup>$");
+			Pattern startActor = Pattern.compile("^<Actor name=\"([^\"]+)\" ht=\"([^\"]+)\" hp=\"([^\"]+)\" damage=\"([^\"]+)\" fp=\"([^\"]+)\" fatigue=\"([^\"]+)\" move=\"([^\"]+)\" parry=\"([^\"]+)\" block=\"([^\"]+)\" dodge=\"([^\"]+)\" dr=\"([^\"]+)\" db=\"([^\"]+)\" shield_dr=\"([^\"]+)\" shield_hp=\"([^\"]+)\" state=\"([^\"]+)\" type=\"([^\"]+)\">$");
+			Pattern attack = Pattern.compile("^<Attack name=\"([^\"]+)\" skill=\"([^\"]+)\" damage=\"([^\"]+)\" unbalanced=\"([^\"]+)\" />$");
+			Pattern endActor = Pattern.compile("^</Actor>$");
+			Pattern notes = Pattern.compile("^<notes>(.*)</notes>$");
+			Pattern startNotes = Pattern.compile("^<notes>(.*)$");
+			Pattern endNotes = Pattern.compile("^(.*)</notes>$");
+				
+			line = input.readLine();
+			if (!(matcher = startFolder.matcher(line)).matches()) {
+				System.err.println("Error: second line does not specify start of base folder!");
+				return;
+			}
+			while( (line = input.readLine()) != null) {
+				if ((matcher = startFolder.matcher(line)).matches()) {
+					String name = matcher.group(1);
+					GroupTreeNode newNode = new GroupTreeNode(name, true);
+					currentNode.add(newNode);
+					currentNode = newNode;
+				}
+				else if ((matcher = startGroup.matcher(line)).matches()) {
+					String name = matcher.group(1);
+					GroupTreeNode newNode = new GroupTreeNode(name, false);
+					currentNode.add(newNode);
+					currentNode = newNode;
+				}
+				else if ((matcher = startActor.matcher(line)).matches()) {
+					Actor currentActor = new Actor(matcher.group(1), ActorState.valueOf(matcher.group(15)), ActorType.valueOf(matcher.group(16)), 
+							Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)), Integer.parseInt(matcher.group(4)), 
+							Integer.parseInt(matcher.group(5)), Integer.parseInt(matcher.group(6)), Integer.parseInt(matcher.group(7)), 
+							Integer.parseInt(matcher.group(8)), Integer.parseInt(matcher.group(9)), Integer.parseInt(matcher.group(10)), 
+							Integer.parseInt(matcher.group(11)), Integer.parseInt(matcher.group(12)), Integer.parseInt(matcher.group(13)), Integer.parseInt(matcher.group(14)));
+					ArrayList<Actor> actorList = currentNode.getActorList();
+					actorList.add(actorList.size()-1, currentActor);
+					// Inside Actor
+					while ((line = input.readLine()) != null) {
+						if ((matcher = endActor.matcher(line)).matches()) {
+							break;
+						}
+						else if ((matcher = attack.matcher(line)).matches()) {
+							currentActor.Attacks.add(new Attack(matcher.group(1), Integer.parseInt(matcher.group(2)), matcher.group(3), Boolean.parseBoolean(matcher.group(4))));
+							if (DEBUG) { System.out.println("ActorGroupFile: Found attack for actor. Name: " + currentActor.Name + ", Notes: " + currentActor.Notes); }   	
+						}
+						else if ((matcher = notes.matcher(line)).matches()) {
+							currentActor.Notes = matcher.group(1);
+							if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + currentActor.Name + ", Notes: " + currentActor.Notes); }   	
+						}
+						else if ((matcher = startNotes.matcher(line)).matches()) {
+							StringBuilder actorNotes = new StringBuilder(matcher.group(1) + "\n");
+							// Inside Notes
+							while ((line = input.readLine()) != null) {
+								if ((matcher = endNotes.matcher(line)).matches()) {
+									actorNotes.append(matcher.group(1));
+									currentActor.Notes = actorNotes.toString();
+									if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + currentActor.Name + ", Notes: " + currentActor.Notes); }   	
+									break;
+								}	
+								actorNotes.append(line + "\n");
+							}
+						}
+						else { System.out.println("ActorGroupFile: -W- Cannot parse line inside Actor: " + line); }   	
+					}
+				}
+				else if ((matcher = endFolder.matcher(line)).matches()) {
+					currentNode = (GroupTreeNode) currentNode.getParent();
+				}
+				else if ((matcher = endGroup.matcher(line)).matches()) {
+					currentNode = (GroupTreeNode) currentNode.getParent();
+				}
+				else if ((matcher = endFile.matcher(line)).matches()) {
+		      		if (DEBUG) { System.out.println("ActorGroupFile: Found end of Group List"); }   	
+		      		break;
+				}
+				else { System.out.println("ActorGroupFile: -W- Cannot parse line: " + line); }   	
+			}
+		}
+	    catch (IOException ex){
+	        ex.printStackTrace();
+	        return;
+	    }
+	}
+	
 	/**
 	 * Read data formatted using schema 2
 	 * @param input : The data to read, starting after the schema data
@@ -214,7 +335,7 @@ public class ActorGroupFile {
 				else if ((matcher = startActor.matcher(line)).matches()) {
 					Actor currentActor = new Actor(matcher.group(1), ActorState.valueOf(matcher.group(9)), ActorType.valueOf(matcher.group(10)), 
 							Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)), Integer.parseInt(matcher.group(4)), 
-							Integer.parseInt(matcher.group(5)), Integer.parseInt(matcher.group(6)), Integer.parseInt(matcher.group(7)), Integer.parseInt(matcher.group(8)));
+							Integer.parseInt(matcher.group(5)), Integer.parseInt(matcher.group(6)), Integer.parseInt(matcher.group(7)), 9, 9, Integer.parseInt(matcher.group(8)), 0, 0, 4, 20);
 					ArrayList<Actor> actorList = currentNode.getActorList();
 					actorList.add(actorList.size()-1, currentActor);
 					// Inside Actor
@@ -303,7 +424,7 @@ public class ActorGroupFile {
 				}
 				else if ((matcher = startActor.matcher(line)).matches()) {
 					Actor currentActor = new Actor(matcher.group(1), ActorState.valueOf(matcher.group(5)), ActorType.valueOf(matcher.group(6)), 
-							Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)),10,0,5,8);
+							Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)),10,0,5,9,9,8,0,0,4,20);
 					ArrayList<Actor> actorList = currentNode.getActorList();
 					actorList.add(actorList.size()-1, currentActor);
 					// Inside Actor
@@ -389,7 +510,7 @@ public class ActorGroupFile {
 				}
 				else if ((matcher = actor.matcher(line)).matches()) {
 					Actor currentActor = new Actor(matcher.group(1), ActorState.valueOf(matcher.group(5)), ActorType.valueOf(matcher.group(6)), 
-							Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)),10,0,5,8);
+							Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)),10,0,5,9,9,8,0,0,4,20);
 					ArrayList<Actor> actorList = currentNode.getActorList();
 					actorList.add(actorList.size()-1, currentActor);
 				}

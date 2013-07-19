@@ -1,23 +1,33 @@
 package gurpsinittool.app;
 
-import gurpsinittool.util.FileChangeEvent;
+import gurpsinittool.data.Actor;
+import gurpsinittool.util.CleanFileChangeEventSource;
 import gurpsinittool.util.FileChangeEventListener;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import javax.swing.DefaultCellEditor;
 import javax.swing.DropMode;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.JTree;
-import javax.swing.event.EventListenerList;
+import javax.swing.SwingConstants;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellEditor;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeModel;
@@ -31,9 +41,6 @@ public class GroupTree extends JTree
 	private static final long serialVersionUID = 1L;
 
 	private static final boolean DEBUG = true;
-	
-	private boolean clean = true;
-	protected EventListenerList fileChangeListenerList = new EventListenerList();
 	
 	private DefaultMutableTreeNode rootNode;
 	private DefaultTreeModel treeModel;
@@ -76,6 +83,7 @@ public class GroupTree extends JTree
 		//addGroup("test");
 
 		// Tree settings
+		setInvokesStopCellEditing(true); // Call StopCellEditing by default instead of Cancel
 		setEditable(true);
 		setRootVisible(false);
 		setShowsRootHandles(true);
@@ -90,6 +98,7 @@ public class GroupTree extends JTree
         popupMenu.add(createMenuItem("New Folder", KeyEvent.VK_F));
         popupMenu.add(createMenuItem("New Group", KeyEvent.VK_G));
         popupMenu.add(createMenuItem("Delete", KeyEvent.VK_DELETE));
+        popupMenu.add(createMenuItem("Rename", KeyEvent.VK_R));
         MousePopupListener popupListener = new MousePopupListener();
         addMouseListener(popupListener);
 	}
@@ -111,10 +120,15 @@ public class GroupTree extends JTree
 	    	startEditingAtPath(groupPath);
 		}
 		else if ("Delete".equals(e.getActionCommand())) { // Delete selected rows
+			if (isSelectionEmpty()) return;
     		int result = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this group?", "Confirm Group Delete", JOptionPane.OK_CANCEL_OPTION);
     		if (result == JOptionPane.OK_OPTION) {
     			removeCurrentNode();
     		}
+		}
+		else if ("Rename".equals(e.getActionCommand())) { // Delete selected rows
+			if (isSelectionEmpty()) return;
+			startEditingAtPath(getSelectionPath());
 		}
 	}
 	  
@@ -201,32 +215,29 @@ public class GroupTree extends JTree
             }
         } 
     }
-    
+     
+	protected CleanFileChangeEventSource cleanFileChangeEventSource = new CleanFileChangeEventSource(this);
+	   
     /**
      * Method to get the clean status of the groupTree
      * @return whether the group tree has had changes since the last checkpoint
      */
     public boolean isClean() {
-    	return clean;
+    	return cleanFileChangeEventSource.isClean();
     }
     
     /**
      * Set the status of the groupTree as clean. Should be called after saving the file.
      */
     public void setClean() {
-    	if(!clean) { fireFileCleanStatusChangedEvent(new FileChangeEvent(this, true)); }
-    	clean = true;
+    	cleanFileChangeEventSource.setClean();
     }
     
     /**
      * Set the status of the groupTree as dirty. Should be called after making any changes.
      */
     public void setDirty() {
-		if (DEBUG) { System.out.println("GroupTree: setDirty"); }
-
-    	if(clean) { fireFileCleanStatusChangedEvent(new FileChangeEvent(this, false)); }
-    	fireFileChangedEvent(new FileChangeEvent(this));
-    	clean = false;
+    	cleanFileChangeEventSource.setDirty();
     }
     
 	/**
@@ -234,7 +245,7 @@ public class GroupTree extends JTree
 	 * @param listener - the listener to add
 	 */
 	public void addFileChangeEventListener(FileChangeEventListener listener) {
-		fileChangeListenerList.add(FileChangeEventListener.class, listener);
+		cleanFileChangeEventSource.addFileChangeEventListener(listener);
 	}
 	
 	/**
@@ -242,37 +253,7 @@ public class GroupTree extends JTree
 	 * @param listener - the listener to remove
 	 */
 	public void removeFileChangeEventListener(FileChangeEventListener listener) {
-		fileChangeListenerList.remove(FileChangeEventListener.class, listener);
-	}
-	
-	/**
-	 * Fire an event indicating that the file has changed
-	 * @param evt - the event details
-	 */
-	void fireFileChangedEvent(FileChangeEvent evt) {
-		Object[] listeners = fileChangeListenerList.getListenerList(); 
-		// Each listener occupies two elements - the first is the listener class 
-		// and the second is the listener instance 
-		for (int i=0; i<listeners.length; i+=2) { 
-			if (listeners[i]==FileChangeEventListener.class) { 
-				((FileChangeEventListener)listeners[i+1]).fileChangeOccured(evt); 
-			} 
-		} 
-	}
-	
-	/**
-	 * Fire an event indicating that the file clean status has changed (clean -> dirty or dirty -> clean)
-	 * @param evt - the event details
-	 */
-	void fireFileCleanStatusChangedEvent(FileChangeEvent evt) {
-		Object[] listeners = fileChangeListenerList.getListenerList(); 
-		// Each listener occupies two elements - the first is the listener class 
-		// and the second is the listener instance 
-		for (int i=0; i<listeners.length; i+=2) { 
-			if (listeners[i]==FileChangeEventListener.class) { 
-				((FileChangeEventListener)listeners[i+1]).fileCleanStatusChanged(evt); 
-			} 
-		} 
+		cleanFileChangeEventSource.removeFileChangeEventListener(listener);
 	}
     
     @Override

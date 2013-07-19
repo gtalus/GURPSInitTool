@@ -1,5 +1,6 @@
 package gurpsinittool.app;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -119,6 +120,8 @@ public class GroupManager extends JFrame
         groupTree.addFileChangeEventListener(new GroupFileChangeEventListener());
         jScrollPaneTable = new JScrollPane(groupTable);
         jScrollPaneDetails = new JScrollPane(actorDetailsPanel);
+        jScrollPaneDetails.setMinimumSize(new Dimension(actorDetailsPanel.getPreferredSize().width+20,0));
+
         jScrollPaneTree = new JScrollPane(groupTree);
         jSplitPaneVertical= new JSplitPane(JSplitPane.VERTICAL_SPLIT, jScrollPaneTree, jScrollPaneTable);
         jSplitPaneHorizontal= new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, jSplitPaneVertical, jScrollPaneDetails);
@@ -253,7 +256,7 @@ public class GroupManager extends JFrame
 			else { return false; }
 		}
 		if (DEBUG) { System.out.println("GroupManager: loadGroupFile: Opening file: " + file.getName()); }
-    	ActorGroupFile.OpenActorGroup(groupTree, file);
+    	ActorGroupFile.OpenActorGroupTree(groupTree, file);
     	saveAsFile = file;
 		groupTree.setClean();
 		groupTable.getActorTableModel().setClean();
@@ -287,7 +290,7 @@ public class GroupManager extends JFrame
 	    	}
 	    	// save group list
          	if (DEBUG) { System.out.println("GroupManager: saveGroupFile: Saving group list as file: " + file.getName()); }
-    		ActorGroupFile.SaveActorGroup(groupTree, file);
+    		ActorGroupFile.SaveActorGroupTree(groupTree, file);
     		groupTree.setClean();
     		groupTable.getActorTableModel().setClean();
     		super.setTitle("Group Manager - " + file.getName());

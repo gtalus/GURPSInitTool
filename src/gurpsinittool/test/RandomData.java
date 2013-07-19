@@ -20,7 +20,7 @@ public class RandomData {
 		for (int i = 0; i < num_actors; i++) {
 			ActorState state = (ActorState.values())[r.nextInt(ActorState.values().length)];
 			ActorType type = (ActorType.values())[r.nextInt(ActorType.values().length)];
-			Actor random = new Actor(RandomString(), state, type, r.nextInt(20), r.nextInt(20), r.nextInt(20), r.nextInt(20), r.nextInt(20), r.nextInt(10), r.nextInt(10));
+			Actor random = new Actor(RandomString(), state, type, r.nextInt(20), r.nextInt(20), r.nextInt(20), r.nextInt(20), r.nextInt(20), r.nextInt(10), r.nextInt(10), r.nextInt(10), r.nextInt(10),r.nextInt(7), r.nextInt(3), r.nextInt(5), r.nextInt(30));
 			actorModel.addActor(random, 0);
 		}
 	}
@@ -35,7 +35,7 @@ public class RandomData {
 		for (int i = 0; i < num_actors; i++) {
 			ActorState state = (ActorState.values())[r.nextInt(ActorState.values().length)];
 			ActorType type = (ActorType.values())[r.nextInt(ActorType.values().length)];
-			Actor random = new Actor(RandomString(), state, type, r.nextInt(20), r.nextInt(20), r.nextInt(20), r.nextInt(20), r.nextInt(20), r.nextInt(10), r.nextInt(13));
+			Actor random = new Actor(RandomString(), state, type, r.nextInt(20), r.nextInt(20), r.nextInt(20), r.nextInt(20), r.nextInt(20), r.nextInt(10), r.nextInt(13), r.nextInt(13), r.nextInt(13), r.nextInt(7), r.nextInt(3), r.nextInt(5), r.nextInt(30));
 			actorList.add(0, random);
 		}
 	}

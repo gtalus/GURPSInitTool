@@ -1,10 +1,21 @@
 package gurpsinittool.app;
 
 import javax.swing.*;  
+import javax.swing.text.BadLocationException;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.undo.UndoManager;
 
+import sun.awt.HorizBagLayout;
+
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.Dimension;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -19,25 +30,42 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Properties;
 
+import gurpsinittool.app.InitTableModel.columns;
+import gurpsinittool.data.Actor;
+import gurpsinittool.data.Actor.ActorState;
+import gurpsinittool.data.Actor.ActorType;
 import gurpsinittool.ui.*;
+import gurpsinittool.util.DieRoller;
+import gurpsinittool.util.EncounterLogEvent;
+import gurpsinittool.util.EncounterLogEventListener;
 
-public class GITApp extends JFrame implements ActionListener {
+public class GITApp extends JFrame implements ActionListener, EncounterLogEventListener {
 
 	// Default SVUID
 	private static final long serialVersionUID = 1L;
 	
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
+	
+	// Each enemy actor automatically attacks at the end of his turn
+	private boolean AUTO_ATTACK = true;
+	private boolean AUTO_UNCONSCIOUS = true;
 	
 	private InitTable initTable;
+	private JTextPane logTextArea;
+	private HTMLDocument logTextDocument;
+	private HTMLEditorKit kit;
 	private ActorDetailsPanel detailsPanel;
 	private GroupManager groupManager;
 	private Properties propertyBag = new Properties();
 	private JLabel roundCounter;
+	private JSplitPane jSplitPaneVertical;
 	private JSplitPane jSplitPaneHorizontal;
 	
 	private UndoManager undoManager;
 	private JMenuItem undoMenuItem;
 	private JMenuItem redoMenuItem;
+	
+	private Integer round = 0;
 	
     /**
      * Create the GUI and show it.  For thread safety,
@@ -90,31 +118,156 @@ public class GITApp extends JFrame implements ActionListener {
     
     //@Override
     public void actionPerformed(ActionEvent e) {
-    	if ("nextActor".equals(e.getActionCommand())) {
-    		if(initTable.nextActor()) {
-    			Integer currentRound = Integer.valueOf(roundCounter.getText()) + 1;
-    			roundCounter.setText(currentRound.toString());
-    			int minimumWidth = roundCounter.getMinimumSize().width/10 * 10;
-    			if (roundCounter.getMinimumSize().width + 1  % 10 != 0) { minimumWidth += 10; }
-    			roundCounter.setPreferredSize(new Dimension(minimumWidth, 20));
-    			if (DEBUG) { System.out.println("GITApp: Minimum round counter size = " + roundCounter.getMinimumSize().toString()); }
-    		}
-    	}	
-    	else if ("resetRound".equals(e.getActionCommand())) {
-    		roundCounter.setText("0");
+    	if ("resetRound".equals(e.getActionCommand())) {
+			round = 0;
+    		refreshRoundText();
     		initTable.resetEncounter();
     	}	
     	else if ("openGroupManager".equals(e.getActionCommand())) {
+    		validateOnScreen(groupManager);
     		groupManager.setVisible(true);
     	}
        	else if ("sizeColumns".equals(e.getActionCommand())) {
     		initTable.autoSizeColumns();
     	}	
        	else {
-   			if (DEBUG) { System.out.println("GITApp: Unknown action performed: " + e.getActionCommand()); }
+   			System.out.println("GITApp: -W- Unknown action performed: " + e.getActionCommand());
        	}
-
 	}
+    
+    public void actorAttack() {
+    	if (DEBUG) System.out.println("GITApp: ActorAttack");
+    	Actor actor = initTable.getActiveActor();
+    	if (actor == null) 
+    		return;
+    	addLogLine(actor.Attack());
+    }
+    
+	@Override
+	public void encounterLogMessageSent(EncounterLogEvent evt) {
+		addLogLine(evt.logMsg);
+	}
+	
+	public void addLogLine(String line) {
+		addLogLine(line, true);
+	}
+	
+    public void addLogLine(String line, boolean addRound) {
+    	if (round <= 0) return; // Don't print log messages before round 0
+    	try {
+    		String round = addRound?"Round " + roundCounter.getText() + ": ":"";
+			kit.insertHTML(logTextDocument, logTextDocument.getLength(), round + line, 0, 0, null);
+		} catch (BadLocationException e) {
+			System.out.println("-E- addLogLine: BadLocationException trying to add line: " + line);
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.out.println("-E- addLogLine: IOException trying to add line: " + line);
+			e.printStackTrace();
+		}
+    	// Move cursor to the end.
+    	logTextArea.select(logTextDocument.getLength(), logTextDocument.getLength());
+    }
+    
+    public void actorDefend() {
+    	System.out.println("GITApp: ActorDefend");
+    	Actor actor = initTable.getSelectedActor();
+    	if (actor == null)
+    		return;
+    	// Clear out edits in progress
+    	initTable.stopCellEditing();
+    	DefenseDialog defense = new DefenseDialog(actor, this, true);
+        defense.setLocation(Integer.valueOf(propertyBag.getProperty("GITApp.defense.location.x")),
+        					Integer.valueOf(propertyBag.getProperty("GITApp.defense.location.y")));
+        validateOnScreen(defense);
+    	defense.setVisible(true); // Modal call
+    	// Process result!
+    	if (defense.valid) {
+    		// Type
+    		String type = "";
+    		switch (defense.defenseType) {
+    		case Parry:
+    			++actor.numParry;
+    			type = "parried";
+    			break;
+    		case Block:
+    			++actor.numBlock;
+    			type = "blocked";
+    			break;
+    		case Dodge:
+    			type = "dodged";
+    		}
+    		// Shield
+    		actor.ShieldDamage += defense.shieldDamage;
+    		// Damage
+    		actor.Injury += defense.injury;
+    		// Fatigue (report through table)
+    		initTable.setActorValue(actor, columns.Fatigue, actor.Fatigue + defense.fatigue);
+    		//actor.Fatigue += defense.fatigue;
+    		
+    		// Print log message
+    		String success = (defense.shieldDamage != 0)?"partially":
+    							(defense.successful)?"successfully":"unsuccessfully";
+    		
+    		String damage = " ";
+    		if (defense.injury != 0) 
+    			damage = " Sustained <b><font color=red>" + defense.injury + "</font></b> injury.";
+    		else if (!defense.successful) 
+    			damage = " But took no damage.";
+       		if (defense.shieldDamage != 0) 
+    			damage += " <b>Shield damaged.</b>";
+    			
+    		addLogLine("<b>" + actor.Name + "</b> " + success + " " + type + " blow." + damage);
+    		initTable.getActorTableModel().fireRefresh(actor);
+    	}
+    	propertyBag.setProperty("GITApp.defense.location.x", String.valueOf(defense.getLocation().x));
+    	propertyBag.setProperty("GITApp.defense.location.y", String.valueOf(defense.getLocation().y));
+
+    }
+    
+    public boolean nextActor() {
+    	Actor actor = initTable.getActiveActor();
+    	if (actor != null && actor.Type == ActorType.Enemy) { // Do AUTO actions
+			if (AUTO_UNCONSCIOUS && actor.Injury >= actor.HP
+					&& (actor.State == ActorState.Active || actor.State == ActorState.Stunned)) { // What about disabled?
+				int penalty = (int) (-1*(Math.floor((double)actor.Injury/actor.HP)-1));
+				int result = DieRoller.roll3d6();
+				String details = "(HT: " + actor.HT + ", penalty: " + penalty + ", roll: " + result + ")";
+				if (result > actor.HT+penalty) {
+					addLogLine("<b>" + actor.Name + "</b> <b><font color=red>failed</font></b> consciousness roll " + details);
+					initTable.setActorValue(actor, columns.State, ActorState.Unconscious);
+				} else {
+					addLogLine("<b>" + actor.Name + "</b> passed consciousness roll " + details);
+				}
+			}
+			if (AUTO_ATTACK 
+					&& actor.State == ActorState.Active) {
+				actorAttack();
+			}
+    	}
+    	
+    	if(initTable.nextActor()) {
+			++round;
+			refreshRoundText();
+			addLogLine("<b>** Round " + roundCounter.getText() + " **</b>", false);
+			return true;
+		}
+    	return false;
+    }
+    
+    /**
+     * Step through the actors until reaching the next round
+     */
+    public void nextRound() {
+    	while(!nextActor()) {}
+    }
+    
+    private void refreshRoundText() {
+		roundCounter.setText(round.toString());
+		int minimumWidth = roundCounter.getMinimumSize().width/10 * 10;
+		if (roundCounter.getMinimumSize().width + 1  % 10 != 0) { minimumWidth += 10; }
+		roundCounter.setPreferredSize(new Dimension(minimumWidth, 20));
+		if (DEBUG) { System.out.println("GITApp: Minimum round counter size = " + roundCounter.getMinimumSize().toString()); }
+   }
     
     private void addComponentsToPane() {
         //contentPanel.setOpaque(true);
@@ -152,10 +305,24 @@ public class GITApp extends JFrame implements ActionListener {
         //button.setIcon(new ImageIcon("src/resources/images/control_play_blue.png", "Next Actor"));
         button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
         //button.setText("Forward");
-        button.setToolTipText("Step to next actor");
-        button.setActionCommand("nextActor");
+        button.setToolTipText("Step to next actor (Alt+N)");
+        Action action = new AbstractAction("nextActor") {
+        	public void actionPerformed(ActionEvent e) { nextActor(); }
+        };
         button.setMnemonic(KeyEvent.VK_N);
-        button.addActionListener(this);
+        button.addActionListener(action);
+        toolbar.add(button);
+        // Next round 
+        button = new JButton();
+        button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/control_fastforward_blue.png"), "Next Round"));
+        button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
+        button.setToolTipText("Skip to the next round (Ctrl+N)");
+        action = new AbstractAction("nextRound") {
+        	public void actionPerformed(ActionEvent e) { nextRound(); }
+        };
+        button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("control N"), "nextRound");
+        button.getActionMap().put("nextRound", action);
+        button.addActionListener(action);
         toolbar.add(button);
         // Round counter labels
         JLabel label = new JLabel("Round:");
@@ -165,8 +332,6 @@ public class GITApp extends JFrame implements ActionListener {
         //label.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         label.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         label.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
-        //label.setMinimumSize(new java.awt.Dimension(20, 20));
-        //label.setMaximumSize(new java.awt.Dimension(20, 20));
         label.setPreferredSize(new java.awt.Dimension(20, 20));
         roundCounter = label; 
         toolbar.add(label);
@@ -174,7 +339,7 @@ public class GITApp extends JFrame implements ActionListener {
         button = new JButton();
         button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/control_start_blue.png"), "Reset Encounter"));
         button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
-        button.setToolTipText("Reset the round counter");
+        button.setToolTipText("Reset the round counter (Alt+R)");
         button.setActionCommand("resetRound");
         button.setMnemonic(KeyEvent.VK_R);
         button.addActionListener(this);
@@ -184,17 +349,44 @@ public class GITApp extends JFrame implements ActionListener {
         button = new JButton();
         button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/script_code.png"), "Auto-size columns"));
         button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
-        button.setToolTipText("Auto re-size the table columns to best fit");
+        button.setToolTipText("Auto re-size the table columns to best fit (Alt+A)");
         button.setActionCommand("sizeColumns");
         button.setMnemonic(KeyEvent.VK_A);
         button.addActionListener(this);
+        toolbar.add(button);
+        // Attack
+        toolbar.addSeparator();
+        button = new JButton();
+        button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/wrench_orange.png"), "Attack"));
+        button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
+        button.setToolTipText("Active actor attacks (Ctrl+A)");
+        action = new AbstractAction("actorAttack") {
+        	public void actionPerformed(ActionEvent e) { actorAttack(); }
+        };
+        button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("control A"), "actorAttack");
+        button.getActionMap().put("actorAttack", action);
+        //button.setMnemonic(KeyEvent.VK_A);
+        button.addActionListener(action);
+        toolbar.add(button);
+        // Defend
+        button = new JButton();
+        button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/shield.png"), "Defend"));
+        button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
+        button.setToolTipText("Selected actor defends (Ctrl+D)");
+        action = new AbstractAction("actorDefend") {
+        	public void actionPerformed(ActionEvent e) { actorDefend(); }
+        };
+        button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("control D"), "actorDefend");
+        button.getActionMap().put("actorDefend", action);
+        //button.setMnemonic(KeyEvent.VK_D);
+        button.addActionListener(action);
         toolbar.add(button);
         //Group manager button & horizontal glue
         toolbar.addSeparator();
         toolbar.add(Box.createHorizontalGlue());
         button = new JButton();
         button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/group.png"), "Group Manager"));
-        button.setToolTipText("Manage Actor Groups");
+        button.setToolTipText("Manage Actor Groups (Alt+G)");
         button.setActionCommand("openGroupManager");
         button.setMnemonic(KeyEvent.VK_G);
         button.addActionListener(this);
@@ -202,32 +394,49 @@ public class GITApp extends JFrame implements ActionListener {
         toolbar.setRollover(true);
         getContentPane().add(toolbar, BorderLayout.PAGE_START);
  
-        // The actor table
-        //InitTable initTable = new InitTable(new ActorTableModel());
-        initTable = new InitTable(true);
-        // Connect Details Panel to the table/tableModel
-        //mainApp.initTable.getSelectionModel().addListSelectionListener(mainApp.detailsPanel);
-        JScrollPane tableScrollPane = new JScrollPane(initTable); 
+        // Encounter Log
+        logTextArea = new JTextPane();
+        logTextDocument = new HTMLDocument();
+         kit = new HTMLEditorKit();
+        logTextArea.setEditorKit(kit);
+        logTextArea.setDocument(logTextDocument);
+        logTextArea.setEditable(false);
+        logTextArea.setFont(new java.awt.Font("Tahoma", 0, 11));
 
+        // The actor table
+        initTable = new InitTable(true);
+        initTable.getActorTableModel().addEncounterLogEventListener(this);
+        
+        // Connect Details Panel to the table/tableModel
+        JScrollPane tableScrollPane = new JScrollPane(initTable); 
+        JScrollPane logScrollPane = new JScrollPane(logTextArea);
+       
         // The actor info pane
         detailsPanel = new ActorDetailsPanel(initTable);
         JScrollPane actorDetailsPane = new JScrollPane(detailsPanel);
-         
-        jSplitPaneHorizontal = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tableScrollPane, actorDetailsPane);
+        actorDetailsPane.setMinimumSize(new Dimension(detailsPanel.getPreferredSize().width+20,0));
+
+        // Overall layout
+        jSplitPaneVertical = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tableScrollPane, logScrollPane);
+        jSplitPaneVertical.setDividerLocation(Integer.valueOf(propertyBag.getProperty("GITApp.splitVertical.dividerLocation")));
+        jSplitPaneVertical.setResizeWeight(.8);
+ 
+        jSplitPaneHorizontal = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, jSplitPaneVertical, actorDetailsPane);
         jSplitPaneHorizontal.setDividerLocation(Integer.valueOf(propertyBag.getProperty("GITApp.splitHorizontal.dividerLocation")));
         jSplitPaneHorizontal.setResizeWeight(.95);
+
         getContentPane().add(jSplitPaneHorizontal, BorderLayout.CENTER);
        
         // Undo support
         undoManager = new UndoManager();
         refreshUndoRedo();
-        
+              
         //Display the window.
         setLocation(Integer.valueOf(propertyBag.getProperty("GITApp.location.x")),
                 Integer.valueOf(propertyBag.getProperty("GITApp.location.y")));
         setSize(Integer.valueOf(propertyBag.getProperty("GITApp.size.width")),
         		Integer.valueOf(propertyBag.getProperty("GITApp.size.height")));
-        
+        validateOnScreen(this); // Make sure it's on the screen!
         addWindowListener(new GITAppWindowListener());
 
     }
@@ -284,8 +493,8 @@ public class GITApp extends JFrame implements ActionListener {
 			 propertyBag.setProperty("GITApp.Manager.visible", "false"); }
 		 if (!propertyBag.containsKey("GITApp.splitHorizontal.dividerLocation")) {
 			 propertyBag.setProperty("GITApp.splitHorizontal.dividerLocation", "460"); }
-		 //if (!propertyBag.containsKey("GITApp.splitVertical.dividerLocation")) {
-		//	 propertyBag.setProperty("GITApp.splitVertical.dividerLocation", "200"); }
+		 if (!propertyBag.containsKey("GITApp.splitVertical.dividerLocation")) {
+			 propertyBag.setProperty("GITApp.splitVertical.dividerLocation", "200"); }
 
 		 if (!propertyBag.containsKey("GITApp.location.x")) {
 			 propertyBag.setProperty("GITApp.location.x", "400"); }
@@ -295,6 +504,10 @@ public class GITApp extends JFrame implements ActionListener {
 			 propertyBag.setProperty("GITApp.size.width", "760"); }
 		 if (!propertyBag.containsKey("GITApp.size.height")) {
 			 propertyBag.setProperty("GITApp.size.height", "480"); }
+		 if (!propertyBag.containsKey("GITApp.defense.location.x")) {
+			 propertyBag.setProperty("GITApp.defense.location.x", "200"); }
+		 if (!propertyBag.containsKey("GITApp.defense.location.y")) {
+			 propertyBag.setProperty("GITApp.defense.location.y", "200"); }
 
 	 }
 	 
@@ -305,7 +518,7 @@ public class GITApp extends JFrame implements ActionListener {
 		 // Kept up-to-date with event listeners
 		 propertyBag.setProperty("GITApp.Manager.visible", String.valueOf(groupManager.isVisible()));
 		 propertyBag.setProperty("GITApp.splitHorizontal.dividerLocation", String.valueOf(jSplitPaneHorizontal.getDividerLocation()));
-		 //propertyBag.setProperty("GITApp.splitVertical.dividerLocation", String.valueOf(jSplitPaneVertical.getDividerLocation()));
+		 propertyBag.setProperty("GITApp.splitVertical.dividerLocation", String.valueOf(jSplitPaneVertical.getDividerLocation()));
 		 propertyBag.setProperty("GITApp.location.x", String.valueOf(getLocation().x));
 		 propertyBag.setProperty("GITApp.location.y", String.valueOf(getLocation().y));
 		 propertyBag.setProperty("GITApp.size.width", String.valueOf(getSize().width));
@@ -313,6 +526,54 @@ public class GITApp extends JFrame implements ActionListener {
 		 // Optional properties
 		// if (saveAsFile != null) { propertyBag.setProperty("GITApp.currentLoadedFile", saveAsFile.getAbsolutePath());}
 		 //else { propertyBag.remove("GITApp.currentLoadedFile");}
+	 }
+	 
+	 public void validateOnScreen(Component c) {
+		 final Rectangle window = c.getBounds();
+		 
+		 Rectangle virtualscreen = new Rectangle();
+		 GraphicsDevice[] gs = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
+		 for (int j = 0; j < gs.length; j++) { 
+			 GraphicsConfiguration[] gc = gs[j].getConfigurations();
+			 for (int i=0; i < gc.length; i++) {
+				 virtualscreen = virtualscreen.union(gc[i].getBounds());
+			 }
+		 }
+		 if (DEBUG) System.out.println("Testing window position: screen: " + virtualscreen + " window: " + window);
+  
+		 if (!virtualscreen.contains(window)) {
+			 // Snap position to screen
+			 // If top-left corner is to the left of the screen
+			 if (window.x < virtualscreen.x) {
+				 if (DEBUG) System.out.println("Window out of screen: translating +x");
+				 window.translate(virtualscreen.x - window.x, 0);
+			 }
+			 // top-left corner is above the screen
+			 if (window.y < virtualscreen.y) {
+				 if (DEBUG) System.out.println("Window out of screen: translating +y");
+				 window.translate(0, virtualscreen.y - window.y);
+			 }
+			 // Size bigger than window
+			 if (window.height > virtualscreen.height) {
+				 if (DEBUG) System.out.println("Window out of screen: resizing: smaller height");
+				 window.height = virtualscreen.height;
+			 }
+			 if (window.width > virtualscreen.width) {
+				 if (DEBUG) System.out.println("Window out of screen: resizing: smaller width");
+				 window.width = virtualscreen.width;
+			 }
+			 // bottom-right corner is to the right of the screen
+			 if ((window.x+window.width) > (virtualscreen.x+virtualscreen.width)) {
+				 if (DEBUG) System.out.println("Window out of screen: translating -x");
+				 window.translate((virtualscreen.x+virtualscreen.width)-(window.x+window.width),0);				 
+			 }
+			 // bottom-right corner is below the screen
+			 if ((window.y+window.height) > (virtualscreen.y+virtualscreen.height)) {
+				 if (DEBUG) System.out.println("Window out of screen: translating -y");
+				 window.translate(0,(virtualscreen.y+virtualscreen.height)-(window.y+window.height));				 
+			 }
+		 }
+		 c.setLocation(window.x, window.y);
 	 }
 	 
 	 /**
