@@ -133,14 +133,22 @@ public class Actor
 			return "<i><font color=gray>" + Name + " has invalid default attack: " + DefaultAttack + "</font></i>";
 		}
 		Attack attack = Attacks.get(DefaultAttack);
-		int strike = DieRoller.roll3d6();
-		int margin = attack.Skill - strike;
-		String hit_miss = (margin >= 0)?"<b>hit</b>":"miss";
+		int roll = DieRoller.roll3d6();
+		int margin = attack.Skill - roll;
+		String hit_miss;
+		if (DieRoller.isCritFailure(roll, attack.Skill))
+			hit_miss = "<b><font color=red>Critical miss</font></b>";
+		else if (DieRoller.isCritSuccess(roll, attack.Skill))
+			hit_miss = "<b><font color=blue>Critical hit</font></b>";
+		else if (DieRoller.isSuccess(roll, attack.Skill))
+			hit_miss = "<b>hit</b>";
+		else 
+			hit_miss = "miss";
 		Damage damage = Damage.ParseDamage(attack.Damage);
 		if (attack.Unbalanced) {
 			++numParry;
 		}
-		return "<b> " + Name + "</b> attacks with " + attack.Name + ": " + hit_miss +  " (" + strike + "/" + attack.Skill + "=" + margin + ") for damage <font color=red><b>" + damage.BasicDamage + " " + damage.Type + "</b></font> (" + attack.Damage + ")";
+		return "<b> " + Name + "</b> attacks with " + attack.Name + ": " + hit_miss +  " (" + roll + "/" + attack.Skill + "=" + margin + ") for damage <font color=red><b>" + damage.BasicDamage + " " + damage.Type + "</b></font> (" + attack.Damage + ")";
 	}
 	
 	/**

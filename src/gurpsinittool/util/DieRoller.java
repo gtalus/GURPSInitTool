@@ -25,4 +25,22 @@ public class DieRoller {
 	public static int rolld6() {
 		return 1 + generator.nextInt(6);
 	}
+	
+	public static boolean isSuccess(int roll, int eff_skill) {
+		return roll <= eff_skill && roll < 17;
+	}
+
+	public static boolean isFailure(int roll, int eff_skill) {
+		return roll > eff_skill || roll > 16;
+	}
+	
+	public static boolean isCritSuccess(int roll, int eff_skill) {
+		if (eff_skill <= 3)
+			return false;
+		return (roll <= 4 || (roll <= 6 && (roll+10) <= eff_skill));
+	}
+	
+	public static boolean isCritFailure(int roll, int eff_skill) {
+		return (roll >= 18 || (eff_skill < 16 && roll >= 17) || (roll-10) >= eff_skill);
+	}
 }

@@ -39,6 +39,8 @@ import gurpsinittool.data.Actor;
 import gurpsinittool.data.Actor.ActorState;
 import gurpsinittool.data.Actor.ActorType;
 import gurpsinittool.ui.*;
+import gurpsinittool.ui.DefenseDialog.DefenseResult;
+import gurpsinittool.ui.DefenseDialog.DefenseType;
 import gurpsinittool.util.DieRoller;
 import gurpsinittool.util.EncounterLogEvent;
 import gurpsinittool.util.EncounterLogEventListener;
@@ -60,6 +62,7 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
 	private HTMLEditorKit kit;
 	private ActorDetailsPanel detailsPanel;
 	private GroupManager groupManager;
+	private CriticalTablesDialog criticalTables;
 	private Properties propertyBag = new Properties();
 	private JLabel roundCounter;
 	private JSplitPane jSplitPaneVertical;
@@ -131,6 +134,10 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
     		validateOnScreen(groupManager);
     		groupManager.setVisible(true);
     	}
+       	else if ("openCriticalTables".equals(e.getActionCommand())) {
+    		validateOnScreen(criticalTables);
+    		criticalTables.setVisible(true);
+    	}
        	else if ("sizeColumns".equals(e.getActionCommand())) {
     		initTable.autoSizeColumns();
     	}	
@@ -173,60 +180,96 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
     }
     
     public void actorDefend() {
-    	System.out.println("GITApp: ActorDefend");
+    	System.out.println("GITApp: ActorDefend: start");
+    	// Verify valid actor
     	Actor actor = initTable.getSelectedActor();
     	if (actor == null)
     		return;
     	// Clear out edits in progress
     	initTable.stopCellEditing();
+    	// Show Defense Dialog window
     	DefenseDialog defense = new DefenseDialog(actor, this, true);
         defense.setLocation(Integer.valueOf(propertyBag.getProperty("GITApp.defense.location.x")),
         					Integer.valueOf(propertyBag.getProperty("GITApp.defense.location.y")));
         validateOnScreen(defense);
     	defense.setVisible(true); // Modal call
-    	// Process result!
+    	// Process and log result!
     	if (defense.valid) {
-    		// Type
-    		String type = "";
-    		switch (defense.defenseType) {
-    		case Parry:
-    			++actor.numParry;
-    			type = "parried";
-    			break;
-    		case Block:
-    			++actor.numBlock;
-    			type = "blocked";
-    			break;
-    		case Dodge:
-    			type = "dodged";
-    		}
-    		// Shield
-    		actor.ShieldDamage += defense.shieldDamage;
-    		// Damage
-    		actor.Injury += defense.injury;
-    		// Fatigue (report through table)
-    		initTable.setActorValue(actor, columns.Fatigue, actor.Fatigue + defense.fatigue);
-    		//actor.Fatigue += defense.fatigue;
-    		
-    		// Print log message
-    		String success = (defense.shieldDamage != 0)?"partially":
-    							(defense.successful)?"successfully":"unsuccessfully";
-    		
-    		String damage = " ";
-    		if (defense.injury != 0) 
-    			damage = " Sustained <b><font color=red>" + defense.injury + "</font></b> injury.";
-    		else if (!defense.successful) 
-    			damage = " But took no damage.";
-       		if (defense.shieldDamage != 0) 
-    			damage += " <b>Shield damaged.</b>";
-    			
-    		addLogLine("<b>" + actor.Name + "</b> " + success + " " + type + " blow." + damage);
-    		initTable.getActorTableModel().fireRefresh(actor);
+    		ProcessActorDefense(actor, defense);
+    		LogActorDefense(actor, defense);
+    		KnockdownStunningCheck(actor, defense);
     	}
     	propertyBag.setProperty("GITApp.defense.location.x", String.valueOf(defense.getLocation().x));
     	propertyBag.setProperty("GITApp.defense.location.y", String.valueOf(defense.getLocation().y));
-
     }
+    
+    private void ProcessActorDefense(Actor actor, DefenseDialog defense) {
+		// Process shield damage/injury/fatigue
+		actor.ShieldDamage += defense.shieldDamage;
+		actor.Injury += defense.injury;
+		// Fatigue (report through table)
+		initTable.setActorValue(actor, columns.Fatigue, actor.Fatigue + defense.fatigue);
+		switch (defense.defenseType) { // Record defense attempts
+		case Parry:
+			++actor.numParry;
+			break;
+		case Block:
+			++actor.numBlock;
+			break;
+		default:
+		}
+		initTable.getActorTableModel().fireRefresh(actor);
+    }
+    
+    private void KnockdownStunningCheck(Actor actor, DefenseDialog defense) {
+ 		if (defense.cripplingInjury || defense.majorWound) {
+ 			int effHT = actor.HT + defense.location.knockdownPenalty;
+ 			int roll = DieRoller.roll3d6();
+ 			int MoS = effHT - roll;
+ 			String success = (MoS<0)?"<b>failed</b>":"succeeded";
+ 			addLogLine("<b>" + actor.Name + "</b> Knockdown/Stunning check: rolled " + roll + " against " + effHT + " (" + success + " by " + Math.abs(MoS) + ")");
+ 		}
+    }
+    
+    private void LogActorDefense(Actor actor, DefenseDialog defense) {
+		// Defense description
+		String resultType = (defense.defenseResult == DefenseResult.CritSuccess)?"<b><font color=blue>critically</font></b>"
+							:(defense.defenseResult == DefenseResult.Success)?"successfully"
+							:(defense.defenseResult == DefenseResult.ShieldHit)?"partially"
+							:"unsuccessfully";
+		
+		String defenseDescription = "";
+		switch (defense.defenseType) {
+		case Parry:
+			defenseDescription = resultType + " parried blow.";
+			break;
+		case Block:
+			defenseDescription = resultType + " blocked blow.";
+			break;
+		case Dodge:
+			defenseDescription = resultType + " dodged blow.";
+			break;
+		case None:
+			defenseDescription = "made no defense against blow.";
+		}
+		
+		String damageDescription = "";
+		if (defense.injury != 0) {
+			damageDescription = " Sustained <b><font color=red>" + defense.injury + "</font></b> injury to the " + defense.location.description;
+			String knockdownstunningPenalty = (defense.location.knockdownPenalty != 0)?" @ " + defense.location.knockdownPenalty:"";
+			if (defense.cripplingInjury)
+				damageDescription += " <b>(crippling" + knockdownstunningPenalty + ")</br>";
+			else if (defense.majorWound)
+				damageDescription += " <b>(major" + knockdownstunningPenalty + ")</br>";
+			damageDescription += ".";
+		}
+		else if (defense.defenseResult == DefenseResult.ShieldHit || defense.defenseResult == DefenseResult.Failure) 
+			damageDescription = " But took no damage.";
+   		if (defense.shieldDamage != 0) 
+   			damageDescription += " <b>Shield damaged " + defense.shieldDamage + ".</b>";
+			
+		addLogLine("<b>" + actor.Name + "</b> " + defenseDescription + damageDescription);
+     }
     
     public boolean nextActor() {
     	Actor actor = initTable.getActiveActor();
@@ -279,6 +322,7 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
         
         // The group Manager
         groupManager = new GroupManager(propertyBag);
+        criticalTables = new CriticalTablesDialog(this, false);
         setDefaultProperties();
         
         // The main menu bar
@@ -423,6 +467,14 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
         //Group manager button & horizontal glue
         toolbar.addSeparator();
         toolbar.add(Box.createHorizontalGlue());
+        button = new JButton();
+        button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/table_error.png"), "Critical Tables"));
+        button.setToolTipText("Open Critical Tables (Alt+C)");
+        button.setActionCommand("openCriticalTables");
+        button.setMnemonic(KeyEvent.VK_C);
+        button.addActionListener(this);
+        toolbar.add(button);
+        toolbar.addSeparator();
         button = new JButton();
         button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/group.png"), "Group Manager"));
         button.setToolTipText("Manage Actor Groups (Alt+G)");

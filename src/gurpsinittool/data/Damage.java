@@ -14,8 +14,10 @@ public class Damage {
 
 	// _ => -
 	// 4 => +
-	public enum DamageType {aff, burn, cor, cr, cut, fat, imp, pi_, pi, pi4, pi44, spec, tox};
+	public enum DamageType {aff, burn, cor, cr, cut, fat, imp, pi_, pi, pi4, pi44, spec, tbb, tox};
 	public DamageType Type;
+	
+	
 	
 	public Damage(int basic, DamageType type) {
 		this(basic,1,type);
@@ -88,6 +90,7 @@ public class Damage {
 		case tox:
 		case cr:
 		case pi:
+		case tbb:
 			return 1;
 		case cut:
 		case pi4:
