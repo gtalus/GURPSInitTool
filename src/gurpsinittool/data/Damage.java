@@ -10,7 +10,7 @@ import com.sun.org.apache.xerces.internal.impl.xpath.regex.ParseException;
 public class Damage {
 
 	public int BasicDamage;
-	public int ArmorDivisor;
+	public double ArmorDivisor;
 
 	// _ => -
 	// 4 => +
@@ -23,7 +23,7 @@ public class Damage {
 		this(basic,1,type);
 	}
 
-	public Damage(int basic, int divisor, DamageType type) {
+	public Damage(int basic, double divisor, DamageType type) {
 		BasicDamage=basic;
 		ArmorDivisor=divisor;
 		Type = type;
@@ -34,7 +34,8 @@ public class Damage {
 		Pattern empty = Pattern.compile("^$");
 		Pattern num = Pattern.compile("^(\\d+)$");
 		Pattern numtype = Pattern.compile("^(\\d+) ([^\\s]+)$");
-		Pattern numdivtype = Pattern.compile("^(\\d+)\\((\\d+)\\) ([^\\s]+)$");
+		Pattern numdivtype = Pattern.compile("^(\\d+)\\(([\\d\\.]+)\\) ([^\\s]+)$");
+		Pattern dicedivtype = Pattern.compile("^(\\d+)d[+]?([-]?\\d+)?\\s?\\(([\\d\\.]+)\\)\\s+([^\\d]+)$");
 		Pattern dicetype = Pattern.compile("^(\\d+)d[+]?([-]?\\d+)?\\s+([^\\d]+)$");
 
 		if ((matcher = empty.matcher(damage)).matches()) {
@@ -47,7 +48,12 @@ public class Damage {
 			return new Damage(Integer.parseInt(matcher.group(1)), ParseType(matcher.group(2)));
 		}
 		else if ((matcher = numdivtype.matcher(damage)).matches()) {
-			return new Damage(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)), ParseType(matcher.group(3)));
+			return new Damage(Integer.parseInt(matcher.group(1)), Double.parseDouble(matcher.group(2)), ParseType(matcher.group(3)));
+		}
+		else if ((matcher = dicedivtype.matcher(damage)).matches()) {
+			int dice = Integer.parseInt(matcher.group(1));
+			int adds = (matcher.group(2)==null)?0:Integer.parseInt(matcher.group(2));
+			return new Damage(DieRoller.rollDiceAdds(dice, adds), Double.parseDouble(matcher.group(3)), ParseType(matcher.group(4)));
 		}
 		else if ((matcher = dicetype.matcher(damage)).matches()) {
 			int dice = Integer.parseInt(matcher.group(1));

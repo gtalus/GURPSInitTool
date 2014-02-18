@@ -148,7 +148,14 @@ public class Actor
 		if (attack.Unbalanced) {
 			++numParry;
 		}
-		return "<b> " + Name + "</b> attacks with " + attack.Name + ": " + hit_miss +  " (" + roll + "/" + attack.Skill + "=" + margin + ") for damage <font color=red><b>" + damage.BasicDamage + " " + damage.Type + "</b></font> (" + attack.Damage + ")";
+		String armorDivStr = "";
+		if (damage.ArmorDivisor != 1) {
+			if (damage.ArmorDivisor == (int) damage.ArmorDivisor)
+				armorDivStr = "(" + String.format("%d", (int)damage.ArmorDivisor) + ")";
+			else
+				armorDivStr = "(" + String.format("%s", damage.ArmorDivisor) + ")";
+		}			
+		return "<b> " + Name + "</b> attacks with " + attack.Name + ": " + hit_miss +  " (" + roll + "/" + attack.Skill + "=" + margin + ") for damage <font color=red><b>" + damage.BasicDamage + armorDivStr + " " + damage.Type + "</b></font> (" + attack.Damage + ")";
 	}
 	
 	/**
