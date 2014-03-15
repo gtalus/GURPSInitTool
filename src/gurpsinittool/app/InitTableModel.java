@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 import javax.swing.table.AbstractTableModel;
 
 import gurpsinittool.data.*;
-import gurpsinittool.data.Actor.ActorState;
+import gurpsinittool.data.Actor.ActorStatus;
 import gurpsinittool.data.Actor.ActorType;
 import gurpsinittool.util.CleanFileChangeEventSource;
 import gurpsinittool.util.EncounterLogEvent;
@@ -27,12 +27,12 @@ public class InitTableModel extends AbstractTableModel {
 
 	private static final boolean DEBUG = true;
 
-	private String[] columnNames = {"Act", "Name", "Move", "Dodge", "HT", "HP", "Damage", "FP", "Fatigue", "State", "Type"};
+	private String[] columnNames = {"Act", "Name", "Move", "Dodge", "HT", "HP", "Damage", "FP", "Fatigue", "Status", "Type"};
 	private Class<?>[] columnClasses = {String.class, String.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, String.class, String.class};
-	public enum columns {Act, Name, Move, Dodge, HT, HP, Damage, FP, Fatigue, State, Type};
+	public enum columns {Act, Name, Move, Dodge, HT, HP, Damage, FP, Fatigue, Status, Type};
 	private static int numColumns = 11;
 	
-	Actor newActor = new Actor("", ActorState.Active, ActorType.Enemy);
+	Actor newActor = new Actor("", ActorType.Enemy);
 	private ArrayList<Actor> actorList = new ArrayList<Actor>(Arrays.asList(
 			// This is a special row which allows new actors to be added.
 			new Actor(newActor)));	
@@ -179,8 +179,8 @@ public class InitTableModel extends AbstractTableModel {
 			return actor.FP;
 		case Fatigue:
 			return actor.Fatigue;
-		case State:
-			return actor.State;
+		case Status:
+			return actor.Status;
 		case Type:
 			return actor.Type;
 		default:
@@ -191,7 +191,7 @@ public class InitTableModel extends AbstractTableModel {
 	/**
 	 * Set the value at the row/col specified
 	 * For cloned actors, this will update all clones (and fire table updated events)
-	 * @param value : Must be either int (for hp/damage/health) or String (for name/State/Type) 
+	 * @param value : Must be either int (for hp/damage/health) or String (for name/Type) or HashSet<ActorState> for Status 
 	 * @param row : The row where the actor lives. Any clones will be updated also.
 	 * @param col : The column of the value to edit: use 'columns' enum to address.
 	 */
@@ -206,9 +206,6 @@ public class InitTableModel extends AbstractTableModel {
         
         // Convert to actual enums to allow comparison with previous value
         switch (columns.values()[col]) {
-        case State:
-        	value = ActorState.valueOf(value.toString());
-        	break;
         case Type:
         	value = ActorType.valueOf(value.toString());
         default:
@@ -269,10 +266,10 @@ public class InitTableModel extends AbstractTableModel {
 			}
 			a.Fatigue = newValue;
 			break;
-		case State:
-			ActorState newState = (ActorState) value;
-			encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + a.Name + "</b> status changed to <b>" + newState + "</b>"));
-			a.State = newState;
+		case Status:
+			// TODO: test this code!
+			a.Status = (HashSet<ActorStatus>) value;
+			encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + a.Name + "</b> status changed to <b>" + a.Status + "</b>"));
 			break;
 		case Type:
 			ActorType newType = (ActorType) value;
@@ -320,7 +317,7 @@ public class InitTableModel extends AbstractTableModel {
 	
 	/**
 	 * Set next actor as active
-	 * @return Whether a new round has started.
+	 * @return Whether the round has ended
 	 */
 	public boolean nextActor() {
 		setDirty();
@@ -336,25 +333,21 @@ public class InitTableModel extends AbstractTableModel {
 	
 	/**
 	 * Calculate the next actor without updating the table
-	 * @return Whether a new round has started.
+	 * @return Whether the round has ended
 	 */
 	protected boolean nextActorInternal() {
-		boolean isNewRound = (activeActor == -1);
 		do {
 			activeActor++;
 			if (activeActor >= actorList.size() - 1) { // Remember that the last entry is 'new...'
-				activeActor = 0;
-				if (isNewRound) { // Went around again - no valid actors found
-					activeActor = -1;
-					return true;
-				}
-				isNewRound = true;
+				activeActor = -1;
+				return true;
 			}
 			getActiveActor().NextTurn();
-		} while (actorList.get(activeActor).State != Actor.ActorState.Active 
-				& actorList.get(activeActor).State != Actor.ActorState.Disabled
-				& actorList.get(activeActor).State != Actor.ActorState.Stunned);
-		return isNewRound;
+		// Skip over disabled/unconscious/dead actors
+		} while (getActiveActor().Status.contains(ActorStatus.Disabled)
+				|| getActiveActor().Status.contains(ActorStatus.Unconscious)
+				|| getActiveActor().Status.contains(ActorStatus.Dead));
+		return false;
 	}
 
 	/**
@@ -417,7 +410,7 @@ public class InitTableModel extends AbstractTableModel {
 			fireTableCellUpdated(activeActor, 0);
 		}
 		activeActor = row;
-		setValueAt(ActorState.Active.toString(), row, columns.State.ordinal());
+		getActiveActor().Status.remove(ActorStatus.Waiting); // Remove any 'waiting' state automatically
 		setDirty();
 		fireTableCellUpdated(activeActor, 0);
 	}
@@ -430,7 +423,10 @@ public class InitTableModel extends AbstractTableModel {
     	// Now go thorough and add tags to non-unconscious/dead enemy actors
     	for (int i = 0; i < actorList.size()-1; ++i) {
     		Actor a = actorList.get(i);
-    		if (a.Type == ActorType.Enemy && (a.State != ActorState.Unconscious && a.State != ActorState.Dead && a.State != ActorState.Waiting)) {
+    		if (a.Type == ActorType.Enemy && !(a.Status.contains(ActorStatus.Unconscious)
+    											|| a.Status.contains(ActorStatus.Disabled)
+     											|| a.Status.contains(ActorStatus.Dead)
+    											|| a.Status.contains(ActorStatus.Waiting))) {
 	    		tagActor(a, tags);
     		}
     	}
@@ -491,8 +487,10 @@ public class InitTableModel extends AbstractTableModel {
     			String name = matcher.group(1);
     			String tag = matcher.group(2);
     			// Check if tag should be cleared
-    			if (clean && a.Type == ActorType.Enemy && (a.State == ActorState.Unconscious || a.State == ActorState.Dead)) {
-    	    		System.out.println("catalogTags: cleaning tag: " + tag);
+    			if (clean && a.Type == ActorType.Enemy && (a.Status.contains(ActorStatus.Unconscious)
+    														|| a.Status.contains(ActorStatus.Disabled)
+    														|| a.Status.contains(ActorStatus.Dead))) {
+    				System.out.println("catalogTags: cleaning tag: " + tag);
     				a.Name = name;
     				fireRefresh(a);
     			} else {

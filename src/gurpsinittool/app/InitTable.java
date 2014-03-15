@@ -3,33 +3,54 @@ package gurpsinittool.app;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Dialog;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.AbstractAction;
+import javax.swing.AbstractCellEditor;
+import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
+import javax.swing.DefaultListSelectionModel;
 import javax.swing.DropMode;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.text.AbstractDocument;
@@ -39,7 +60,7 @@ import javax.swing.text.DocumentFilter;
 import gurpsinittool.app.InitTableModel.columns;
 import gurpsinittool.data.*;
 //import gurpsinittool.test.RandomData;
-import gurpsinittool.data.Actor.ActorState;
+import gurpsinittool.data.Actor.ActorStatus;
 import gurpsinittool.data.Actor.ActorType;
 
 public class InitTable extends JTable 
@@ -97,9 +118,9 @@ public class InitTable extends JTable
       		int[] rows = getSelectedRows();
       		if (DEBUG) { System.out.println("InitTable: Setting active actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).Name); }   	
       		tableModel.setActiveRow(rows[0]); // sets actor as current active, and sets state to active
-       		for (int i = 0; i < rows.length; i++) {
-       			tableModel.setValueAt("Active", rows[i], InitTableModel.columns.State.ordinal());
-       		}
+//       		for (int i = 0; i < rows.length; i++) {
+//       			tableModel.setValueAt("Active", rows[i], InitTableModel.columns.State.ordinal());
+//       		}
     	}
     	else if ("Tag".equals(e.getActionCommand())) { // Add tag to selected rows
       		int[] rows = getSelectedRows();
@@ -124,15 +145,15 @@ public class InitTable extends JTable
 //    	}
     	else {
     		// Check actor states and types
-            for (Actor.ActorState s : Actor.ActorState.values()) {
-            	if (s.toString().equals(e.getActionCommand())) {
-            		stopCellEditing();
-              		int[] rows = getSelectedRows();
-               		for (int i = 0; i < rows.length; i++) {
-               			tableModel.setValueAt(s.toString(), rows[i], InitTableModel.columns.State.ordinal());
-               		}
-            	}
-            }
+//            for (Actor.ActorState s : Actor.ActorState.values()) {
+//            	if (s.toString().equals(e.getActionCommand())) {
+//            		stopCellEditing();
+//              		int[] rows = getSelectedRows();
+//               		for (int i = 0; i < rows.length; i++) {
+//               			tableModel.setValueAt(s.toString(), rows[i], InitTableModel.columns.State.ordinal());
+//               		}
+//            	}
+//            }
             for (Actor.ActorType t : Actor.ActorType.values()) {
             	if (t.toString().equals(e.getActionCommand())) {
             		stopCellEditing();
@@ -189,6 +210,21 @@ public class InitTable extends JTable
     	menuItem.addActionListener(this);
     	return menuItem;
     }
+    
+    /**
+     * Convenience method to create menu items for the table's menus.
+     * @param text - Text of the menu item
+     * @return
+     */
+    private JMenuItem createStatusMenuItem(final ActorStatus status, final boolean add, int mnemonic) {
+    	JMenuItem menuItem = new JMenuItem(status.toString(), mnemonic);
+    	menuItem.setAction(new AbstractAction(status.toString()) {
+    		public void actionPerformed(ActionEvent ae) {
+    			modifyStatusOfSelectedActors(status, add);
+    		}   		
+    	});
+    	return menuItem;
+    }
  
 	public void initialize() {
 		 //InitTable initTable = new InitTable(new ActorTableModel());
@@ -209,33 +245,40 @@ public class InitTable extends JTable
         getColumnModel().getColumn(InitTableModel.columns.Act.ordinal()).setResizable(false);       
         
 		// Set column editors
-        JComboBox<ActorState> initTableStateEditor = new JComboBox<ActorState>();
-        for (Actor.ActorState a : Actor.ActorState.values()) {
+        JComboBox<ActorStatus> initTableStateEditor = new JComboBox<ActorStatus>();
+        for (Actor.ActorStatus a : Actor.ActorStatus.values()) {
         	initTableStateEditor.addItem(a);
         }
-        getColumnModel().getColumn(InitTableModel.columns.State.ordinal()).setCellEditor(new InitTableComboCellEditor(initTableStateEditor));
-        ((DefaultCellEditor) getColumnModel().getColumn(InitTableModel.columns.State.ordinal()).getCellEditor()).setClickCountToStart(2);
-        JComboBox<ActorType> initTableTypeEditor = new JComboBox<ActorType>();
-        for (Actor.ActorType a : Actor.ActorType.values()) {
-        	initTableTypeEditor.addItem(a);
-        }
-        getColumnModel().getColumn(InitTableModel.columns.Type.ordinal()).setCellEditor(new InitTableComboCellEditor(initTableTypeEditor));
-        ((DefaultCellEditor) getColumnModel().getColumn(InitTableModel.columns.Type.ordinal()).getCellEditor()).setClickCountToStart(2);
-
+        getColumnModel().getColumn(InitTableModel.columns.Status.ordinal()).setCellEditor(new InitTableStatusListCellEditor());
+        getColumnModel().getColumn(InitTableModel.columns.Type.ordinal()).setCellEditor(new InitTableTypeListCellEditor());
         getColumnModel().getColumn(InitTableModel.columns.Damage.ordinal()).setCellEditor(new InitTableDamageCellEditor());
         getColumnModel().getColumn(InitTableModel.columns.Fatigue.ordinal()).setCellEditor(new InitTableDamageCellEditor());
-        //((DefaultCellEditor) getColumnModel().getColumn(ActorTableModel.columns.Damage.ordinal()).getCellEditor()).setClickCountToStart(1);
 
 		// Table popup menu
         popupMenu = new JPopupMenu();
-        JMenu menuFile = new JMenu("Set Status");
+        JMenu menuFile = new JMenu("Add Status");
         menuFile.setMnemonic(KeyEvent.VK_S);
-        menuFile.add(createMenuItem("Active", KeyEvent.VK_A));
-        menuFile.add(createMenuItem("Waiting", KeyEvent.VK_W));
-        menuFile.add(createMenuItem("Stunned", KeyEvent.VK_S));
-        menuFile.add(createMenuItem("Disabled", KeyEvent.VK_D));
-        menuFile.add(createMenuItem("Unconscious", KeyEvent.VK_U));
-        menuFile.add(createMenuItem("Dead", KeyEvent.VK_E));
+        menuFile.add(createStatusMenuItem(ActorStatus.Attacking, true, KeyEvent.VK_A));
+        menuFile.add(createStatusMenuItem(ActorStatus.Waiting, true, KeyEvent.VK_W));
+        menuFile.add(createStatusMenuItem(ActorStatus.Stunned, true, KeyEvent.VK_S));
+        menuFile.add(createStatusMenuItem(ActorStatus.Disarmed, true, KeyEvent.VK_R));
+        menuFile.add(createStatusMenuItem(ActorStatus.Kneeling, true, KeyEvent.VK_K));
+        menuFile.add(createStatusMenuItem(ActorStatus.Prone, true, KeyEvent.VK_P));
+        menuFile.add(createStatusMenuItem(ActorStatus.Disabled, true, KeyEvent.VK_D));
+        menuFile.add(createStatusMenuItem(ActorStatus.Unconscious, true, KeyEvent.VK_U));
+        menuFile.add(createStatusMenuItem(ActorStatus.Dead, true, KeyEvent.VK_E));
+        popupMenu.add(menuFile);
+        menuFile = new JMenu("Remove Status");
+        menuFile.setMnemonic(KeyEvent.VK_M);
+        menuFile.add(createStatusMenuItem(ActorStatus.Attacking, false, KeyEvent.VK_A));
+        menuFile.add(createStatusMenuItem(ActorStatus.Waiting, false, KeyEvent.VK_W));
+        menuFile.add(createStatusMenuItem(ActorStatus.Stunned, false, KeyEvent.VK_S));
+        menuFile.add(createStatusMenuItem(ActorStatus.Disarmed, false, KeyEvent.VK_R));
+        menuFile.add(createStatusMenuItem(ActorStatus.Kneeling, false, KeyEvent.VK_K));
+        menuFile.add(createStatusMenuItem(ActorStatus.Prone, false, KeyEvent.VK_P));
+        menuFile.add(createStatusMenuItem(ActorStatus.Disabled, false, KeyEvent.VK_D));
+        menuFile.add(createStatusMenuItem(ActorStatus.Unconscious, false, KeyEvent.VK_U));
+        menuFile.add(createStatusMenuItem(ActorStatus.Dead, false, KeyEvent.VK_E));
         popupMenu.add(menuFile);
         menuFile = new JMenu("Set Type");
         menuFile.setMnemonic(KeyEvent.VK_T);
@@ -273,7 +316,7 @@ public class InitTable extends JTable
 	
 	/**
 	 * Advance current Actor. Should only be called for initTable, not groupTable.
-	 * @return Whether a new round has started.
+	 * @return Whether the round has ended
 	 */
 	public boolean nextActor() {	
 		return tableModel.nextActor();
@@ -330,6 +373,22 @@ public class InitTable extends JTable
 	}
 	
 	/**
+	 * Add or remove the specified status indicator to all selected actors
+	 * @param status The status to add or remove
+	 * @param add True if add, false if remove
+	 */
+	public void modifyStatusOfSelectedActors(ActorStatus status, boolean add) {
+		for (int row: getSelectedRows()) {
+			Actor actor = tableModel.getActor(row);
+			if (add)
+				actor.Status.add(status);
+			else 
+				actor.Status.remove(status);
+			tableModel.fireRefresh(actor);
+		}
+	}
+	
+	/**
 	 * Reset the encounter. Set the active actor to -1
 	 */
 	public void resetEncounter() {
@@ -354,11 +413,11 @@ public class InitTable extends JTable
 	public static void formatComponentAlignment(JLabel c, Actor a, InitTableModel.columns col) {
 		c.setHorizontalAlignment(SwingConstants.LEFT);
 		c.setHorizontalTextPosition(JLabel.LEADING);
-		switch (a.State) {
-		case Waiting:
+
+		if (a.Status.contains(ActorStatus.Waiting)) {
 			c.setHorizontalAlignment(SwingConstants.RIGHT);
-		default:
 		}
+
 		if (col == columns.Act) {
 			c.setHorizontalAlignment(SwingConstants.RIGHT);
 		}
@@ -371,10 +430,8 @@ public class InitTable extends JTable
 	 */
 	public static void formatComponentAlignment(JTextField c, Actor a) {
 		c.setHorizontalAlignment(SwingConstants.LEFT);	
-		switch (a.State) {
-		case Waiting:
+		if (a.Status.contains(ActorStatus.Waiting)) {
 			c.setHorizontalAlignment(SwingConstants.RIGHT);
-		default:
 		}
 	}
 
@@ -432,11 +489,10 @@ public class InitTable extends JTable
 			}
 		}
 		
-		switch (a.State) {
-		case Unconscious:
-		case Dead:
+		if (a.Status.contains(ActorStatus.Unconscious)
+				|| a.Status.contains(ActorStatus.Disabled)
+				|| a.Status.contains(ActorStatus.Dead)) {
 			c.setForeground(new Color(128,128,128));
-		default:
 		}
 
 		/*if (hasFocus) {
@@ -468,10 +524,13 @@ public class InitTable extends JTable
 				c.setHorizontalAlignment(SwingConstants.LEFT);
 				c.setIcon(new ImageIcon());
 				if (col == columns.Name)
-					c.setText("new...");				
+					c.setText("new...");
+				else if (col == columns.Status)
+					c.setText("");
 				return c;
 			}
 			
+			// Custom rendering for various columns
 			//ActorTableModel.columns col = ActorTableModel.columns.values()[column];
 			Actor a = ((InitTableModel)table.getModel()).getActor(row);
 			if (col == columns.Act && (tableModel.getActiveActorIndex() == row)) {
@@ -495,6 +554,22 @@ public class InitTable extends JTable
 					c.setText("<html>" + c.getText() + " <strong>(" + penalty + ")</strong></html>");
 				}
 				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png"), "Must check to stay conscious"));
+			}
+			else if (col == columns.Status) { // comma separated, ordered by enum order
+				int[] scodes = new int[a.Status.size()];
+				int i = 0;
+				for (ActorStatus as: a.Status) 
+					scodes[i++] = as.ordinal();
+				Arrays.sort(scodes);
+				String text = "";
+				for (int j = 0; j < scodes.length; ++j) {
+					if (j != 0) {
+						text += ", ";
+					}
+					text += ActorStatus.values()[scodes[j]].toString();
+				}
+				c.setText(text);
+				c.setIcon(new ImageIcon());
 			}
 			else {
 				c.setIcon(new ImageIcon());
@@ -579,34 +654,270 @@ public class InitTable extends JTable
 		}
 	}
 	
+	
 	/**
 	 * Inner class to provide CellEditor functionality
 	 * Main purpose is to synchronize the combo box selected item with the current value in the cell
 	 * @author dsmall
 	 *
 	 */
-	class InitTableComboCellEditor extends DefaultCellEditor {
+	class InitTableStatusListCellEditor extends AbstractCellEditor implements TableCellEditor, ActionListener, FocusListener, ComponentListener  {
 
 		/**
 		 * Default serial UID
 		 */
 		private static final long serialVersionUID = 1L;
 
-		/**
-		 * Super does not define default constructor, so must define one.
-		 * @param comboBox
-		 */
-		public InitTableComboCellEditor(JComboBox<?> comboBox) {
-			super(comboBox);
-		}
+		JList<ActorStatus> list;
+		JScrollPane pane;
+		JButton button;
+		JDialog dialog = null;
+		boolean isEditing = false;
 		
+		public InitTableStatusListCellEditor() {
+			button = new JButton();
+	        button.setBorderPainted(false);
+		    button.setFocusPainted(false);
+		    button.setContentAreaFilled(false);
+	        button.setActionCommand("EDIT");
+	        button.addActionListener(this);
+		    button.addFocusListener(this);
+
+			list = new JList<ActorStatus>(Actor.ActorStatus.values());
+			list.setVisibleRowCount(Actor.ActorStatus.values().length);
+			list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+			list.setSelectionModel(new DefaultListSelectionModel() {
+				boolean gestureStarted = false;
+				boolean adding = true;
+			    @Override
+			    public void setSelectionInterval(int index0, int index1) {
+			    	System.out.println("HERE: selection: " + index0 + " / " + index1+ " (gesture: " + gestureStarted + ")");
+			    	if (getValueIsAdjusting() && !gestureStarted && index0 != -1 && index1 != -1) {
+			    		adding = super.isSelectedIndex(index0)?false:true;
+			    		gestureStarted = true;
+			    	}
+			    
+			        if(!getValueIsAdjusting() || adding) {
+			            super.addSelectionInterval(index0, index1);
+			        }
+			        else {
+			            super.removeSelectionInterval(index0, index1);
+			        }
+			    }
+			    @Override
+			    public void setValueIsAdjusting(boolean isAdjusting) {
+			    	System.out.println("HERE: adjusting: " + isAdjusting);
+			    	if (isAdjusting == false) {
+			    	    gestureStarted = false;
+			    	}
+			    	super.setValueIsAdjusting(isAdjusting);
+			    }
+			});
+            pane = new JScrollPane(list);
+		}
+        
 		@Override
 		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-			Component c = super.getTableCellEditorComponent(table, value, isSelected, row, column);
-			((JComboBox<?>) c).setSelectedItem(value.toString());
-			return c;
+			if (dialog == null) {
+				dialog = new JDialog((Frame)InitTable.this.getTopLevelAncestor(), false);
+				dialog.add(pane);
+				//dialog.getRootPane().setBorder(BorderFactory.createLineBorder(Color.black));
+				dialog.setUndecorated(true);
+				dialog.setBounds(0, 0, 10, 10);
+				dialog.setModal(false);
+				//dialog.setFocusable(false);
+				dialog.setFocusableWindowState(false);
+				InitTable.this.getTopLevelAncestor().addComponentListener(this);
+			}
+			list.clearSelection();
+			for (ActorStatus status: (HashSet<ActorStatus>) value) {
+				list.setSelectedValue(status, true);
+			}
+			return button;
+		}
+
+		@Override
+		public Object getCellEditorValue() {
+			HashSet<ActorStatus> statuses = new HashSet<ActorStatus>(list.getSelectedValuesList());
+			return statuses;
+		}
+
+		@Override
+		public boolean stopCellEditing() {
+			boolean retval = super.stopCellEditing();
+			dialog.setVisible(false);
+			isEditing = false;
+			return retval; 
 		}
 		
+		@Override 
+		public void cancelCellEditing() {
+			super.cancelCellEditing();
+			dialog.setVisible(false);
+			isEditing = false;
+		}
+		
+		
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			if (arg0.getActionCommand().equals("EDIT")) {
+				dialog.setLocation(button.getLocationOnScreen());
+				dialog.setSize(button.getWidth(),dialog.getPreferredSize().height);
+				dialog.setVisible(true);
+				isEditing = true;
+			}
+		}
+
+		@Override
+		public void focusGained(FocusEvent e) {}
+
+		@Override
+		public void focusLost(FocusEvent e) {
+			if (isEditing)
+				stopCellEditing();
+		}
+
+		@Override
+		public void componentHidden(ComponentEvent e) {}
+
+		@Override
+		public void componentMoved(ComponentEvent e) {
+			if (isEditing)
+				stopCellEditing();
+		}
+
+		@Override
+		public void componentResized(ComponentEvent e) {}
+
+		@Override
+		public void componentShown(ComponentEvent e) {}
+	}
+	
+	
+	/**
+	 * Inner class to provide CellEditor functionality
+	 * Main purpose is to synchronize the combo box selected item with the current value in the cell
+	 * @author dsmall
+	 *
+	 */
+	class InitTableTypeListCellEditor extends AbstractCellEditor implements TableCellEditor, ActionListener, MouseListener, FocusListener, ComponentListener  {
+
+		/**
+		 * Default serial UID
+		 */
+		private static final long serialVersionUID = 1L;
+
+		JList<ActorType> list;
+		JScrollPane pane;
+		JButton button;
+		JDialog dialog = null;
+		boolean isEditing = false;
+		
+		public InitTableTypeListCellEditor() {
+			button = new JButton();
+	        button.setBorderPainted(false);
+		    button.setFocusPainted(false);
+		    button.setContentAreaFilled(false);
+	        button.setActionCommand("EDIT");
+	        button.addActionListener(this);
+		    button.addFocusListener(this);
+
+			list = new JList<ActorType>(Actor.ActorType.values());
+			list.setVisibleRowCount(Actor.ActorType.values().length);
+			list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			list.addMouseListener(this);
+            pane = new JScrollPane(list);
+		}
+        
+		@Override
+		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+			if (dialog == null) {
+				dialog = new JDialog((Frame)InitTable.this.getTopLevelAncestor(), false);
+				dialog.add(pane);
+				//dialog.getRootPane().setBorder(BorderFactory.createLineBorder(Color.black));
+				dialog.setUndecorated(true);
+				dialog.setBounds(0, 0, 10, 10);
+				dialog.setModal(false);
+				//dialog.setFocusable(false);
+				dialog.setFocusableWindowState(false);
+				InitTable.this.getTopLevelAncestor().addComponentListener(this);
+			}
+			list.setSelectedValue(value, true);
+			return button;
+		}
+
+		@Override
+		public Object getCellEditorValue() {
+			return list.getSelectedValue();
+		}
+
+		@Override
+		public boolean stopCellEditing() {
+			boolean retval = super.stopCellEditing();
+			dialog.setVisible(false);
+			isEditing = false;
+			return retval; 
+		}
+		
+		@Override 
+		public void cancelCellEditing() {
+			super.cancelCellEditing();
+			dialog.setVisible(false);
+			isEditing = false;
+		}
+		
+		
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			if (arg0.getActionCommand().equals("EDIT")) {
+				dialog.setLocation(button.getLocationOnScreen());
+				dialog.setSize(button.getWidth(),dialog.getPreferredSize().height);
+				dialog.setVisible(true);
+				isEditing = true;
+			}
+		}
+
+		@Override
+		public void mouseClicked(MouseEvent e) {}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {}
+
+		@Override
+		public void mouseExited(MouseEvent e) {}
+
+		@Override
+		public void mousePressed(MouseEvent e) {}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			if (isEditing)
+				stopCellEditing();
+		}
+
+		@Override
+		public void focusGained(FocusEvent e) {}
+
+		@Override
+		public void focusLost(FocusEvent e) {
+			if (isEditing)
+				cancelCellEditing();
+		}
+
+		@Override
+		public void componentHidden(ComponentEvent e) {}
+
+		@Override
+		public void componentMoved(ComponentEvent e) {
+			if (isEditing)
+				cancelCellEditing();
+		}
+
+		@Override
+		public void componentResized(ComponentEvent e) {}
+
+		@Override
+		public void componentShown(ComponentEvent e) {}
 	}
 	
 	/**

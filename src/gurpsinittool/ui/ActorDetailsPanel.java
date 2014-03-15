@@ -37,6 +37,7 @@ import javax.swing.JTextField;
 import gurpsinittool.app.*;
 import gurpsinittool.app.AttackTableModel.AttackTableCellRenderer;
 import gurpsinittool.data.Actor;
+import gurpsinittool.data.Actor.ActorStatus;
 
 
 /**
@@ -280,7 +281,7 @@ public class ActorDetailsPanel extends javax.swing.JPanel
                 .addContainerGap())
         );
 
-        status.setModel(new DefaultComboBoxModel(Actor.ActorState.values()));
+        status.setModel(new DefaultComboBoxModel(Actor.ActorStatus.values()));
         status.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 statusActionPerformed(evt);
@@ -824,7 +825,8 @@ public class ActorDetailsPanel extends javax.swing.JPanel
     private void statusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_statusActionPerformed
         if(actorLoaded) {
             //if (DEBUG) { System.out.println("ActorDetailsPanel: State action performed event " + evt.toString()); }
-            setActorValue(InitTableModel.columns.State.ordinal(), ((JComboBox)evt.getSource()).getSelectedItem().toString());
+        	// TODO: Check this code for state/status change!
+            //setActorValue(InitTableModel.columns.State.ordinal(), ((JComboBox)evt.getSource()).getSelectedItem().toString());
         }
     }//GEN-LAST:event_statusActionPerformed
 
@@ -1050,17 +1052,11 @@ public class ActorDetailsPanel extends javax.swing.JPanel
 			break;
 		}
 		name.setForeground(new Color(0,0,0));
-		switch (actor.State) {
-		case Waiting:
-			//name.setHorizontalAlignment(SwingConstants.RIGHT);
-			break;
-		case Unconscious:
-		case Dead:
+		if (actor.Status.contains(ActorStatus.Unconscious) || actor.Status.contains(ActorStatus.Dead)) {
 			name.setForeground(new Color(128,128,128));
-		default:
 		}
 	
-	    status.setSelectedItem(actor.State);
+	    status.setSelectedItem(actor.Status);
 	    type.setSelectedItem(actor.Type);
 	    ht.setValue(((Integer)actor.HT).longValue());
 	    hp.setValue(((Integer)actor.HP).longValue());

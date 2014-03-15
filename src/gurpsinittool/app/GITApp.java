@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 
 import gurpsinittool.app.InitTableModel.columns;
 import gurpsinittool.data.Actor;
-import gurpsinittool.data.Actor.ActorState;
+import gurpsinittool.data.Actor.ActorStatus;
 import gurpsinittool.data.Actor.ActorType;
 import gurpsinittool.ui.*;
 import gurpsinittool.ui.DefenseDialog.DefenseResult;
@@ -129,6 +129,7 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
 			round = 0;
     		refreshRoundText();
     		initTable.resetEncounter();
+    		nextActor();
     	}	
     	else if ("openGroupManager".equals(e.getActionCommand())) {
     		validateOnScreen(groupManager);
@@ -146,14 +147,7 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
        	}
 	}
     
-    public void actorAttack() {
-    	if (DEBUG) System.out.println("GITApp: ActorAttack");
-    	Actor actor = initTable.getActiveActor();
-    	if (actor == null) 
-    		return;
-    	addLogLine(actor.Attack());
-    }
-    
+
 	@Override
 	public void encounterLogMessageSent(EncounterLogEvent evt) {
 		addLogLine(evt.logMsg);
@@ -178,9 +172,25 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
     	// Move cursor to the end.
     	logTextArea.select(logTextDocument.getLength(), logTextDocument.getLength());
     }
+  
+    public void activeActorAttack() {
+    	if (DEBUG) System.out.println("GITApp: activeActorAttack");
+    	Actor actor = initTable.getActiveActor();
+    	if (actor == null) 
+    		return;
+    	addLogLine(actor.Attack());
+    }
     
-    public void actorDefend() {
-    	System.out.println("GITApp: ActorDefend: start");
+    public void selectedActorAttack() {
+    	if (DEBUG) System.out.println("GITApp: selectedActorAttack");
+    	Actor actor = initTable.getSelectedActor();
+    	if (actor == null) 
+    		return;
+    	addLogLine(actor.Attack());
+    }
+    
+    public void selectedActorDefend() {
+    	System.out.println("GITApp: selectedActorDefend: start");
     	// Verify valid actor
     	Actor actor = initTable.getSelectedActor();
     	if (actor == null)
@@ -271,40 +281,64 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
 		addLogLine("<b>" + actor.Name + "</b> " + defenseDescription + damageDescription);
      }
     
+    /**
+     * Step to the next actor, taking auto-actions for the new actor if appropriate
+     * @return Whether the round has ended
+     */
     public boolean nextActor() {
+    	// Check for start of round
+    	if (initTable.getActorTableModel().getActiveActorIndex() == -1) {
+			++round;
+			refreshRoundText();
+			addLogLine("<b>** Round " + roundCounter.getText() + " **</b>", false);
+    	}
+    	
+    	// Change to next active actor
+    	boolean roundEnd = initTable.nextActor();
+    	// Resolve auto actions at start of actor's turn:
     	Actor actor = initTable.getActiveActor();
     	if (actor != null && actor.Type == ActorType.Enemy) { // Do AUTO actions
-			if (AUTO_UNCONSCIOUS && actor.Injury >= actor.HP
-					&& (actor.State == ActorState.Active || actor.State == ActorState.Stunned)) { // What about disabled?
+			if (AUTO_UNCONSCIOUS 
+					&& actor.Injury >= actor.HP
+					&& !(actor.Status.contains(ActorStatus.Unconscious) 
+						|| actor.Status.contains(ActorStatus.Disabled) 
+						|| actor.Status.contains(ActorStatus.Dead) 
+						|| actor.Status.contains(ActorStatus.Waiting))) { 
 				int penalty = (int) (-1*(Math.floor((double)actor.Injury/actor.HP)-1));
 				int result = DieRoller.roll3d6();
 				String details = "(HT: " + actor.HT + ", penalty: " + penalty + ", roll: " + result + ")";
 				if (result > actor.HT+penalty) {
 					addLogLine("<b>" + actor.Name + "</b> <b><font color=red>failed</font></b> consciousness roll " + details);
-					initTable.setActorValue(actor, columns.State, ActorState.Unconscious);
+					actor.Status.clear(); // Clear other status' (Attacking/whatever)
+					actor.Status.add(ActorStatus.Unconscious);
+					actor.Status.add(ActorStatus.Prone);
+					actor.Status.add(ActorStatus.Disarmed);
+					initTable.getActorTableModel().fireRefresh(actor);
 				} else {
 					addLogLine("<b>" + actor.Name + "</b> passed consciousness roll " + details);
 				}
 			}
 			if (AUTO_ATTACK 
-					&& actor.State == ActorState.Active) {
-				actorAttack();
+					&& actor.Status.contains(ActorStatus.Attacking)) {
+				activeActorAttack();
 			}
     	}
     	
-    	if(initTable.nextActor()) {
-			++round;
-			refreshRoundText();
-			addLogLine("<b>** Round " + roundCounter.getText() + " **</b>", false);
-			return true;
-		}
-    	return false;
+    	return roundEnd;
     }
     
     /**
      * Step through the actors until reaching the next round
      */
     public void nextRound() {
+    	if (initTable.getActiveActor() != null) endRound(); // Step to the end of the round if not there already
+    	nextActor(); // And then into the new round
+    }
+    
+    /**
+     * Step through the actors until reaching the end of the current round
+     */
+    public void endRound() {
     	while(!nextActor()) {}
     }
     
@@ -366,7 +400,7 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
   
         // The top tool bar
         JToolBar toolbar = new JToolBar("Encounter Control Toolbar");
-        //first button
+        // Next Actor (first button)
         JButton button = new JButton();
         java.net.URL imageURL = GITApp.class.getResource("/resources/images/control_play_blue.png");
         if (imageURL != null) {
@@ -382,11 +416,23 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
         button.setMnemonic(KeyEvent.VK_N);
         button.addActionListener(action);
         toolbar.add(button);
+        // Step to end of round 
+        button = new JButton();
+        button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/control_end_blue.png"), "End Round"));
+        button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
+        button.setToolTipText("Step to the end of this round (Ctrl+E)");
+        action = new AbstractAction("endRound") {
+        	public void actionPerformed(ActionEvent e) { endRound(); }
+        };
+        button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("control E"), "endRound");
+        button.getActionMap().put("endRound", action);
+        button.addActionListener(action);
+        toolbar.add(button);
         // Next round 
         button = new JButton();
         button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/control_fastforward_blue.png"), "Next Round"));
         button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
-        button.setToolTipText("Skip to the next round (Ctrl+N)");
+        button.setToolTipText("Step to the next round (Ctrl+N)");
         action = new AbstractAction("nextRound") {
         	public void actionPerformed(ActionEvent e) { nextRound(); }
         };
@@ -429,11 +475,12 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
         button = new JButton();
         button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/wrench_orange.png"), "Attack"));
         button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
-        button.setToolTipText("Active actor attacks (Ctrl+A)");
-        action = new AbstractAction("actorAttack") {
-        	public void actionPerformed(ActionEvent e) { actorAttack(); }
+        button.setToolTipText("Selected actor attacks (Ctrl+A)");
+        action = new AbstractAction("selectedActorAttack") {
+        	public void actionPerformed(ActionEvent e) { selectedActorAttack(); }
         };
         button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("control A"), "actorAttack");
+        button.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("control A"), "actorAttack");
         button.getActionMap().put("actorAttack", action);
         //button.setMnemonic(KeyEvent.VK_A);
         button.addActionListener(action);
@@ -443,8 +490,8 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
         button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/shield.png"), "Defend"));
         button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
         button.setToolTipText("Selected actor defends (Ctrl+D)");
-        action = new AbstractAction("actorDefend") {
-        	public void actionPerformed(ActionEvent e) { actorDefend(); }
+        action = new AbstractAction("selectedActorDefend") {
+        	public void actionPerformed(ActionEvent e) { selectedActorDefend(); }
         };
         button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("control D"), "actorDefend");
         button.getActionMap().put("actorDefend", action);
@@ -497,11 +544,17 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
         // The actor table
         initTable = new InitTable(true);
         initTable.getActorTableModel().addEncounterLogEventListener(this);
+        // Replace Ctrl+A = select all map for init table to actor attack
+        initTable.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control A"), "actorAttack");
+        action = new AbstractAction("selectedActorAttack") {
+        	public void actionPerformed(ActionEvent e) { selectedActorAttack(); }
+        };
+        initTable.getActionMap().put("actorAttack", action);
         
         // Connect Details Panel to the table/tableModel
         JScrollPane tableScrollPane = new JScrollPane(initTable); 
         JScrollPane logScrollPane = new JScrollPane(logTextArea);
-       
+        
         // The actor info pane
         detailsPanel = new ActorDetailsPanel(initTable);
         JScrollPane actorDetailsPane = new JScrollPane(detailsPanel);

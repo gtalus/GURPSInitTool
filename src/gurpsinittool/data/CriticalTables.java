@@ -1,6 +1,11 @@
 package gurpsinittool.data;
 
+import gurpsinittool.util.DieRoller;
+
 import java.util.ArrayList;
+
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 
 public class CriticalTables {
 
@@ -14,6 +19,20 @@ public class CriticalTables {
 			for (int i = 0; i < rolls.length; ++i)
 				this.rolls.add(rolls[i]);
 		}
+	}
+	
+	public static Entry getRandomEntry(ArrayList<Entry> entry_table) {
+		int result = DieRoller.roll3d6();
+    	
+    	// Search through table for entry that matches result
+    	for(int i = 0; i < entry_table.size(); ++i) {
+    		for (int j = 0; j < entry_table.get(i).rolls.size(); ++j) {
+    			if (entry_table.get(i).rolls.get(j) == result) {
+    				return entry_table.get(i);
+    			}
+    		}
+    	}
+    	return new Entry("None Found for roll", result);
 	}
 	
 	public static ArrayList<Entry> critical_hit = new ArrayList<Entry>();

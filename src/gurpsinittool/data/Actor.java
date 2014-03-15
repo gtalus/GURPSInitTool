@@ -4,6 +4,7 @@ import gurpsinittool.util.DieRoller;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 /** 
  * Encapsulates a single actor in the current encounter.
@@ -19,8 +20,9 @@ public class Actor
 	public String Name;
 	//public int Order; // what is this?
 	
-	public enum ActorState {Active, Waiting, Stunned, Disabled, Unconscious, Dead};
-	public ActorState State;
+	public enum ActorStatus {Attacking, Waiting, Disarmed, Stunned, Prone, Kneeling, Disabled, Unconscious, Dead};
+	// Position, Status, Action, Disarmed
+	public HashSet<ActorStatus> Status;
 
 	public enum ActorType {PC, Enemy, Ally, Neutral, Special};
 	public ActorType Type;
@@ -74,10 +76,11 @@ public class Actor
 	/**
 	 * Basic constructor specifying all options
 	 */
-	public Actor(String name, ActorState state, ActorType type, int ht, int hp, int damage, int fp, int fatigue, int move, int parry, int block, int dodge, int dr, int db, int shield_dr, int shield_hp, int default_attack)
+	public Actor(String name, HashSet<ActorStatus> status, ActorType type, int ht, int hp, int damage, int fp, int fatigue, int move, int parry, int block, int dodge, int dr, int db, int shield_dr, int shield_hp, int default_attack)
 	{
 		Name = name;
-		State = state;
+		Status = new HashSet<ActorStatus>();
+		Status.addAll(status);
 		Type = type;
 		HP = hp;
 		HT = ht;
@@ -101,11 +104,10 @@ public class Actor
 	/**
 	 * Basic constructor providing default options for hp, health and damage
 	 * @param name : Actor's name
-	 * @param state : Actor's state (Active, Dead, etc)
 	 * @param type : Actor type (PC, NPC, etc)
 	 */
-	public Actor(String name, ActorState state, ActorType type) {
-		this(name,state,type,10,10,0,10,0,5,9,9,8,0,2,4,20,0);
+	public Actor(String name, ActorType type) {
+		this(name,new HashSet<ActorStatus>(),type,10,10,0,10,0,5,9,9,8,0,2,4,20,0);
 	}
 	
 	/**
@@ -113,7 +115,7 @@ public class Actor
 	 * @param anActor reference Actor
 	 */
 	public Actor(Actor anActor) {
-		this(anActor.Name,anActor.State,anActor.Type,anActor.HT,anActor.HP,anActor.Injury,anActor.FP,anActor.Fatigue,anActor.Move,anActor.Parry,anActor.Block,anActor.Dodge,anActor.DR,anActor.DB,anActor.ShieldDR,anActor.ShieldHP,anActor.DefaultAttack);
+		this(anActor.Name,anActor.Status,anActor.Type,anActor.HT,anActor.HP,anActor.Injury,anActor.FP,anActor.Fatigue,anActor.Move,anActor.Parry,anActor.Block,anActor.Dodge,anActor.DR,anActor.DB,anActor.ShieldDR,anActor.ShieldHP,anActor.DefaultAttack);
 		for(int i = 0; i < anActor.Attacks.size(); ++i) {
 			Attacks.add(anActor.Attacks.get(i));
 		}
@@ -136,10 +138,17 @@ public class Actor
 		int roll = DieRoller.roll3d6();
 		int margin = attack.Skill - roll;
 		String hit_miss;
-		if (DieRoller.isCritFailure(roll, attack.Skill))
+		String crit_string = "";
+		if (DieRoller.isCritFailure(roll, attack.Skill)) {
 			hit_miss = "<b><font color=red>Critical miss</font></b>";
-		else if (DieRoller.isCritSuccess(roll, attack.Skill))
+			CriticalTables.Entry crit_result = CriticalTables.getRandomEntry(CriticalTables.critical_miss);
+			crit_string = "<br/> <i><font color=gray><b>Critical Miss Table Result:</b>" + crit_result.notes + "</font></i>";
+		}
+		else if (DieRoller.isCritSuccess(roll, attack.Skill)) {
 			hit_miss = "<b><font color=blue>Critical hit</font></b>";
+			CriticalTables.Entry crit_result = CriticalTables.getRandomEntry(CriticalTables.critical_hit);
+			crit_string = "<br/> <i><font color=gray><b>Critical Hit Table Result:</b>" + crit_result.notes + "</font></i>";
+		}
 		else if (DieRoller.isSuccess(roll, attack.Skill))
 			hit_miss = "<b>hit</b>";
 		else 
@@ -155,14 +164,14 @@ public class Actor
 			else
 				armorDivStr = "(" + String.format("%s", damage.ArmorDivisor) + ")";
 		}			
-		return "<b> " + Name + "</b> attacks with " + attack.Name + ": " + hit_miss +  " (" + roll + "/" + attack.Skill + "=" + margin + ") for damage <font color=red><b>" + damage.BasicDamage + armorDivStr + " " + damage.Type + "</b></font> (" + attack.Damage + ")";
+		return "<b> " + Name + "</b> attacks with " + attack.Name + ": " + hit_miss +  " (" + roll + "/" + attack.Skill + "=" + margin + ") for damage <font color=red><b>" + damage.BasicDamage + armorDivStr + " " + damage.Type + "</b></font> (" + attack.Damage + ")" + crit_string;
 	}
 	
 	/**
 	 * Reset actor state- Active, 0 damage, 0 fatigue, numParry/numBlock/ShieldDamage = 0
 	 */
 	public void Reset() {
-		State = ActorState.Active;
+		Status.clear();
 		Injury = 0;
 		Fatigue = 0;
 		numParry = 0;
