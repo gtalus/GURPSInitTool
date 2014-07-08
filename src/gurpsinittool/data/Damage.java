@@ -32,33 +32,24 @@ public class Damage {
 	public static Damage ParseDamage(String damage) throws ParseException {
 		Matcher matcher;
 		Pattern empty = Pattern.compile("^$");
-		Pattern num = Pattern.compile("^(\\d+)$");
-		Pattern numtype = Pattern.compile("^(\\d+) ([^\\s]+)$");
-		Pattern numdivtype = Pattern.compile("^(\\d+)\\(([\\d\\.]+)\\) ([^\\s]+)$");
-		Pattern dicedivtype = Pattern.compile("^(\\d+)d[+]?([-]?\\d+)?\\s?\\(([\\d\\.]+)\\)\\s+([^\\d]+)$");
-		Pattern dicetype = Pattern.compile("^(\\d+)d[+]?([-]?\\d+)?\\s+([^\\d]+)$");
+		Pattern numdivtype = Pattern.compile("^(\\d+)\\s*(\\(([\\d\\.]+)\\))?\\s*([^d\\d\\s]+)?$");
+		Pattern dicedivtype = Pattern.compile("^(\\d+)d[+]?([-]?\\d+)?\\s*(\\(([\\d\\.]+)\\))?\\s*([^d\\d\\s]+)?$");
 
 		if ((matcher = empty.matcher(damage)).matches()) {
 			return new Damage(0, DamageType.cr);
 		}
-		else if ((matcher = num.matcher(damage)).matches()) {
-			return new Damage(Integer.parseInt(matcher.group(1)), DamageType.cut);
-		}
-		else if ((matcher = numtype.matcher(damage)).matches()) {
-			return new Damage(Integer.parseInt(matcher.group(1)), ParseType(matcher.group(2)));
-		}
 		else if ((matcher = numdivtype.matcher(damage)).matches()) {
-			return new Damage(Integer.parseInt(matcher.group(1)), Double.parseDouble(matcher.group(2)), ParseType(matcher.group(3)));
+			int num = Integer.parseInt(matcher.group(1));
+			double div = (matcher.group(3) != null)?Double.parseDouble(matcher.group(3)):1;
+			DamageType type = (matcher.group(4) != null)?ParseType(matcher.group(4)):DamageType.cut;
+			return new Damage(num, div, type);
 		}
 		else if ((matcher = dicedivtype.matcher(damage)).matches()) {
 			int dice = Integer.parseInt(matcher.group(1));
 			int adds = (matcher.group(2)==null)?0:Integer.parseInt(matcher.group(2));
-			return new Damage(DieRoller.rollDiceAdds(dice, adds), Double.parseDouble(matcher.group(3)), ParseType(matcher.group(4)));
-		}
-		else if ((matcher = dicetype.matcher(damage)).matches()) {
-			int dice = Integer.parseInt(matcher.group(1));
-			int adds = (matcher.group(2)==null)?0:Integer.parseInt(matcher.group(2));
-			return new Damage(DieRoller.rollDiceAdds(dice, adds), ParseType(matcher.group(3)));
+			double div = (matcher.group(4) != null)?Double.parseDouble(matcher.group(4)):1;
+			DamageType type = (matcher.group(5) != null)?ParseType(matcher.group(5)):DamageType.cut;
+			return new Damage(DieRoller.rollDiceAdds(dice, adds), div, type);
 		}
 		else {
 			System.out.println("-E- Damage:ParseDamage: unable to parse string! " + damage);
