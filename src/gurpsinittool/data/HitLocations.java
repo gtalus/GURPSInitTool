@@ -6,9 +6,9 @@ import java.util.HashMap;
 
 public class HitLocations {
 	
-	public enum LocationType {torso, skull, face, leg, arm, hand, foot, neck, vitals, eye, groin};
+	public enum LocationType {torso, skull, face, leg, knee, arm, hand, foot, neck, vitals, eye, groin};
 	// rleg, rarm, lleg, larm
-	//abdomen, ear, nose, jaw, spine, limb_vasc, neck_vasc, limb_joint, extremity_joint, pelvis, digestive, heart};
+	//abdomen, ear, nose, jaw, spine, limb_vasc, neck_vasc, limb_joint (knee/elbow), extremity_joint (wrist/ankle), pelvis, digestive, heart};
 
 	public static HitLocation getLocationFromName(String name) {
 		for (HitLocations.LocationType location: HitLocations.LocationType.values()) {
@@ -47,6 +47,20 @@ public class HitLocations {
 		locations.put(LocationType.leg, new HitLocation("Leg", -2, "Reduce the wounding multiplier of large pi, huge pi and imp damage to ×1. "
 				+ "Any major wound (loss of over 1/2 HP from one blow) cripples the limb. "
 				+ "Damage beyond that threshold is lost. Crit hits a joint.", 0, 1.0/2)  {
+			public double DamageMultiplier(DamageType type) {
+				switch (type) {
+				case pi4:
+				case pi44:
+				case imp:
+					return 1;
+				default:
+					return super.DamageMultiplier(type);
+				}
+			}
+		});
+		locations.put(LocationType.knee, new HitLocation("Knee", -5, "Reduce the wounding multiplier of large pi, huge pi and imp damage to ×1. "
+				+ "Any major wound (loss of over 1/3 HP from one blow) cripples the limb. HT rolls to recover from crippling are at -2. "
+				+ "Damage beyond that threshold is lost. Dismemberment requires same amount as Leg. Miss by 1 hits the leg.", 0, 1.0/3)  {
 			public double DamageMultiplier(DamageType type) {
 				switch (type) {
 				case pi4:
