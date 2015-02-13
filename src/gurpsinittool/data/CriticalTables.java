@@ -37,7 +37,7 @@ public class CriticalTables {
 	
 	public static ArrayList<Entry> critical_hit = new ArrayList<Entry>();
 	static {
-		critical_hit.add(new Entry("The blow does triple damage. akdfjs ldjasfkljasdfkljadfskljasdfl ka fjfjkjadfklasdf lkasfjladksjlkj", 
+		critical_hit.add(new Entry("The blow does triple damage.", 
 				3, 18));
 		critical_hit.add(new Entry("The target's DR protects at half value (round down) after applying any armor divisors.",
 				4, 17));
@@ -156,5 +156,23 @@ public class CriticalTables {
 		//critical_miss_unarmed.add(new Entry(14, "You stumble; see 7.");
 		//critical_miss_unarmed.add(new Entry(16, "You hit a solid object; see 5.");
 		//critical_miss_unarmed.add(new Entry(18, "You knock yourself out; see 3.");
+	}
+	
+	public static ArrayList<Entry> hit_location = new ArrayList<Entry>();
+	static {
+		//hit_location.add(new Entry("Eye", 3, 18));
+		hit_location.add(new Entry("Skull", 3, 4));
+		hit_location.add(new Entry("Face", 5));
+		hit_location.add(new Entry("Right Leg", 6, 7));
+		hit_location.add(new Entry("Right Arm", 8));
+		hit_location.add(new Entry("Torso", 9, 10));
+		hit_location.add(new Entry("Groin", 11));
+		hit_location.add(new Entry("Left Arm", 12));
+		hit_location.add(new Entry("Left Leg", 13, 14));
+		hit_location.add(new Entry("Hand", 15));
+		hit_location.add(new Entry("Foot", 16));
+		hit_location.add(new Entry("Neck", 17, 18));
+		//hit_location.add(new Entry("Vitals", ));
+		
 	}
 }

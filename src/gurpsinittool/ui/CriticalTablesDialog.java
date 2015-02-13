@@ -38,7 +38,8 @@ public class CriticalTablesDialog extends javax.swing.JDialog {
         initCritTable(missTable, CriticalTables.critical_miss);
         initCritTable(headTable, CriticalTables.critical_head_hit);
         initCritTable(unarmedTable, CriticalTables.critical_miss_unarmed);
-    }
+        initCritTable(locationTable, CriticalTables.hit_location);
+        }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -61,6 +62,8 @@ public class CriticalTablesDialog extends javax.swing.JDialog {
         missTable = new javax.swing.JTable();
         jScrollPane4 = new javax.swing.JScrollPane();
         unarmedTable = new javax.swing.JTable();
+        jScrollPane6 = new javax.swing.JScrollPane();
+        locationTable = new javax.swing.JTable();
 
         setName("CriticalTableDialog"); // NOI18N
         setType(java.awt.Window.Type.UTILITY);
@@ -202,6 +205,33 @@ public class CriticalTablesDialog extends javax.swing.JDialog {
 
         jTabbedPane.addTab("Unarmed Critical Miss", jScrollPane4);
 
+        locationTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Roll", "Entry"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.String.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jScrollPane6.setViewportView(locationTable);
+
+        jTabbedPane.addTab("Hit Locations", jScrollPane6);
+
         getContentPane().add(jTabbedPane, java.awt.BorderLayout.CENTER);
 
         pack();
@@ -314,7 +344,9 @@ public class CriticalTablesDialog extends javax.swing.JDialog {
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
+    private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JTabbedPane jTabbedPane;
+    private javax.swing.JTable locationTable;
     private javax.swing.JTable missTable;
     private javax.swing.JButton rollButton;
     private javax.swing.JLabel rollLabel;
