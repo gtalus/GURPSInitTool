@@ -7,8 +7,6 @@ import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.undo.UndoManager;
 
-import sun.awt.HorizBagLayout;
-
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dialog;

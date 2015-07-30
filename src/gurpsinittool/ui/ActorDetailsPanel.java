@@ -355,7 +355,9 @@ public class ActorDetailsPanel extends javax.swing.JPanel
         jScrollPane1.setRequestFocusEnabled(false);
 
         notes.setFont(new java.awt.Font("Tahoma", 0, 11)); // NOI18N
+        notes.setLineWrap(true);
         notes.setRows(5);
+        notes.setWrapStyleWord(true);
         jScrollPane1.setViewportView(notes);
 
         jLabel9.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
