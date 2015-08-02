@@ -3,9 +3,7 @@ package gurpsinittool.app;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
-import java.awt.Dialog;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,30 +16,27 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractCellEditor;
-import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.DropMode;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -74,6 +69,7 @@ public class InitTable extends JTable
 	private static final boolean DEBUG = true;
 
 	private JPopupMenu popupMenu;
+	private Map<ActorStatus, JMenuItem> coordinatedStatusMenuItems;
 	private InitTableModel tableModel;
 	private boolean isInitTable;
 	
@@ -135,6 +131,9 @@ public class InitTable extends JTable
        		for (int i = 0; i < rows.length; i++) {
        			tableModel.removeTag(tableModel.getActor(rows[i]));
        		}
+    	}
+    	else if ("Attack".equals(e.getActionCommand())) {
+    		selectedActorsAttack();
     	}
 //     	if ("Clone".equals(e.getActionCommand())) { // Clone selected rows at the end (as "Haste" spell)
 //     		Actor[] actors = tableModel.getActors(getSelectedRows());
@@ -216,15 +215,48 @@ public class InitTable extends JTable
      * @param text - Text of the menu item
      * @return
      */
-    private JMenuItem createStatusMenuItem(final ActorStatus status, final boolean add, int mnemonic) {
+    private JMenuItem createCoordinatedStatusMenuItem(final ActorStatus status, int mnemonic) {
     	JMenuItem menuItem = new JMenuItem(status.toString(), mnemonic);
     	menuItem.setAction(new AbstractAction(status.toString()) {
     		public void actionPerformed(ActionEvent ae) {
-    			modifyStatusOfSelectedActors(status, add);
+    			coordinatedChangeStatusOfSelectedActors(status);
     		}   		
     	});
+    	coordinatedStatusMenuItems.put(status, menuItem);
     	return menuItem;
     }
+    
+    /**
+     * Convenience method to create menu items for the table's menus.
+     * @param text - Text of the menu item
+     * @return
+     */
+    private void updateCoordinatedStatusMenuItems() {
+    	for (Map.Entry<ActorStatus, JMenuItem> entry : coordinatedStatusMenuItems.entrySet()) {
+    		ActorStatus status = entry.getKey();
+    		JMenuItem menuItem = entry.getValue();
+    		
+    		// Determine which way to go
+    		boolean all_set = true;
+    		boolean all_unset = true;
+    		for (int row: getSelectedRows()) {
+    			Actor actor = tableModel.getActor(row);
+    			if (actor.Status.contains(status))
+    				all_unset = false;
+    			else
+    				all_set = false;
+    					
+    		}
+    		if (all_set)
+    			menuItem.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/tick.png"), "Tick"));
+    		else if (all_unset)
+    			menuItem.setIcon(null);
+    		else
+    			menuItem.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/shape_square.png"), "Square"));
+    	}
+    	
+    }
+    
  
 	public void initialize() {
 		 //InitTable initTable = new InitTable(new ActorTableModel());
@@ -256,31 +288,20 @@ public class InitTable extends JTable
 
 		// Table popup menu
         popupMenu = new JPopupMenu();
-        JMenu menuFile = new JMenu("Add Status");
+        coordinatedStatusMenuItems = new HashMap<ActorStatus, JMenuItem>();
+        JMenu menuFile = new JMenu("Status");
         menuFile.setMnemonic(KeyEvent.VK_S);
-        menuFile.add(createStatusMenuItem(ActorStatus.Attacking, true, KeyEvent.VK_A));
-        menuFile.add(createStatusMenuItem(ActorStatus.Waiting, true, KeyEvent.VK_W));
-        menuFile.add(createStatusMenuItem(ActorStatus.Stunned, true, KeyEvent.VK_S));
-        menuFile.add(createStatusMenuItem(ActorStatus.Disarmed, true, KeyEvent.VK_R));
-        menuFile.add(createStatusMenuItem(ActorStatus.Kneeling, true, KeyEvent.VK_K));
-        menuFile.add(createStatusMenuItem(ActorStatus.Prone, true, KeyEvent.VK_P));
-        menuFile.add(createStatusMenuItem(ActorStatus.Disabled, true, KeyEvent.VK_D));
-        menuFile.add(createStatusMenuItem(ActorStatus.Unconscious, true, KeyEvent.VK_U));
-        menuFile.add(createStatusMenuItem(ActorStatus.Dead, true, KeyEvent.VK_E));
+        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Attacking, KeyEvent.VK_A));
+        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Waiting, KeyEvent.VK_W));
+        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Stunned, KeyEvent.VK_S));
+        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Disarmed, KeyEvent.VK_R));
+        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Kneeling, KeyEvent.VK_K));
+        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Prone, KeyEvent.VK_P));
+        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Disabled, KeyEvent.VK_D));
+        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Unconscious, KeyEvent.VK_U));
+        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Dead, KeyEvent.VK_E));
         popupMenu.add(menuFile);
-        menuFile = new JMenu("Remove Status");
-        menuFile.setMnemonic(KeyEvent.VK_M);
-        menuFile.add(createStatusMenuItem(ActorStatus.Attacking, false, KeyEvent.VK_A));
-        menuFile.add(createStatusMenuItem(ActorStatus.Waiting, false, KeyEvent.VK_W));
-        menuFile.add(createStatusMenuItem(ActorStatus.Stunned, false, KeyEvent.VK_S));
-        menuFile.add(createStatusMenuItem(ActorStatus.Disarmed, false, KeyEvent.VK_R));
-        menuFile.add(createStatusMenuItem(ActorStatus.Kneeling, false, KeyEvent.VK_K));
-        menuFile.add(createStatusMenuItem(ActorStatus.Prone, false, KeyEvent.VK_P));
-        menuFile.add(createStatusMenuItem(ActorStatus.Disabled, false, KeyEvent.VK_D));
-        menuFile.add(createStatusMenuItem(ActorStatus.Unconscious, false, KeyEvent.VK_U));
-        menuFile.add(createStatusMenuItem(ActorStatus.Dead, false, KeyEvent.VK_E));
-        popupMenu.add(menuFile);
-        menuFile = new JMenu("Set Type");
+        menuFile = new JMenu("Type");
         menuFile.setMnemonic(KeyEvent.VK_T);
         menuFile.add(createMenuItem("PC", KeyEvent.VK_C));
         menuFile.add(createMenuItem("Ally", KeyEvent.VK_A));
@@ -289,11 +310,12 @@ public class InitTable extends JTable
         menuFile.add(createMenuItem("Special", KeyEvent.VK_S));
         popupMenu.add(menuFile);
         if (isInitTable) { popupMenu.add(createMenuItem("Set Active", KeyEvent.VK_A)); }
+        if (isInitTable) { popupMenu.add(createMenuItem("Attack", KeyEvent.VK_K)); }
         //popupMenu.add(createMenuItem("Clone", KeyEvent.VK_C));
         popupMenu.add(createMenuItem("Reset", KeyEvent.VK_R));
         popupMenu.add(createMenuItem("Delete", KeyEvent.VK_DELETE));
-        popupMenu.add(createMenuItem("Tag", KeyEvent.VK_T));
-        popupMenu.add(createMenuItem("Remove Tag", KeyEvent.VK_V));
+        if (isInitTable) { popupMenu.add(createMenuItem("Tag", KeyEvent.VK_T)); }
+        if (isInitTable) { popupMenu.add(createMenuItem("Remove Tag", KeyEvent.VK_V)); }
         MousePopupListener popupListener = new MousePopupListener();
         addMouseListener(popupListener);
         getTableHeader().addMouseListener(popupListener);
@@ -389,12 +411,68 @@ public class InitTable extends JTable
 	}
 	
 	/**
+	 * Toggle the specified status indicator to all selected actors individually
+	 * @param status The status to toggle
+	 */
+	public void toggleStatusOfSelectedActors(ActorStatus status) {
+		for (int row: getSelectedRows()) {
+			Actor actor = tableModel.getActor(row);
+			if (actor.Status.contains(status))
+				actor.Status.remove(status);
+			else
+				actor.Status.add(status);
+			tableModel.fireRefresh(actor);
+		}
+	}
+	
+	/**
+	 * Adjust all the statuses in a coordinated fashion.
+	 * If any are unset: all are set
+	 * If all are set: unset
+	 * @param status The status to toggle
+	 */
+	public void coordinatedChangeStatusOfSelectedActors(ActorStatus status) {
+		boolean all_set = true;
+		// First, determine which way to go
+		for (int row: getSelectedRows()) {
+			Actor actor = tableModel.getActor(row);
+			if (!actor.Status.contains(status)) {
+				all_set = false;
+				break;
+			}
+		}
+		for (int row: getSelectedRows()) {
+			Actor actor = tableModel.getActor(row);
+			if (all_set)
+				actor.Status.remove(status);
+			else
+				actor.Status.add(status);
+			tableModel.fireRefresh(actor);
+		}
+	}
+	
+	/**
 	 * Reset the encounter. Set the active actor to -1
 	 */
 	public void resetEncounter() {
 		tableModel.resetEncounter();
 	}
 	
+    public void activeActorAttack() {
+    	if (DEBUG) System.out.println("InitTable: activeActorAttack");
+    	Actor actor = getActiveActor();
+    	if (actor == null) 
+    		return;
+    	actor.Attack();
+    }
+    
+    public void selectedActorsAttack() {
+    	for (int row: getSelectedRows()) {
+			Actor actor = tableModel.getActor(row);
+			actor.Attack();
+    	}
+    }
+    
 	/**
 	 * Halt cell editing, if it is occurring.
 	 */
@@ -691,7 +769,6 @@ public class InitTable extends JTable
 				boolean adding = true;
 			    @Override
 			    public void setSelectionInterval(int index0, int index1) {
-			    	System.out.println("HERE: selection: " + index0 + " / " + index1+ " (gesture: " + gestureStarted + ")");
 			    	if (getValueIsAdjusting() && !gestureStarted && index0 != -1 && index1 != -1) {
 			    		adding = super.isSelectedIndex(index0)?false:true;
 			    		gestureStarted = true;
@@ -706,7 +783,6 @@ public class InitTable extends JTable
 			    }
 			    @Override
 			    public void setValueIsAdjusting(boolean isAdjusting) {
-			    	System.out.println("HERE: adjusting: " + isAdjusting);
 			    	if (isAdjusting == false) {
 			    	    gestureStarted = false;
 			    	}
@@ -1145,6 +1221,7 @@ public class InitTable extends JTable
 	 
 	    private void checkPopup(MouseEvent e) {
 	    	if (e.isPopupTrigger() & (getSelectedRows().length > 0)) {
+	    		updateCoordinatedStatusMenuItems();
 	   			popupMenu.show(e.getComponent(), e.getX(), e.getY());
 	        }
 	    }

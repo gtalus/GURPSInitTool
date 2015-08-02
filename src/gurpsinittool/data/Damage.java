@@ -27,6 +27,10 @@ public class Damage {
 		BasicDamage=basic;
 		ArmorDivisor=divisor;
 		Type = type;
+		
+		// Apply minimum damage based on type
+		int min_damage = (type==DamageType.cr)?0:1;
+		BasicDamage = (BasicDamage < min_damage)?min_damage:BasicDamage;
 	}
 	
 	public static Damage ParseDamage(String damage) throws ParseException {

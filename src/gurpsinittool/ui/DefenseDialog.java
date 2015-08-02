@@ -12,7 +12,6 @@ import java.util.Vector;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.KeyStroke;
@@ -20,12 +19,12 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.DefaultFormatter;
 
-import gurpsinittool.app.GITApp;
 import gurpsinittool.data.Actor;
 import gurpsinittool.data.Damage;
+import gurpsinittool.data.Defense;
+import gurpsinittool.data.Defense.DefenseResult;
+import gurpsinittool.data.Defense.DefenseType;
 import gurpsinittool.data.HitLocations;
-import gurpsinittool.data.Damage.DamageType;
-import gurpsinittool.data.HitLocations.HitLocation;
 import gurpsinittool.util.DieRoller;
 
 /**
@@ -34,11 +33,8 @@ import gurpsinittool.util.DieRoller;
  */
 public class DefenseDialog extends javax.swing.JDialog {
 
-	Actor actor;
-	int effParry; // Parry with multiple-parry penalty
-	int effBlock; // Block with multiple-block penalty
-	int effDodge; // Dodge with fatigue/injury penalty
-	int effectiveDefenseValue;
+	Actor actor; // The actor making the defense
+	public Defense defense = new Defense(); // Defense options, inputs, and results (including the game logic to calculate them)
 
 	public boolean valid = false;
 	
@@ -50,6 +46,7 @@ public class DefenseDialog extends javax.swing.JDialog {
         initComponents();
         initEnterEsc();
         initLocationCombo();
+        initPositionCombo();
         setActor(actor);
         damageTextField.selectAll();
         damageTextField.requestFocusInWindow();
@@ -61,6 +58,14 @@ public class DefenseDialog extends javax.swing.JDialog {
     		comboItems.add(HitLocations.locations.get(location).description);
     	}
     	locationCombo.setModel(new DefaultComboBoxModel<String>(comboItems));
+    }
+    
+    private void initPositionCombo() {
+    	Vector<String> comboItems = new Vector<String>();
+    	comboItems.add("Standing");
+    	comboItems.add("Kneeling");
+    	comboItems.add("Prone");
+    	positionCombo.setModel(new DefaultComboBoxModel<String>(comboItems));
     }
 
     private void initEnterEsc() {
@@ -79,6 +84,9 @@ public class DefenseDialog extends javax.swing.JDialog {
         Action sideAction = new AbstractAction() {
             public void actionPerformed(ActionEvent actionEvent) {
                 sideCheck.doClick(); } };
+        Action stunAction = new AbstractAction() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                stunnedCheck.doClick(); } };
         Action deceptiveAction = new AbstractAction() {
             public void actionPerformed(ActionEvent actionEvent) {
                otherSpinner.setValue(otherSpinner.getPreviousValue()); } };
@@ -102,6 +110,8 @@ public class DefenseDialog extends javax.swing.JDialog {
         getRootPane().getActionMap().put("Retreat", retreatAction); 
         getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control S"), "Side");
         getRootPane().getActionMap().put("Side", sideAction); 
+        getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control T"), "Stun");
+        getRootPane().getActionMap().put("Stun", stunAction); 
         getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control D"), "Deceptive");
         getRootPane().getActionMap().put("Deceptive", deceptiveAction); 
      
@@ -148,6 +158,9 @@ public class DefenseDialog extends javax.swing.JDialog {
         jLabel9 = new javax.swing.JLabel();
         noneButton = new javax.swing.JRadioButton();
         jLabel3 = new javax.swing.JLabel();
+        stunnedCheck = new javax.swing.JCheckBox();
+        positionCombo = new javax.swing.JComboBox();
+        jLabel10 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setResizable(false);
@@ -313,6 +326,29 @@ public class DefenseDialog extends javax.swing.JDialog {
         jLabel3.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel3.setText("Defense Type:");
 
+        stunnedCheck.setText("Stunned");
+        stunnedCheck.setToolTipText("");
+        stunnedCheck.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                checkItemStateChanged(evt);
+            }
+        });
+
+        positionCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        positionCombo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonActionPerformed(evt);
+            }
+        });
+        positionCombo.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                locationComboKeyReleased(evt);
+            }
+        });
+
+        jLabel10.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel10.setText("Posture:");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -346,24 +382,30 @@ public class DefenseDialog extends javax.swing.JDialog {
                                     .addComponent(noneButton, javax.swing.GroupLayout.Alignment.LEADING))
                                 .addGap(3, 3, 3)
                                 .addComponent(effectiveDefense, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jLabel3))
+                            .addComponent(jLabel3)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel10)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(positionCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(eeCheck)
                             .addComponent(retreatCheck)
                             .addComponent(sideCheck)
-                            .addComponent(eeCheck)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(shieldCheckBox)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(db))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(otherSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel4))
                             .addGroup(layout.createSequentialGroup()
+                                .addGap(4, 4, 4)
                                 .addComponent(shield_dr)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(shield_hp))))
+                                .addComponent(shield_hp))
+                            .addComponent(stunnedCheck)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(shieldCheckBox)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(db, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel2)
@@ -388,52 +430,47 @@ public class DefenseDialog extends javax.swing.JDialog {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(name, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(69, 69, 69)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(shieldCheckBox)
-                            .addComponent(db))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(shield_dr)
-                            .addComponent(shield_hp)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(eeCheck)
-                            .addComponent(jLabel3))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(retreatCheck)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(sideCheck))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(parryButton)
-                                    .addComponent(parryNote))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(blockButton)
-                                    .addComponent(blockNote))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(dodgeButton)
-                                    .addComponent(dodgeNote))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(noneButton)))))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel4)
-                            .addComponent(otherSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(0, 6, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(effectiveDefense, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                            .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.TRAILING))))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(eeCheck)
+                    .addComponent(jLabel3))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(retreatCheck)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(sideCheck))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(parryButton)
+                            .addComponent(parryNote))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(blockButton)
+                            .addComponent(blockNote))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(dodgeButton)
+                            .addComponent(dodgeNote)
+                            .addComponent(stunnedCheck))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(noneButton)
+                            .addComponent(shieldCheckBox)
+                            .addComponent(db))))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(shield_dr)
+                    .addComponent(shield_hp)
+                    .addComponent(jLabel10)
+                    .addComponent(positionCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel4)
+                        .addComponent(otherSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(effectiveDefense, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
                     .addComponent(rollTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -477,19 +514,19 @@ public class DefenseDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_rerollButtonActionPerformed
 
     private void otherSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_otherSpinnerStateChanged
-        calcResult();
+    	updateDefenseResults();
     }//GEN-LAST:event_otherSpinnerStateChanged
 
     private void locationComboKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_locationComboKeyReleased
-        calcResult();
+    	updateDefenseResults();
     }//GEN-LAST:event_locationComboKeyReleased
 
     private void checkItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_checkItemStateChanged
-        calcResult();
+    	updateDefenseResults();
     }//GEN-LAST:event_checkItemStateChanged
 
     private void radioButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonActionPerformed
-        calcResult();
+    	updateDefenseResults();
     }//GEN-LAST:event_radioButtonActionPerformed
 
     /**
@@ -546,6 +583,7 @@ public class DefenseDialog extends javax.swing.JDialog {
     private javax.swing.JCheckBox eeCheck;
     private javax.swing.JLabel effectiveDefense;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -559,6 +597,7 @@ public class DefenseDialog extends javax.swing.JDialog {
     private javax.swing.JSpinner otherSpinner;
     private javax.swing.JRadioButton parryButton;
     private javax.swing.JLabel parryNote;
+    private javax.swing.JComboBox positionCombo;
     private javax.swing.JButton rerollButton;
     private javax.swing.JTextField result;
     private javax.swing.JCheckBox retreatCheck;
@@ -567,10 +606,12 @@ public class DefenseDialog extends javax.swing.JDialog {
     private javax.swing.JLabel shield_dr;
     private javax.swing.JLabel shield_hp;
     private javax.swing.JCheckBox sideCheck;
+    private javax.swing.JCheckBox stunnedCheck;
     // End of variables declaration//GEN-END:variables
     
     public void setActor(Actor actor) {
     	this.actor = actor;
+    	defense.setInitialOptions(actor);
     	
     	name.setText(actor.Name);
     	switch (actor.Type) {
@@ -592,40 +633,52 @@ public class DefenseDialog extends javax.swing.JDialog {
 		}
     	
     	// Calculate effective base defense values
-    	effParry = actor.Parry - actor.numParry * 4;
-    	effBlock = actor.Block - actor.numBlock * 5;
-    	effDodge = actor.Dodge;
-    	if (actor.Injury > 2*actor.HP/3)
-    		effDodge = (int) Math.ceil(effDodge/2.0);
-    	if (actor.Fatigue > 2*actor.FP/3)
-    		effDodge = (int) Math.ceil(effDodge/2.0);
-    	
+    	int effParry = actor.getCurrentDefenseValue(DefenseType.Parry);
+    	int effBlock = actor.getCurrentDefenseValue(DefenseType.Block);
+    	int effDodge = actor.getCurrentDefenseValue(DefenseType.Dodge);
+    	// Report base if different
     	parryNote.setText(effParry + (effParry!=actor.Parry?" (base: " + actor.Parry + ")":""));
     	blockNote.setText(effBlock + (effBlock!=actor.Block?" (base: " + actor.Block + ")":""));
     	dodgeNote.setText(effDodge + (effDodge!=actor.Dodge?" (base: " + actor.Dodge + ")":""));
     	
-    	// Pick the best
-    	if (effParry > effDodge) {
-    		if (effBlock > effParry) {
-    			blockButton.setSelected(true);
-    		} else {
-    			parryButton.setSelected(true);
-    		}
-    	} else if (effBlock > effDodge) {
+    	// Sync defense initial options to dialog components
+    	switch (defense.type) {
+    	case Parry:
+    		parryButton.setSelected(true);
+    		break;
+    	case Block:
     		blockButton.setSelected(true);
-    	} else {
+    		break;
+    	case Dodge:
     		dodgeButton.setSelected(true);
+    		break;
+    	case None:
+    		noneButton.setSelected(true);
+    		break;
     	}
     	
-    	shieldCheckBox.setSelected(actor.DB > 0 && actor.ShieldDamage < actor.ShieldHP);
+    	eeCheck.setSelected(defense.ee);
+    	retreatCheck.setSelected(defense.retreat);
+    	sideCheck.setSelected(defense.side);
+    	stunnedCheck.setSelected(defense.stunned);
+    	shieldCheckBox.setSelected(defense.shield);
+    	
     	db.setText("DB: " + actor.DB);
     	shield_dr.setText("DR: " + actor.ShieldDR);
     	shield_hp.setText("HP: " + (actor.ShieldHP-actor.ShieldDamage) + "/" + actor.ShieldHP);
     	drTextField.setText("" + actor.DR);
     	
+    	// Set position
+    	// TODO: make this more flexible (perhaps based off of an ENUM???!!!)
+    	if (defense.position.equals("Kneeling"))
+    		positionCombo.setSelectedIndex(1);
+    	if (defense.position.equals("Prone"))
+    		positionCombo.setSelectedIndex(2);
+    	
+    	// TODO: otherMod?
+    	
     	rollDefense();
-    	calcResult();
-
+    	updateDefenseResults();
     	
     	// Setup doc listeners
     	JFormattedTextField field = (JFormattedTextField) otherSpinner.getEditor().getComponent(0);
@@ -640,208 +693,98 @@ public class DefenseDialog extends javax.swing.JDialog {
     	rollTextField.setText(String.valueOf(DieRoller.roll3d6()));
     }
     
-    // Result reporting variables
-	public int shieldDamage;
-	public int injury;
-	public int fatigue;
-	public HitLocation location;
-
-	public boolean majorWound;
-	public boolean cripplingInjury;
-
-	public enum DefenseResult {CritSuccess, Success, ShieldHit, Failure};
-	public DefenseResult defenseResult;
-
-	public enum DefenseType {Parry, Block, Dodge, None};
-	public DefenseType defenseType;
-	
-	// Parsed results from the input text fields
-	int roll;
-	int dr;
-	Damage damage;
- 
     /**
      * Calculate the result of the attack
      */
-    private void calcResult() {
+    private void updateDefenseResults() {
     	if (actor == null) // Exit immediately if actor not initialized yet
     		return;
 
-    	// Calculate effective defense value
-    	calcEffectiveDefense();
-    	
     	// Parse input fields. Return if any fail
     	if (!parseInputFields())
     		return;
     	
-    	// Calculate the result of the defense
-    	calcDefenseResult();
-    	
-    	// Calculate any injury
-    	calcInjury();
+    	// Sync all the current options to the defense object
+    	updateDefenseSettings();
+    
+    	// Now update the defense object results
+    	defense.calcDefenseResults(actor);
+    
+    	// get effective defense value
+    	effectiveDefense.setText(String.valueOf(defense.effectiveDefense));
     	
     	// Set the result message
     	setResultMessage();
     }
     
     /**
-     * Calculate effective defense value
+     * Sync dialog -> defense object
      */
-    private void calcEffectiveDefense() {
-    	if (actor == null) return;
-    	
-    	effectiveDefenseValue = 0;
-    	fatigue = 0;
-    	
+    private void updateDefenseSettings() {
+    	// Sync defense initial options to dialog components
     	if (parryButton.isSelected()) {
-    		defenseType = DefenseType.Parry;
-    		effectiveDefenseValue = effParry;
+    		defense.type = DefenseType.Parry;
     	} else if (blockButton.isSelected()) {
-    		defenseType = DefenseType.Block;
-    		effectiveDefenseValue = effBlock;
+    		defense.type = DefenseType.Block;
     	} else if (dodgeButton.isSelected()) {
-    		defenseType = DefenseType.Dodge;
-    		effectiveDefenseValue = effDodge;
+    		defense.type = DefenseType.Dodge;
     	} else if (noneButton.isSelected()) {
-    		defenseType = DefenseType.None;
+    		defense.type = DefenseType.None;
     	} else {
-    		System.out.println("-E- DefenseDialog: calcEffectiveDefense: no defense selected!");
+    		System.out.println("-E- DefenseDialog: updateDefenseSettings: no defense selected!");
     	}
     	
-    	if (defenseType != DefenseType.None) {
-	    	if (eeCheck.isSelected()) {
-	    		effectiveDefenseValue += 2;
-	    		fatigue = 1;
-	    	}
-	    	if (retreatCheck.isSelected())
-	    		effectiveDefenseValue += dodgeButton.isSelected() ? 3 : 1;
-	    	if (sideCheck.isSelected())
-	    		effectiveDefenseValue -= 2;
-	    	if (shieldCheckBox.isSelected())
-	    		effectiveDefenseValue += actor.DB;
-	    	
-	    	// Other
-	    	try {
-	    		effectiveDefenseValue += Integer.parseInt(otherSpinner.getValue().toString());
-	    	} catch (NumberFormatException e) {}
-    	}
+    	defense.ee = eeCheck.isSelected();
+    	defense.retreat = retreatCheck.isSelected();
+    	defense.side = sideCheck.isSelected();
+    	defense.stunned = stunnedCheck.isSelected();
+    	defense.shield = shieldCheckBox.isSelected();
     	
-    	effectiveDefense.setText(String.valueOf(effectiveDefenseValue));
+    	defense.position = positionCombo.getSelectedItem().toString();
+    	
+    	try {
+    		defense.otherMod = Integer.parseInt(otherSpinner.getValue().toString());
+    	} catch (NumberFormatException e) {}	
     }
     
     /**
-     * Parse the various input fields, verifying that they contain valid information;
+     * Parse the various input fields, verifying that they contain valid information
+     * Set the defense object values
      * @return if the parsing was successful
      */
     private boolean parseInputFields() {
       	boolean parseSuccess = true;
     	try { // Get roll results- set text to red and print error message if fails
-    		roll = Integer.parseInt(rollTextField.getText());
+    		defense.roll = Integer.parseInt(rollTextField.getText());
     		rollTextField.setForeground(Color.BLACK);
     	} catch (Exception e) {
    		rollTextField.setForeground(Color.RED);
-    		System.out.println("-E- DefenseDialog.parseInputFields: Error parsing roll field! '" + rollTextField.getText() + "': " + e.getMessage());
+    		System.out.println("-W- DefenseDialog.parseInputFields: Error parsing roll field! '" + rollTextField.getText() + "': " + e.getMessage());
     		parseSuccess = false;
     	}    
     	try { // Get dr- set text to red and print error message if fails
-    		dr = Integer.parseInt(drTextField.getText());
+    		defense.override_dr = Integer.parseInt(drTextField.getText());
     		drTextField.setForeground(Color.BLACK);
     	} catch (Exception e) {
     		drTextField.setForeground(Color.RED);
-    		System.out.println("-E- DefenseDialog.parseInputFields: Error parsing dr field! '" + drTextField.getText() + "': " + e.getMessage());
+    		System.out.println("-W- DefenseDialog.parseInputFields: Error parsing dr field! '" + drTextField.getText() + "': " + e.getMessage());
     		parseSuccess = false;
     	}    	
     	try { // Get damage- set text to red and print error message if fails
-    		damage = Damage.ParseDamage(damageTextField.getText());
+    		defense.damage = Damage.ParseDamage(damageTextField.getText());
     		damageTextField.setForeground(Color.BLACK);
     	} catch (Exception e) {
    			damageTextField.setForeground(Color.RED);
-    		System.out.println("-E- DefenseDialog.parseInputFields: Error parsing damage field! '" + damageTextField.getText() + "': " + e.getMessage());
+    		System.out.println("-W- DefenseDialog.parseInputFields: Error parsing damage field! '" + damageTextField.getText() + "': " + e.getMessage());
     		parseSuccess = false;
     	}
+    	defense.location = HitLocations.getLocationFromName((String) locationCombo.getSelectedItem());
     	return parseSuccess;
-    }
-    
-    /**
-     * Determine whether there was a hit (Shield/full)
-     */
-    private void calcDefenseResult() {
-       	int shield_db = shieldCheckBox.isSelected() ? actor.DB : 0;
- 
-       	// CritSuccess, Success, ShieldHit, Failure
-       	if (defenseType == DefenseType.None) { // No attempted defense
-       		defenseResult = DefenseResult.Failure;
-       	} else if (DieRoller.isCritSuccess(roll, effectiveDefenseValue)) { // Crit Defense!
-    		defenseResult = DefenseResult.CritSuccess;
-     	} else if (DieRoller.isFailure(roll, effectiveDefenseValue)) { // Hit
-    		defenseResult = DefenseResult.Failure;
-     	} else if (DieRoller.isFailure(roll, effectiveDefenseValue - shield_db)) { // Shield Hit
-         	defenseResult = DefenseResult.ShieldHit;
-    	}  else {
-    		defenseResult = DefenseResult.Success;
-     	}
-    }
-    
-    /** 
-     * Calculate any injury
-     */
-    private void calcInjury() {
-		location = HitLocations.getLocationFromName((String) locationCombo.getSelectedItem());    
-		int coverDR = 0;
-		
-		// Set defaults
-    	injury = 0;
-    	shieldDamage = 0;
-    	majorWound = false;
-    	cripplingInjury = false;
-
-    	// Calculate injury
-    	// 
-    	switch (defenseResult) {
-    	case CritSuccess:
-    	case Success:
-    		return;
-    	case ShieldHit:
-    		// Calculate shield damage
-    		int shieldBasicDamage = (int) (damage.BasicDamage - Math.floor(actor.ShieldDR/damage.ArmorDivisor));
-    		// Apply min/max values
-    		shieldBasicDamage = Math.min((int)Math.ceil(actor.ShieldHP/4), shieldBasicDamage);
-    		shieldBasicDamage = Math.max(0, shieldBasicDamage);
-    		shieldDamage = (int) (Math.floor(shieldBasicDamage*damage.DamageMultiplierHomogenous()));
-    		// Min damage 1 if any got through DR
-    		shieldDamage = (shieldDamage <= 0 && shieldBasicDamage > 0)?1:shieldDamage; 
-    		// Calculate total cover DR provided (including armor divisor)
-    		coverDR = (int) (Math.floor(actor.ShieldDR/damage.ArmorDivisor) + Math.ceil(actor.ShieldHP/4));
-    	case Failure:
-    		// Calculate actual basic damage to the target, including any cover DR
-			int totalDR = dr + location.extraDR;
-    		int basicDamage = (int) (damage.BasicDamage - coverDR - Math.floor(totalDR/damage.ArmorDivisor));
-			basicDamage = Math.max(0, basicDamage);
-			// Calculate injury to the target
-			double damageMultiplier = location.DamageMultiplier(damage.Type);
- 			injury = (int) (basicDamage*damageMultiplier); 
-    		injury = (injury <= 0 && basicDamage > 0)?1:injury; // Min damage 1 if any got through DR
-    		// Check for crippling
-    		if (location.cripplingThreshold != 0) {
-    			int cripplingThreshold = (int) Math.floor(actor.HP * location.cripplingThreshold + 1.00001);
-    			if (injury >= cripplingThreshold) {
-    				injury = cripplingThreshold;
-    				cripplingInjury = true;
-    				majorWound = true;
-    			}
-    		} 
-    		else { // Check for major wound
-    			int majorWoundThreshold = (int) Math.floor(actor.HP * 1/2 + 1.00001);
-    			if (injury >= majorWoundThreshold) {
-    				majorWound = true;
-    			}
-    		}
-    	}
     }
     
     private void setResultMessage() {
     	String message = "";
-    	switch (defenseResult) {
+    	switch (defense.result) {
        	case CritSuccess:
        		result.setText("Critical Defense!");
     		result.setBackground(new Color(200,200,255));
@@ -856,12 +799,12 @@ public class DefenseDialog extends javax.swing.JDialog {
 			message += "Hit";
     	}
     	
-     	if (injury != 0) {
+     	if (defense.injury != 0) {
 			result.setBackground(new Color(255,200,200));
-    		message += ": " + injury;
-    		if (cripplingInjury)
+    		message += ": " + defense.injury;
+    		if (defense.cripplingInjury)
     			message += " crippling";
-    		else if (majorWound)
+    		else if (defense.majorWound)
     			message += " major";
     		message += " injury!";
     	}
@@ -869,11 +812,11 @@ public class DefenseDialog extends javax.swing.JDialog {
    			result.setBackground(new Color(200,200,200));
 			message += ": no injury";
     	}
-		if (defenseResult == DefenseResult.ShieldHit) {
-			if (shieldDamage != 0 && injury == 0) {
+		if (defense.result == DefenseResult.ShieldHit) {
+			if (defense.shieldDamage != 0 && defense.injury == 0) {
     			result.setBackground(new Color(255,255,200));
 	    	}
-			message += " (" + shieldDamage + " shld dmg)";
+			message += " (" + defense.shieldDamage + " shld dmg)";
 		}
   
     	result.setText(message);
@@ -884,13 +827,13 @@ public class DefenseDialog extends javax.swing.JDialog {
 	 */
 	protected class ValueDocumentListener implements DocumentListener {
 	    public void insertUpdate(DocumentEvent e) {
-	    	calcResult();
+	    	updateDefenseResults();
 	    }
 	    public void removeUpdate(DocumentEvent e) {
-	    	calcResult();
+	    	updateDefenseResults();
 	    }
 	    public void changedUpdate(DocumentEvent e) {
-	    	calcResult();
+	    	updateDefenseResults();
 	    }
 	} 
 	
@@ -899,13 +842,13 @@ public class DefenseDialog extends javax.swing.JDialog {
 	 */
 	protected class ModDocumentListener implements DocumentListener {
 	    public void insertUpdate(DocumentEvent e) {
-	    	calcResult();
+	    	updateDefenseResults();
 	    }
 	    public void removeUpdate(DocumentEvent e) {
-	    	calcResult();
+	    	updateDefenseResults();
 	    }
 	    public void changedUpdate(DocumentEvent e) {
-	    	calcResult();
+	    	updateDefenseResults();
 	    }
 	} 
 }

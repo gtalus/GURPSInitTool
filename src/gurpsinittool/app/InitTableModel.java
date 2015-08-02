@@ -33,10 +33,16 @@ public class InitTableModel extends AbstractTableModel {
 	private static int numColumns = 11;
 	
 	Actor newActor = new Actor("", ActorType.Enemy);
-	private ArrayList<Actor> actorList = new ArrayList<Actor>(Arrays.asList(
-			// This is a special row which allows new actors to be added.
-			new Actor(newActor)));	
+	private ArrayList<Actor> actorList = new ArrayList<Actor>();	
 	private int activeActor = -1;
+	
+	public InitTableModel() {
+		// This is a special row which allows new actors to be added.
+		addNewActor();
+		Actor.LogEventSource = encounterLogEventSource;
+		// TODO: serialize this/ hook it up to a UI? Probably need to move to GITApp class
+		Actor.settings = new GameSettings();
+	}
 	
 	/**
 	 * Add a new actor to the specified slot
@@ -44,6 +50,7 @@ public class InitTableModel extends AbstractTableModel {
 	 * @param dest : the index of the slot to insert into (pushes current actor down one)
 	 */
 	public void addActor(Actor source, int dest) {
+		System.out.println("table model: addActor: start");
 		if (dest > actorList.size()-1) // Don't put anything after the 'new' row
 			dest = actorList.size()-1;
 		else if (dest < 0) // Don't try to put stuff before the beginning!
@@ -53,6 +60,16 @@ public class InitTableModel extends AbstractTableModel {
 		actorList.add(dest, source);
 		setDirty();
 		fireTableRowsInserted(dest,dest);
+	}
+	
+	/**
+	 * Add the newActor to the list (used when editing the previous newActor)
+	 */
+	private void addNewActor() {
+		Actor actor = new Actor(newActor);
+		actorList.add(actorList.size(),actor);
+		setDirty();
+    	fireTableRowsInserted(actorList.size()-1,actorList.size()-1);
 	}
 	
 	/**
@@ -218,11 +235,8 @@ public class InitTableModel extends AbstractTableModel {
         }
 
         // Create a new row if necessary (editing the 'new...' row)
-        if (row == actorList.size() -1) {
-        	actorList.add(new Actor(newActor));
-    		setDirty();
-        	fireTableRowsInserted(row+1,row+1);
-        }
+        if (row == actorList.size() -1)
+        	addNewActor();
         
         Actor a = (Actor) actorList.get(row);
         int newValue;
@@ -342,7 +356,9 @@ public class InitTableModel extends AbstractTableModel {
 				activeActor = -1;
 				return true;
 			}
-			getActiveActor().NextTurn();
+			Actor currentActor = getActiveActor();
+			currentActor.NextTurn();
+			fireRefresh(currentActor);
 		// Skip over disabled/unconscious/dead actors
 		} while (getActiveActor().Status.contains(ActorStatus.Disabled)
 				|| getActiveActor().Status.contains(ActorStatus.Unconscious)
@@ -379,6 +395,10 @@ public class InitTableModel extends AbstractTableModel {
 	 */
 	public void resetEncounter() {
 		setDirty();
+		// Reset each actor
+		for (int i = 0; i < actorList.size()-1; ++i) {
+    		actorList.get(i).Reset();
+    	}
 		if (activeActor != -1) {
 			fireTableCellUpdated(activeActor, 0);	
 			activeActor = -1;

@@ -9,7 +9,6 @@ import javax.swing.undo.UndoManager;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
@@ -27,19 +26,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashSet;
 import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import gurpsinittool.app.InitTableModel.columns;
 import gurpsinittool.data.Actor;
-import gurpsinittool.data.Actor.ActorStatus;
-import gurpsinittool.data.Actor.ActorType;
 import gurpsinittool.ui.*;
-import gurpsinittool.ui.DefenseDialog.DefenseResult;
-import gurpsinittool.ui.DefenseDialog.DefenseType;
-import gurpsinittool.util.DieRoller;
 import gurpsinittool.util.EncounterLogEvent;
 import gurpsinittool.util.EncounterLogEventListener;
 
@@ -49,10 +38,6 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
 	private static final long serialVersionUID = 1L;
 	
 	private static final boolean DEBUG = false;
-	
-	// Each enemy actor automatically attacks at the end of his turn
-	private boolean AUTO_ATTACK = true;
-	private boolean AUTO_UNCONSCIOUS = true;
 	
 	private InitTable initTable;
 	private JTextPane logTextArea;
@@ -140,6 +125,30 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
        	else if ("sizeColumns".equals(e.getActionCommand())) {
     		initTable.autoSizeColumns();
     	}	
+       	else if ("actorsStand".equals(e.getActionCommand())) {
+       		initTable.modifyStatusOfSelectedActors(Actor.ActorStatus.Kneeling, false);
+       		initTable.modifyStatusOfSelectedActors(Actor.ActorStatus.Prone, false);
+       	}
+       	else if ("actorsKneel".equals(e.getActionCommand())) {
+       		initTable.modifyStatusOfSelectedActors(Actor.ActorStatus.Kneeling, true);
+       		initTable.modifyStatusOfSelectedActors(Actor.ActorStatus.Prone, false);
+       	}
+       	else if ("actorsProne".equals(e.getActionCommand())) {
+       		initTable.modifyStatusOfSelectedActors(Actor.ActorStatus.Kneeling, false);
+       		initTable.modifyStatusOfSelectedActors(Actor.ActorStatus.Prone, true);
+       	}
+       	else if ("actorsStunToggle".equals(e.getActionCommand())) {
+       		initTable.toggleStatusOfSelectedActors(Actor.ActorStatus.Stunned);
+       	}
+       	else if ("actorsDisarmToggle".equals(e.getActionCommand())) {
+       		initTable.toggleStatusOfSelectedActors(Actor.ActorStatus.Disarmed);
+       	}
+       	else if ("actorsUnconsciousToggle".equals(e.getActionCommand())) {
+       		initTable.toggleStatusOfSelectedActors(Actor.ActorStatus.Unconscious);
+       	}
+       	else if ("actorsDeadToggle".equals(e.getActionCommand())) {
+       		initTable.toggleStatusOfSelectedActors(Actor.ActorStatus.Dead);
+       	}
        	else {
    			System.out.println("GITApp: -W- Unknown action performed: " + e.getActionCommand());
        	}
@@ -170,23 +179,10 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
     	// Move cursor to the end.
     	logTextArea.select(logTextDocument.getLength(), logTextDocument.getLength());
     }
-  
-    public void activeActorAttack() {
-    	if (DEBUG) System.out.println("GITApp: activeActorAttack");
-    	Actor actor = initTable.getActiveActor();
-    	if (actor == null) 
-    		return;
-    	addLogLine(actor.Attack());
-    }
     
-    public void selectedActorAttack() {
-    	if (DEBUG) System.out.println("GITApp: selectedActorAttack");
-    	Actor actor = initTable.getSelectedActor();
-    	if (actor == null) 
-    		return;
-    	addLogLine(actor.Attack());
-    }
-    
+    /**
+     * Show the Defense Dialog and forward to the actor for processing if valid
+     */
     public void selectedActorDefend() {
     	System.out.println("GITApp: selectedActorDefend: start");
     	// Verify valid actor
@@ -196,88 +192,19 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
     	// Clear out edits in progress
     	initTable.stopCellEditing();
     	// Show Defense Dialog window
-    	DefenseDialog defense = new DefenseDialog(actor, this, true);
-        defense.setLocation(Integer.valueOf(propertyBag.getProperty("GITApp.defense.location.x")),
+    	DefenseDialog defenseDialog = new DefenseDialog(actor, this, true);
+    	defenseDialog.setLocation(Integer.valueOf(propertyBag.getProperty("GITApp.defense.location.x")),
         					Integer.valueOf(propertyBag.getProperty("GITApp.defense.location.y")));
-        validateOnScreen(defense);
-    	defense.setVisible(true); // Modal call
+        validateOnScreen(defenseDialog);
+        defenseDialog.setVisible(true); // Modal call
     	// Process and log result!
-    	if (defense.valid) {
-    		ProcessActorDefense(actor, defense);
-    		LogActorDefense(actor, defense);
-    		KnockdownStunningCheck(actor, defense);
+    	if (defenseDialog.valid) {
+    		actor.Defend(defenseDialog.defense);
+			initTable.getActorTableModel().fireRefresh(actor);
     	}
-    	propertyBag.setProperty("GITApp.defense.location.x", String.valueOf(defense.getLocation().x));
-    	propertyBag.setProperty("GITApp.defense.location.y", String.valueOf(defense.getLocation().y));
+    	propertyBag.setProperty("GITApp.defense.location.x", String.valueOf(defenseDialog.getLocation().x));
+    	propertyBag.setProperty("GITApp.defense.location.y", String.valueOf(defenseDialog.getLocation().y));
     }
-    
-    private void ProcessActorDefense(Actor actor, DefenseDialog defense) {
-		// Process shield damage/injury/fatigue
-		actor.ShieldDamage += defense.shieldDamage;
-		actor.Injury += defense.injury;
-		// Fatigue (report through table)
-		initTable.setActorValue(actor, columns.Fatigue, actor.Fatigue + defense.fatigue);
-		switch (defense.defenseType) { // Record defense attempts
-		case Parry:
-			++actor.numParry;
-			break;
-		case Block:
-			++actor.numBlock;
-			break;
-		default:
-		}
-		initTable.getActorTableModel().fireRefresh(actor);
-    }
-    
-    private void KnockdownStunningCheck(Actor actor, DefenseDialog defense) {
- 		if (defense.cripplingInjury || defense.majorWound) {
- 			int effHT = actor.HT + defense.location.knockdownPenalty;
- 			int roll = DieRoller.roll3d6();
- 			int MoS = effHT - roll;
- 			String success = (MoS<0)?"<b>failed</b>":"succeeded";
- 			addLogLine("<b>" + actor.Name + "</b> Knockdown/Stunning check: rolled " + roll + " against " + effHT + " (" + success + " by " + Math.abs(MoS) + ")");
- 		}
-    }
-    
-    private void LogActorDefense(Actor actor, DefenseDialog defense) {
-		// Defense description
-		String resultType = (defense.defenseResult == DefenseResult.CritSuccess)?"<b><font color=blue>critically</font></b>"
-							:(defense.defenseResult == DefenseResult.Success)?"successfully"
-							:(defense.defenseResult == DefenseResult.ShieldHit)?"partially"
-							:"unsuccessfully";
-		
-		String defenseDescription = "";
-		switch (defense.defenseType) {
-		case Parry:
-			defenseDescription = resultType + " parried blow.";
-			break;
-		case Block:
-			defenseDescription = resultType + " blocked blow.";
-			break;
-		case Dodge:
-			defenseDescription = resultType + " dodged blow.";
-			break;
-		case None:
-			defenseDescription = "made no defense against blow.";
-		}
-		
-		String damageDescription = "";
-		if (defense.injury != 0) {
-			damageDescription = " Sustained <b><font color=red>" + defense.injury + "</font></b> injury to the " + defense.location.description;
-			String knockdownstunningPenalty = (defense.location.knockdownPenalty != 0)?" @ " + defense.location.knockdownPenalty:"";
-			if (defense.cripplingInjury)
-				damageDescription += " <b>(crippling" + knockdownstunningPenalty + ")</br>";
-			else if (defense.majorWound)
-				damageDescription += " <b>(major" + knockdownstunningPenalty + ")</br>";
-			damageDescription += ".";
-		}
-		else if (defense.defenseResult == DefenseResult.ShieldHit || defense.defenseResult == DefenseResult.Failure) 
-			damageDescription = " But took no damage.";
-   		if (defense.shieldDamage != 0) 
-   			damageDescription += " <b>Shield damaged " + defense.shieldDamage + ".</b>";
-			
-		addLogLine("<b>" + actor.Name + "</b> " + defenseDescription + damageDescription);
-     }
     
     /**
      * Step to the next actor, taking auto-actions for the new actor if appropriate
@@ -292,37 +219,7 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
     	}
     	
     	// Change to next active actor
-    	boolean roundEnd = initTable.nextActor();
-    	// Resolve auto actions at start of actor's turn:
-    	Actor actor = initTable.getActiveActor();
-    	if (actor != null && actor.Type == ActorType.Enemy) { // Do AUTO actions
-			if (AUTO_UNCONSCIOUS 
-					&& actor.Injury >= actor.HP
-					&& !(actor.Status.contains(ActorStatus.Unconscious) 
-						|| actor.Status.contains(ActorStatus.Disabled) 
-						|| actor.Status.contains(ActorStatus.Dead) 
-						|| actor.Status.contains(ActorStatus.Waiting))) { 
-				int penalty = (int) (-1*(Math.floor((double)actor.Injury/actor.HP)-1));
-				int result = DieRoller.roll3d6();
-				String details = "(HT: " + actor.HT + ", penalty: " + penalty + ", roll: " + result + ")";
-				if (result > actor.HT+penalty) {
-					addLogLine("<b>" + actor.Name + "</b> <b><font color=red>failed</font></b> consciousness roll " + details);
-					actor.Status.clear(); // Clear other status' (Attacking/whatever)
-					actor.Status.add(ActorStatus.Unconscious);
-					actor.Status.add(ActorStatus.Prone);
-					actor.Status.add(ActorStatus.Disarmed);
-					initTable.getActorTableModel().fireRefresh(actor);
-				} else {
-					addLogLine("<b>" + actor.Name + "</b> passed consciousness roll " + details);
-				}
-			}
-			if (AUTO_ATTACK 
-					&& actor.Status.contains(ActorStatus.Attacking)) {
-				activeActorAttack();
-			}
-    	}
-    	
-    	return roundEnd;
+    	return initTable.nextActor();
     }
     
     /**
@@ -473,13 +370,13 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
         button = new JButton();
         button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/wrench_orange.png"), "Attack"));
         button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
-        button.setToolTipText("Selected actor attacks (Ctrl+A)");
-        action = new AbstractAction("selectedActorAttack") {
-        	public void actionPerformed(ActionEvent e) { selectedActorAttack(); }
+        button.setToolTipText("Selected actors attack (Ctrl+A)");
+        action = new AbstractAction("selectedActorsAttack") {
+        	public void actionPerformed(ActionEvent e) { initTable.selectedActorsAttack(); }
         };
-        button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("control A"), "actorAttack");
-        button.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("control A"), "actorAttack");
-        button.getActionMap().put("actorAttack", action);
+        button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("control A"), "actorsAttack");
+        button.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("control A"), "actorsAttack");
+        button.getActionMap().put("actorsAttack", action);
         //button.setMnemonic(KeyEvent.VK_A);
         button.addActionListener(action);
         toolbar.add(button);
@@ -511,7 +408,67 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
         toolbar.add(button);
         //Group manager button & horizontal glue
         toolbar.addSeparator();
+        toolbar.addSeparator();
+        // Postures: Standing
+        button = new JButton();
+        button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/arrow_up.png"), "Standing"));
+        button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
+        button.setToolTipText("Standing");
+        button.setActionCommand("actorsStand");
+        button.addActionListener(this);
+        toolbar.add(button);
+        // Postures: Kneeling
+        button = new JButton();
+        button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/arrow_down_right.png"), "Kneeling"));
+        button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
+        button.setToolTipText("Kneeling");
+        button.setActionCommand("actorsKneel");
+        button.addActionListener(this);
+        toolbar.add(button);
+        // Postures: Prone
+        button = new JButton();
+        button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/arrow_down.png"), "Prone"));
+        button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
+        button.setToolTipText("Prone");
+        button.setActionCommand("actorsProne");
+        button.addActionListener(this);
+        toolbar.add(button);
+        toolbar.addSeparator();
+        // Stunned
+        button = new JButton();
+        button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/transmit_blue.png"), "Stunned"));
+        button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
+        button.setToolTipText("Stunned");
+        button.setActionCommand("actorsStunToggle");
+        button.addActionListener(this);
+        toolbar.add(button);
+        // Disarmed
+        button = new JButton();
+        button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/plus_blue.png"), "Disarmed"));
+        button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
+        button.setToolTipText("Disarmed");
+        button.setActionCommand("actorsDisarmToggle");
+        button.addActionListener(this);       
+        toolbar.add(button);
+        // Unconscious
+        button = new JButton();
+        button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/cross_yellow.png"), "Unconscious"));
+        button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
+        button.setActionCommand("actorsUnconsciousToggle");
+        button.addActionListener(this);
+        button.setToolTipText("Unconscious");
+        toolbar.add(button);    
+        // Dead
+        button = new JButton();
+        button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/cross.png"), "Dead"));
+        button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
+        button.setToolTipText("Dead");
+        button.setActionCommand("actorsDeadToggle");
+        button.addActionListener(this);
+        toolbar.add(button);
+        toolbar.addSeparator();
         toolbar.add(Box.createHorizontalGlue());
+        toolbar.addSeparator();
         button = new JButton();
         button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/table_error.png"), "Critical Tables"));
         button.setToolTipText("Open Critical Tables (Alt+C)");
@@ -542,12 +499,12 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
         // The actor table
         initTable = new InitTable(true);
         initTable.getActorTableModel().addEncounterLogEventListener(this);
-        // Replace Ctrl+A = select all map for init table to actor attack
-        initTable.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control A"), "actorAttack");
-        action = new AbstractAction("selectedActorAttack") {
-        	public void actionPerformed(ActionEvent e) { selectedActorAttack(); }
+        // Replace Ctrl+A = select all map for init table to actors attack
+        initTable.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control A"), "actorsAttack");
+        action = new AbstractAction("selectedActorsAttack") {
+        	public void actionPerformed(ActionEvent e) { initTable.selectedActorsAttack(); }
         };
-        initTable.getActionMap().put("actorAttack", action);
+        initTable.getActionMap().put("actorsAttack", action);
         
         // Connect Details Panel to the table/tableModel
         JScrollPane tableScrollPane = new JScrollPane(initTable); 

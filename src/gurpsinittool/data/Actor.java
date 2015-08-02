@@ -1,6 +1,13 @@
 package gurpsinittool.data;
 
+import gurpsinittool.data.Actor.ActorStatus;
+import gurpsinittool.data.Actor.ActorType;
+import gurpsinittool.data.Defense.DefenseResult;
+import gurpsinittool.data.Defense.DefenseType;
+import gurpsinittool.ui.DefenseDialog;
 import gurpsinittool.util.DieRoller;
+import gurpsinittool.util.EncounterLogEvent;
+import gurpsinittool.util.EncounterLogEventSource;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -16,7 +23,10 @@ public class Actor
 
 	// Default SVUID
 	private static final long serialVersionUID = 1L;
-
+	public static EncounterLogEventSource LogEventSource; // where to send log messages
+	public static GameSettings settings; // Settings which determine game behavior, including automation
+	
+	
 	public String Name;
 	//public int Order; // what is this?
 	
@@ -125,14 +135,62 @@ public class Actor
 		numParry = 0;
 		numBlock = 0;
 		// Shock
+		
+		// Resolve auto actions at start of actor's turn:
+    	if (Type == ActorType.Enemy) { // Do AUTO actions
+			if (settings.AUTO_UNCONSCIOUS 
+					&& Injury >= HP
+					&& !(Status.contains(ActorStatus.Unconscious) 
+						|| Status.contains(ActorStatus.Disabled) 
+						|| Status.contains(ActorStatus.Dead) 
+						|| Status.contains(ActorStatus.Waiting))) { 
+				int penalty = (int) (-1*(Math.floor((double)Injury/HP)-1));
+				int result = DieRoller.roll3d6();
+				String details = "(HT: " + HT + ", penalty: " + penalty + ", roll: " + result + ")";
+				if (result > HT+penalty) {
+					logEvent("<b>" + Name + "</b> <b><font color=red>failed</font></b> consciousness roll " + details);
+					Status.clear(); // Clear other status' (Attacking/whatever)
+					Status.add(ActorStatus.Unconscious);
+					Status.add(ActorStatus.Prone);
+					Status.add(ActorStatus.Disarmed);
+				} else {
+					logEvent("<b>" + Name + "</b> passed consciousness roll " + details);
+				}
+			}
+			if (settings.AUTO_ATTACK && Status.contains(ActorStatus.Attacking))
+				Attack();
+		}
 	}
 	
-	public String Attack() {
+	/**
+	 * Reset actor state- Active, 0 damage, 0 fatigue, numParry/numBlock/ShieldDamage = 0
+	 */
+	public void Reset() {
+		Status.clear();
+		Injury = 0;
+		Fatigue = 0;
+		numParry = 0;
+		numBlock = 0;
+		ShieldDamage = 0;
+	}
+	
+	private void logEvent(String text) {
+		if (LogEventSource != null)
+			LogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, text));
+	}
+	
+    //================================================================================
+    // Attack Support
+    //================================================================================
+
+	public void Attack() {
 		if (Attacks.size() < 1) {
-			return "<i><font color=gray>" + Name + " has no attacks defined!</font></i>";
+			logEvent("<i><font color=gray>" + Name + " has no attacks defined!</font></i>");
+			return;
 		}	
 		if (DefaultAttack < 0 || DefaultAttack >= Attacks.size()) {
-			return "<i><font color=gray>" + Name + " has invalid default attack: " + DefaultAttack + "</font></i>";
+			logEvent("<i><font color=gray>" + Name + " has invalid default attack: " + DefaultAttack + "</font></i>");
+			return;
 		}
 		Attack attack = Attacks.get(DefaultAttack);
 		int roll = DieRoller.roll3d6();
@@ -164,19 +222,112 @@ public class Actor
 			else
 				armorDivStr = "(" + String.format("%s", damage.ArmorDivisor) + ")";
 		}			
-		return "<b> " + Name + "</b> attacks with " + attack.Name + ": " + hit_miss +  " (" + roll + "/" + attack.Skill + "=" + margin + ") for damage <font color=red><b>" + damage.BasicDamage + armorDivStr + " " + damage.Type + "</b></font> (" + attack.Damage + ")" + crit_string;
+		logEvent("<b> " + Name + "</b> attacks with " + attack.Name + ": " + hit_miss +  " (" + roll + "/" + attack.Skill + "=" + margin + ") for damage <font color=red><b>" + damage.BasicDamage + armorDivStr + " " + damage.Type + "</b></font> (" + attack.Damage + ")" + crit_string);
 	}
 	
-	/**
-	 * Reset actor state- Active, 0 damage, 0 fatigue, numParry/numBlock/ShieldDamage = 0
-	 */
-	public void Reset() {
-		Status.clear();
-		Injury = 0;
-		Fatigue = 0;
-		numParry = 0;
-		numBlock = 0;
-		ShieldDamage = 0;
+    //================================================================================
+    // Defense Support
+    //================================================================================
+
+	public String Defend(Defense defense) {
+		ProcessDefense(defense);
+		GenerateDefenseLog(defense);
+		KnockdownStunningCheck(defense);
+		return "";
 	}
+	
+	 private void ProcessDefense(Defense defense) {
+		// Process shield damage/injury/fatigue
+		ShieldDamage += defense.shieldDamage;
+		Injury += defense.injury;
+		Fatigue +=  defense.fatigue;
+		switch (defense.type) { // Record defense attempts
+		case Parry:
+			++numParry;
+			break;
+		case Block:
+			++numBlock;
+			break;
+		default:
+		}
+    }
+	    
+    private void KnockdownStunningCheck(Defense defense) {
+ 		if (defense.cripplingInjury || defense.majorWound) {
+ 			int effHT = HT + defense.location.knockdownPenalty;
+ 			int roll = DieRoller.roll3d6();
+ 			int MoS = effHT - roll;
+ 			String success = (MoS<0)?"<b>failed</b>":"succeeded";
+ 			logEvent("<b>" + Name + "</b> Knockdown/Stunning check: rolled " + roll + " against " + effHT + " (" + success + " by " + Math.abs(MoS) + ")");
+ 		}
+    }
+	    
+    private void GenerateDefenseLog(Defense defense) {
+		// Defense description
+		String resultType = (defense.result == DefenseResult.CritSuccess)?"<b><font color=blue>critically</font></b>"
+							:(defense.result == DefenseResult.Success)?"successfully"
+							:(defense.result == DefenseResult.ShieldHit)?"partially"
+							:"unsuccessfully";
+		
+		String defenseDescription = "";
+		switch (defense.type) {
+		case Parry:
+			defenseDescription = resultType + " parried blow.";
+			break;
+		case Block:
+			defenseDescription = resultType + " blocked blow.";
+			break;
+		case Dodge:
+			defenseDescription = resultType + " dodged blow.";
+			break;
+		case None:
+			defenseDescription = "made no defense against blow.";
+		}
+		
+		String damageDescription = "";
+		if (defense.injury != 0) {
+			damageDescription = " Sustained <b><font color=red>" + defense.injury + "</font></b> injury to the " + defense.location.description;
+			String knockdownstunningPenalty = (defense.location.knockdownPenalty != 0)?" @ " + defense.location.knockdownPenalty:"";
+			if (defense.cripplingInjury)
+				damageDescription += " <b>(crippling" + knockdownstunningPenalty + ")</br>";
+			else if (defense.majorWound)
+				damageDescription += " <b>(major" + knockdownstunningPenalty + ")</br>";
+			damageDescription += ".";
+		}
+		else if (defense.result == DefenseResult.ShieldHit || defense.result == DefenseResult.Failure) 
+			damageDescription = " But took no damage.";
+   		if (defense.shieldDamage != 0) 
+   			damageDescription += " <b>Shield damaged " + defense.shieldDamage + ".</b>";
+			
+		logEvent("<b>" + Name + "</b> " + defenseDescription + damageDescription);
+     }
+    
+    /**
+     * Get the current defense value of a particular DefenseType
+     * @param type - the type of defense to report
+     * @return the current value of that defense
+     */
+    public int getCurrentDefenseValue(DefenseType type) {
+    	int currentDefense = 0;
+    	switch (type) {
+    	case Parry:
+    		currentDefense = Parry - numParry * 4;
+    		break;
+    	case Block:
+    		currentDefense = Block - numBlock*5;
+    		break;
+    	case Dodge:
+    		currentDefense = Dodge;   
+    		if (Injury > 2*HP/3)
+    			currentDefense = (int) Math.ceil(currentDefense/2.0);
+        	if (Fatigue > 2*FP/3)
+        		currentDefense = (int) Math.ceil(currentDefense/2.0);
+		default:
+			break;
+    	}
+    	return currentDefense;
+    }
+    
+
 	
 }

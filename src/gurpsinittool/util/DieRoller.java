@@ -35,8 +35,8 @@ public class DieRoller {
 	}
 	
 	public static boolean isCritSuccess(int roll, int eff_skill) {
-		if (eff_skill <= 3)
-			return false;
+		//if (eff_skill <= 3) WHY!! Rules state that 3 or 4 is ALWAYS a crit
+		//	return false; 
 		return (roll <= 4 || (roll <= 6 && (roll+10) <= eff_skill));
 	}
 	
