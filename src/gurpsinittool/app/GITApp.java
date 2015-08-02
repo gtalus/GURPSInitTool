@@ -43,7 +43,7 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
 	private JTextPane logTextArea;
 	private HTMLDocument logTextDocument;
 	private HTMLEditorKit kit;
-	private ActorDetailsPanel detailsPanel;
+	private ActorDetailsPanel_v2 detailsPanel;
 	private GroupManager groupManager;
 	private CriticalTablesDialog criticalTables;
 	private Properties propertyBag = new Properties();
@@ -511,7 +511,7 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
         JScrollPane logScrollPane = new JScrollPane(logTextArea);
         
         // The actor info pane
-        detailsPanel = new ActorDetailsPanel(initTable);
+        detailsPanel = new ActorDetailsPanel_v2(initTable);
         JScrollPane actorDetailsPane = new JScrollPane(detailsPanel);
         actorDetailsPane.setMinimumSize(new Dimension(detailsPanel.getPreferredSize().width+20,0));
 

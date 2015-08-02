@@ -10,7 +10,7 @@ import java.io.File;
 import java.util.Properties;
 
 import gurpsinittool.data.ActorGroupFile;
-import gurpsinittool.ui.ActorDetailsPanel;
+import gurpsinittool.ui.ActorDetailsPanel_v2;
 import gurpsinittool.util.FileChangeEvent;
 import gurpsinittool.util.FileChangeEventListener;
 
@@ -46,7 +46,7 @@ public class GroupManager extends JFrame
 	private JScrollPane jScrollPaneTree;
 	private JScrollPane jScrollPaneDetails;
 	private InitTable groupTable;
-	private ActorDetailsPanel actorDetailsPanel;
+	private ActorDetailsPanel_v2 actorDetailsPanel;
 	private JMenuBar jMenuBar;
 	private JMenu jMenu;
 	private GroupTree groupTree;
@@ -114,7 +114,7 @@ public class GroupManager extends JFrame
         groupTable.setVisible(false);
         groupTable.getActorTableModel().addFileChangeEventListener(new GroupFileChangeEventListener());
         groupTable.getActorTableModel().addTableModelListener(new GroupInitTableModelListener());
-        actorDetailsPanel = new ActorDetailsPanel(groupTable);
+        actorDetailsPanel = new ActorDetailsPanel_v2(groupTable);
         groupTree = new GroupTree(groupTable);
         groupTree.addTreeSelectionListener(this);
         groupTree.addFileChangeEventListener(new GroupFileChangeEventListener());

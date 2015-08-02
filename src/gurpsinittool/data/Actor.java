@@ -1,16 +1,14 @@
 package gurpsinittool.data;
 
-import gurpsinittool.data.Actor.ActorStatus;
-import gurpsinittool.data.Actor.ActorType;
 import gurpsinittool.data.Defense.DefenseResult;
 import gurpsinittool.data.Defense.DefenseType;
-import gurpsinittool.ui.DefenseDialog;
 import gurpsinittool.util.DieRoller;
 import gurpsinittool.util.EncounterLogEvent;
 import gurpsinittool.util.EncounterLogEventSource;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 
 /** 
@@ -26,98 +24,74 @@ public class Actor
 	public static EncounterLogEventSource LogEventSource; // where to send log messages
 	public static GameSettings settings; // Settings which determine game behavior, including automation
 	
-	
-	public String Name;
-	//public int Order; // what is this?
-	
 	public enum ActorStatus {Attacking, Waiting, Disarmed, Stunned, Prone, Kneeling, Disabled, Unconscious, Dead};
 	// Position, Status, Action, Disarmed
+	// TODO: hide behind interface and log changes
 	public HashSet<ActorStatus> Status;
 
 	public enum ActorType {PC, Enemy, Ally, Neutral, Special};
+	// TODO: hide behind interface, and log changes
 	public ActorType Type;
+	
+	// All actors must have these traits defined:
+	public enum BasicTrait {Name, ST, HP, Speed, DX, Will, Move, IQ, Per, HT, FP, SM, Fatigue, Injury, Dodge, Parry, Block, DR, Shield_DB, Shield_DR, Shield_HP, Notes}
+	//private Class<?>[] basicTraitClasses = {String.class, Integer.class, Integer.class, Float.class, Integer.class, Integer.class, Integer.class, 
+	//		Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, 
+	//		Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, String.class};
+	// Default values?
+	
+	public class Trait implements Serializable {
+		// Default SVUID
+		private static final long serialVersionUID = 1L;
 
-	//public String Target; /* maybe this should be a pointer? */
+		// type?
+		// String, Integer, Float, calculated?, boolean?, valueless?
+		// Need to think about how to support traits that modify other traits
+		// value?
+		// Currently store as a string, do some conversions
+		public String name;
+		public String value;
+		
+		public Trait() { name = ""; value = ""; }
+		public Trait(String name, String value) {this.name = name; this.value = value; }
+		public Trait(Trait aTrait) {name = aTrait.name; value = aTrait.value; }
+		
+		public int valueAsInt() {
+			// do the parsing/conversion here
+			return 0;
+		}
+	}
+	protected HashMap<String, Trait> traits = new HashMap<String, Trait>();
 	
-	public String Notes; /* Free-form notes field */
-	
-	//public Boolean Active; // Is this actor the current active actor
-	
-	public int HT; // Health (for saving rolls)
-	public int HP; // total Hit points
-	public int Injury; // Amount of damage taken (injury)
-	
-	//public int Will; // Will/IQ
-	//public int ST;
-	public int FP; // what about MP?
-	public int Fatigue; // Amount of FP damage taken
-	public int Move;
-	// Defenses
-	public int Parry;
-	public int Block;
-	public int Dodge;
-	public int DR;
-	
-	// Shield
-	public int DB;
-	public int ShieldDR;
-	public int ShieldHP;
-	
+	// Attack info
+	// TODO: hide behind interface?
+	public int DefaultAttack = 0;
+	public ArrayList<Attack> Attacks;
+
 	// Volatile (not currently stored)
 	// public int Shock = 0;
 	//public String tag;
 	public int ShieldDamage = 0;
 	public int numParry = 0;
 	public int numBlock = 0;
-	//public int numDodge;
-	//public int turn = 0; // Before the first round (round 0)
-	
-	//public float speed; // probably not useful
-	//public int MP; // probably not useful, but more likely than FP
-	//public int SP; // shock points, probably don't need 
-	//public int DR; // Damage Resistance. Only useful if automating attacks.
-	
-	/* also need extra data collection*/
-	
-	/* also need attacks info */
-	public int DefaultAttack = 0;
-	public ArrayList<Attack> Attacks;
+
+    //================================================================================
+    // Constructors
+    //================================================================================
 
 	/**
-	 * Basic constructor specifying all options
-	 */
-	public Actor(String name, HashSet<ActorStatus> status, ActorType type, int ht, int hp, int damage, int fp, int fatigue, int move, int parry, int block, int dodge, int dr, int db, int shield_dr, int shield_hp, int default_attack)
-	{
-		Name = name;
-		Status = new HashSet<ActorStatus>();
-		Status.addAll(status);
-		Type = type;
-		HP = hp;
-		HT = ht;
-		Injury = damage;
-		FP = fp;
-		Fatigue = fatigue;
-		Move = move;
-		Parry = parry;
-		Block = block;
-		Dodge = dodge;
-		DR = dr;
-
-		DB = db;
-		ShieldDR = shield_dr;
-		ShieldHP = shield_hp;
-		//Active = false;
-		DefaultAttack = default_attack;
-		Attacks = new ArrayList<Attack>();
-	}
-	
-	/**
-	 * Basic constructor providing default options for hp, health and damage
+	 * Basic constructor providing default options for all BasicTraits
 	 * @param name : Actor's name
 	 * @param type : Actor type (PC, NPC, etc)
 	 */
 	public Actor(String name, ActorType type) {
-		this(name,new HashSet<ActorStatus>(),type,10,10,0,10,0,5,9,9,8,0,2,4,20,0);
+		Status = new HashSet<ActorStatus>();
+		this.Type = type;
+		
+		InitializeBasicTraits();
+		setTrait(BasicTrait.Name, name);
+		
+		Attacks = new ArrayList<Attack>();
 	}
 	
 	/**
@@ -125,16 +99,106 @@ public class Actor
 	 * @param anActor reference Actor
 	 */
 	public Actor(Actor anActor) {
-		this(anActor.Name,anActor.Status,anActor.Type,anActor.HT,anActor.HP,anActor.Injury,anActor.FP,anActor.Fatigue,anActor.Move,anActor.Parry,anActor.Block,anActor.Dodge,anActor.DR,anActor.DB,anActor.ShieldDR,anActor.ShieldHP,anActor.DefaultAttack);
+		this(anActor.getTrait(BasicTrait.Name).value,anActor.Type);
+		Status.addAll(anActor.Status);
+		
+		// Deep copy of traits
+		for (Object value : anActor.traits.values()) {
+			Trait trait = (Trait) value;
+			setTrait(trait.name, trait.value);
+		}
+		
 		for(int i = 0; i < anActor.Attacks.size(); ++i) {
 			Attacks.add(anActor.Attacks.get(i));
 		}
 	}
+	
+	private void InitializeBasicTraits() {
+		// Set Basic Trait initial Values
+		// TODO: Speed should be 5.00 (float) not 5 (int)
+		String[] defaultBasicTraitValues = {"unnamed", "10", "10", "5", "10", "10", "5", "10", "10", "10", "10", "0", "0", "0", "8", "9", "9", "0", "2", "4", "20", ""};
+		BasicTrait[] traitNames = BasicTrait.values();
+		for (int i=0; i<traitNames.length; i++) {
+			String traitValue = defaultBasicTraitValues[i];
+			String traitName = traitNames[i].toString();
+			setTrait(traitName, traitValue);			
+		}
+	}
+	
+    //================================================================================
+    // Trait Accessors
+    //================================================================================
 
+	public boolean hasTrait(String name) {
+		return traits.containsKey(name);
+	}
+	
+	public Trait getTrait(BasicTrait trait) {
+		if (!traits.containsKey(trait.toString())) { // This is a serious error
+			System.err.println("ERROR in Actor:getTrait unable to find basic trait " + trait);
+			return null; // Consider returning a new trait with no value?
+		} else {
+			return traits.get(trait.toString());
+		}
+	}
+	
+	public String getValue(BasicTrait trait) {
+		return getTrait(trait).value;
+	}
+	
+	public int getValueInt(BasicTrait trait) {
+		try {
+			return Integer.parseInt(getTrait(trait).value);
+		} catch (NumberFormatException e) {
+			System.out.println("Actor: getValueInt: Error parsing value: " + getTrait(trait).value);
+			e.printStackTrace();
+			return 0;
+		}
+	}
+	
+	public Trait getTrait(String name) {
+		if (!traits.containsKey(name)) { // This is not a serious error?
+			System.out.println("-E- Actor:GetTrait: requested trait that does not exist: " + name);
+			return null; // Consider returning a new trait with no value?
+		} else {
+			return traits.get(name);
+		}
+	}
+	
+	public void setTrait(BasicTrait trait, String value) {
+		Trait theTrait = getTrait(trait);
+		theTrait.value = value;
+	}
+	
+	public void setTrait(BasicTrait trait, int value) {
+		setTrait(trait, String.valueOf(value));
+	}
+	
+	public void setTrait(String name, String value) {
+		if (hasTrait(name)) {
+			Trait theTrait = getTrait(name);
+			theTrait.value = value;
+		} else {
+			traits.put(name, new Trait(name, value));
+		}
+	}
+	
+	public void setTrait(String name, int value) {
+		setTrait(name, String.valueOf(value));
+	}
+
+    //================================================================================
+    // Basic Operations
+    //================================================================================
+	
 	public void NextTurn() {
 		numParry = 0;
 		numBlock = 0;
 		// Shock
+		String Name = getValue(BasicTrait.Name);
+		int Injury = getValueInt(BasicTrait.Injury);
+		int HP = getValueInt(BasicTrait.HP);
+		int HT = getValueInt(BasicTrait.HT);
 		
 		// Resolve auto actions at start of actor's turn:
     	if (Type == ActorType.Enemy) { // Do AUTO actions
@@ -163,12 +227,12 @@ public class Actor
 	}
 	
 	/**
-	 * Reset actor state- Active, 0 damage, 0 fatigue, numParry/numBlock/ShieldDamage = 0
+	 * Reset actor state- Active, 0 Injury, 0 fatigue, numParry/numBlock/ShieldDamage = 0
 	 */
 	public void Reset() {
 		Status.clear();
-		Injury = 0;
-		Fatigue = 0;
+		setTrait(BasicTrait.Injury, "0");
+		setTrait(BasicTrait.Fatigue, "0");
 		numParry = 0;
 		numBlock = 0;
 		ShieldDamage = 0;
@@ -184,6 +248,7 @@ public class Actor
     //================================================================================
 
 	public void Attack() {
+		String Name = getValue(BasicTrait.Name);
 		if (Attacks.size() < 1) {
 			logEvent("<i><font color=gray>" + Name + " has no attacks defined!</font></i>");
 			return;
@@ -237,10 +302,12 @@ public class Actor
 	}
 	
 	 private void ProcessDefense(Defense defense) {
+		int Fatigue = getValueInt(BasicTrait.Fatigue);
+		int Injury = getValueInt(BasicTrait.Injury);
 		// Process shield damage/injury/fatigue
 		ShieldDamage += defense.shieldDamage;
-		Injury += defense.injury;
-		Fatigue +=  defense.fatigue;
+		setTrait(BasicTrait.Injury, String.valueOf(Injury+defense.injury));
+		setTrait(BasicTrait.Fatigue, String.valueOf(Fatigue+defense.fatigue));
 		switch (defense.type) { // Record defense attempts
 		case Parry:
 			++numParry;
@@ -253,6 +320,8 @@ public class Actor
     }
 	    
     private void KnockdownStunningCheck(Defense defense) {
+    	String Name = getValue(BasicTrait.Name);
+    	int HT = getValueInt(BasicTrait.HT);
  		if (defense.cripplingInjury || defense.majorWound) {
  			int effHT = HT + defense.location.knockdownPenalty;
  			int roll = DieRoller.roll3d6();
@@ -263,6 +332,7 @@ public class Actor
     }
 	    
     private void GenerateDefenseLog(Defense defense) {
+    	String Name = getValue(BasicTrait.Name);
 		// Defense description
 		String resultType = (defense.result == DefenseResult.CritSuccess)?"<b><font color=blue>critically</font></b>"
 							:(defense.result == DefenseResult.Success)?"successfully"
@@ -295,7 +365,7 @@ public class Actor
 			damageDescription += ".";
 		}
 		else if (defense.result == DefenseResult.ShieldHit || defense.result == DefenseResult.Failure) 
-			damageDescription = " But took no damage.";
+			damageDescription = " But took no injury.";
    		if (defense.shieldDamage != 0) 
    			damageDescription += " <b>Shield damaged " + defense.shieldDamage + ".</b>";
 			
@@ -308,6 +378,13 @@ public class Actor
      * @return the current value of that defense
      */
     public int getCurrentDefenseValue(DefenseType type) {
+    	int Parry = getValueInt(BasicTrait.Parry);
+    	int Block = getValueInt(BasicTrait.Block);
+    	int Dodge = getValueInt(BasicTrait.Dodge);
+    	int Injury = getValueInt(BasicTrait.Injury);
+    	int Fatigue = getValueInt(BasicTrait.Fatigue);
+    	int HP = getValueInt(BasicTrait.HP);
+    	int FP = getValueInt(BasicTrait.FP);
     	int currentDefense = 0;
     	switch (type) {
     	case Parry:

@@ -12,6 +12,7 @@ import javax.swing.table.AbstractTableModel;
 import gurpsinittool.data.*;
 import gurpsinittool.data.Actor.ActorStatus;
 import gurpsinittool.data.Actor.ActorType;
+import gurpsinittool.data.Actor.BasicTrait;
 import gurpsinittool.util.CleanFileChangeEventSource;
 import gurpsinittool.util.EncounterLogEvent;
 import gurpsinittool.util.EncounterLogEventListener;
@@ -181,21 +182,21 @@ public class InitTableModel extends AbstractTableModel {
 		Actor actor = (Actor) actorList.get(rowIndex);
 		switch (columns.values()[columnIndex]) {
 		case Name:
-			return actor.Name;
+			return actor.getValue(BasicTrait.Name);
 		case Move:
-			return actor.Move;
+			return actor.getValueInt(BasicTrait.Move);
 		case Dodge:
-			return actor.Dodge;
+			return actor.getValueInt(BasicTrait.Dodge);
 		case HT:
-			return actor.HT;
+			return actor.getValueInt(BasicTrait.HT);
 		case HP:
-			return actor.HP;
+			return actor.getValueInt(BasicTrait.HP);
 		case Damage:
-			return actor.Injury;
+			return actor.getValueInt(BasicTrait.Injury);
 		case FP:
-			return actor.FP;
+			return actor.getValueInt(BasicTrait.FP);
 		case Fatigue:
-			return actor.Fatigue;
+			return actor.getValueInt(BasicTrait.Fatigue);
 		case Status:
 			return actor.Status;
 		case Type:
@@ -239,55 +240,58 @@ public class InitTableModel extends AbstractTableModel {
         	addNewActor();
         
         Actor a = (Actor) actorList.get(row);
+        String aName = a.getValue(BasicTrait.Name);
         int newValue;
         int diff;
 		switch (columns.values()[col]) {
 		case Name:
-			a.Name = (String) value;
+			a.setTrait(BasicTrait.Name, (String) value);
 			break;
 		case Move:
-			a.Move = (Integer) value;
+			a.setTrait(BasicTrait.Move, String.valueOf((Integer) value));
 			break;
 		case Dodge:
-			a.Dodge = (Integer) value;
+			a.setTrait(BasicTrait.Dodge, String.valueOf((Integer) value));
 			break;
 		case HT:
-			a.HT = (Integer) value;
+			a.setTrait(BasicTrait.HT, String.valueOf((Integer) value));
 			break;
 		case HP:
-			a.HP = (Integer) value;
+			a.setTrait(BasicTrait.HP, String.valueOf((Integer) value));
 			break;
 		case Damage:
 			newValue = (Integer) value;
-			diff = a.Injury - newValue;
+			int HP = a.getValueInt(BasicTrait.HP);
+			diff = a.getValueInt(BasicTrait.Injury) - newValue;
 			if (diff < 0) {
-				encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + a.Name + "</b> took <b><font color=red>" + (-1*diff) + "</font></b> damage (now " + (a.HP - newValue) + " HP)."));
+				encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + aName + "</b> took <b><font color=red>" + (-1*diff) + "</font></b> damage (now " + (HP - newValue) + " HP)."));
 			} else {
-				encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + a.Name + "</b> healed <b><font color=blue>" + diff + "</font></b> (now " + (a.HP - newValue) + " HP)."));		
+				encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + aName + "</b> healed <b><font color=blue>" + diff + "</font></b> (now " + (HP - newValue) + " HP)."));		
 			}
-			a.Injury = newValue;
+			a.setTrait(BasicTrait.Injury, String.valueOf(newValue));
 			break;
 		case FP:
-			a.FP = (Integer) value;
+			a.setTrait(BasicTrait.FP, String.valueOf((Integer) value));
 			break;
 		case Fatigue:
 			newValue = (Integer) value;
-			diff = a.Fatigue - newValue;
+			int FP = a.getValueInt(BasicTrait.FP);
+			diff = a.getValueInt(BasicTrait.Fatigue) - newValue;
 			if (diff < 0) {
-				encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + a.Name + "</b> lost <b>" + (-1*diff) + "</b> fatigue (now " + (a.FP - newValue) + " FP)."));
+				encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + aName + "</b> lost <b>" + (-1*diff) + "</b> fatigue (now " + (FP - newValue) + " FP)."));
 			} else {
-				encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + a.Name + "</b> recoverd <b>" + diff + "</b> fatigue (now " + (a.FP - newValue) + " FP)."));		
+				encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + aName + "</b> recoverd <b>" + diff + "</b> fatigue (now " + (FP - newValue) + " FP)."));		
 			}
-			a.Fatigue = newValue;
+			a.setTrait(BasicTrait.Fatigue, String.valueOf(newValue));
 			break;
 		case Status:
 			// TODO: test this code!
 			a.Status = (HashSet<ActorStatus>) value;
-			encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + a.Name + "</b> status changed to <b>" + a.Status + "</b>"));
+			encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + aName + "</b> status changed to <b>" + a.Status + "</b>"));
 			break;
 		case Type:
 			ActorType newType = (ActorType) value;
-			encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + a.Name + "</b> type changed to <b>" + newType + "</b>"));
+			encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + aName + "</b> type changed to <b>" + newType + "</b>"));
 			a.Type = newType;
 		default:
 		}
@@ -459,9 +463,10 @@ public class InitTableModel extends AbstractTableModel {
     public void removeTag(Actor actor) {
     	Matcher matcher;
 		Pattern nameTag = Pattern.compile("^(.*) \\[([^\\s]+)\\]$");
-		if ((matcher = nameTag.matcher(actor.Name)).matches()) {
+		String aName = actor.getValue(BasicTrait.Name);
+		if ((matcher = nameTag.matcher(aName)).matches()) {
     		String name = matcher.group(1);
-    		actor.Name = name;
+    		actor.setTrait(BasicTrait.Name, name);
     		fireRefresh(actor);
 		}
     }
@@ -480,10 +485,11 @@ public class InitTableModel extends AbstractTableModel {
      * @param tags A list of all tags currently in use
      */
     public void tagActor(Actor actor, HashSet<String> tags) {
-		if (!nameTag.matcher(actor.Name).matches()) {
+    	String aName = actor.getValue(BasicTrait.Name);
+		if (!nameTag.matcher(aName).matches()) {
 			String tag = getNextTag(tags);
-			if (DEBUG) System.out.println("InitTableModel:tagActor: Tagging actor " + actor.Name + " with " + "[" + tag + "]");
-			actor.Name += " [" + tag + "]";
+			if (DEBUG) System.out.println("InitTableModel:tagActor: Tagging actor " + aName + " with " + "[" + tag + "]");
+			actor.setTrait(BasicTrait.Name, aName + " [" + tag + "]");
 			tags.add(tag);
 			fireRefresh(actor);
 		}
@@ -502,8 +508,9 @@ public class InitTableModel extends AbstractTableModel {
     	// First go through actors, removing unneeded tags (unconscious/dead) and logging existing ones
     	for (int i = 0; i < actorList.size()-1; ++i) {
     		Actor a = actorList.get(i);
-    		if (DEBUG) System.out.println("catalogTags: Cataloging actor: " + a.Name);
-    		if ((matcher = nameTag.matcher(a.Name)).matches()) {
+    		String aName = a.getValue(BasicTrait.Name);
+    		if (DEBUG) System.out.println("catalogTags: Cataloging actor: " + aName);
+    		if ((matcher = nameTag.matcher(aName)).matches()) {
     			String name = matcher.group(1);
     			String tag = matcher.group(2);
     			// Check if tag should be cleared
@@ -511,7 +518,7 @@ public class InitTableModel extends AbstractTableModel {
     														|| a.Status.contains(ActorStatus.Disabled)
     														|| a.Status.contains(ActorStatus.Dead))) {
     				System.out.println("catalogTags: cleaning tag: " + tag);
-    				a.Name = name;
+    				a.setTrait(BasicTrait.Name, name);
     				fireRefresh(a);
     			} else {
 	    			if (tags.contains(tag)) 

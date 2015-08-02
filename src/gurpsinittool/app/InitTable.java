@@ -57,6 +57,7 @@ import gurpsinittool.data.*;
 //import gurpsinittool.test.RandomData;
 import gurpsinittool.data.Actor.ActorStatus;
 import gurpsinittool.data.Actor.ActorType;
+import gurpsinittool.data.Actor.BasicTrait;
 
 public class InitTable extends JTable 
 	implements ActionListener {
@@ -103,7 +104,7 @@ public class InitTable extends JTable
     	else if ("Reset".equals(e.getActionCommand())) { // Delete selected rows
     		stopCellEditing();
       		int[] rows = getSelectedRows();
-       		if (DEBUG) { System.out.println("InitTable: Resetting actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).Name); }   	
+       		if (DEBUG) { System.out.println("InitTable: Resetting actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).getValue(BasicTrait.Name)); }   	
        		for (int i = 0; i < rows.length; i++) {
        			Actor actor = tableModel.getActor(rows[i]);
        			actor.Reset();
@@ -112,7 +113,7 @@ public class InitTable extends JTable
     	}
     	else if ("Set Active".equals(e.getActionCommand())) { // Clone selected rows at the end (as "Haste" spell)
       		int[] rows = getSelectedRows();
-      		if (DEBUG) { System.out.println("InitTable: Setting active actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).Name); }   	
+      		if (DEBUG) { System.out.println("InitTable: Setting active actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).getValue(BasicTrait.Name)); }   	
       		tableModel.setActiveRow(rows[0]); // sets actor as current active, and sets state to active
 //       		for (int i = 0; i < rows.length; i++) {
 //       			tableModel.setValueAt("Active", rows[i], InitTableModel.columns.State.ordinal());
@@ -120,14 +121,14 @@ public class InitTable extends JTable
     	}
     	else if ("Tag".equals(e.getActionCommand())) { // Add tag to selected rows
       		int[] rows = getSelectedRows();
-      		if (DEBUG) { System.out.println("InitTable: Tagging actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).Name); }   	
+      		if (DEBUG) { System.out.println("InitTable: Tagging actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).getValue(BasicTrait.Name)); }   	
        		for (int i = 0; i < rows.length; i++) {
        			tableModel.tagActor(tableModel.getActor(rows[i]));
        		}
     	}
     	else if ("Remove Tag".equals(e.getActionCommand())) { // Remove tag from selected rows
       		int[] rows = getSelectedRows();
-      		if (DEBUG) { System.out.println("InitTable: Un-tagging actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).Name); }   	
+      		if (DEBUG) { System.out.println("InitTable: Un-tagging actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).getValue(BasicTrait.Name)); }   	
        		for (int i = 0; i < rows.length; i++) {
        			tableModel.removeTag(tableModel.getActor(rows[i]));
        		}
@@ -611,23 +612,27 @@ public class InitTable extends JTable
 			// Custom rendering for various columns
 			//ActorTableModel.columns col = ActorTableModel.columns.values()[column];
 			Actor a = ((InitTableModel)table.getModel()).getActor(row);
+			int Injury = a.getValueInt(BasicTrait.Injury);
+			int Fatigue = a.getValueInt(BasicTrait.Fatigue);
+			int HP = a.getValueInt(BasicTrait.HP);
+			int FP = a.getValueInt(BasicTrait.FP);
 			if (col == columns.Act && (tableModel.getActiveActorIndex() == row)) {
 				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/go.png"), "Current Actor"));  
 			}
-			else if ((col == columns.Move || col == columns.Dodge) && (a.Injury > 2*a.HP/3 && a.Fatigue > 2*a.FP/3)) {
+			else if ((col == columns.Move || col == columns.Dodge) && (Injury > 2*HP/3 && Fatigue > 2*FP/3)) {
 				int currentValue = Integer.parseInt(c.getText());
 				int newValue = (int) Math.ceil((double)currentValue/4);
 				c.setText("<html>" + c.getText() + " <strong>(" + newValue + ")</strong></html>");
 				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/exclamation.png"), "Greatly reduced state"));
 			}
-			else if ((col == columns.Move || col == columns.Dodge) && (a.Injury > 2*a.HP/3 || a.Fatigue > 2*a.FP/3)) {
+			else if ((col == columns.Move || col == columns.Dodge) && (Injury > 2*HP/3 || Fatigue > 2*FP/3)) {
 				int currentValue = Integer.parseInt(c.getText());
 				int newValue = (int) Math.ceil((double)currentValue/2);
 				c.setText("<html>" + c.getText() + " <strong>(" + newValue + ")</strong></html>");
 				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png"), "Reduced state"));
 			}
-			else if (col == columns.HT && a.Injury >= a.HP) {
-				int penalty = (int) (-1*(Math.floor((double)a.Injury/a.HP)-1));
+			else if (col == columns.HT && Injury >= HP) {
+				int penalty = (int) (-1*(Math.floor((double)Injury/HP)-1));
 				if (penalty < 0) {
 					c.setText("<html>" + c.getText() + " <strong>(" + penalty + ")</strong></html>");
 				}
@@ -1037,7 +1042,7 @@ public class InitTable extends JTable
 			
 			InitTableModel.columns col = InitTableModel.columns.valueOf(table.getColumnName(column));
 			Actor a = ((InitTableModel)table.getModel()).getActor(row);
-			actorName = a.Name;
+			actorName = a.getValue(BasicTrait.Name);
 			formatComponentColor(c, a, isSelected, col);
 			formatComponentAlignment(c, a);
 	    	
@@ -1050,9 +1055,10 @@ public class InitTable extends JTable
 	    	// check for modifications in the base Actor
 	    	// This hack is only needed if setClickCountToStart = 1, since in that 
 	    	// case the table is not updated in time when there is a modification on focus lost
-	    	if (!getSelectedActor().Name.equals(actorName)) {
+	    	String selctedActorName = getSelectedActor().getValue(BasicTrait.Name);
+	    	if (!selctedActorName.equals(actorName)) {
 	    		JTextField t = (JTextField) evt.getComponent();
-	    		actorName = getSelectedActor().Name;
+	    		actorName = selctedActorName;
 	    		t.setText(actorName);
 	    	}
 	    	// Clear the 'new...' if this is the last row 

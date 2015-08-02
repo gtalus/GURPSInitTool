@@ -10,6 +10,7 @@ import javax.swing.JComponent;
 import javax.swing.JTable;
 import javax.swing.TransferHandler;
 import gurpsinittool.data.Actor;
+import gurpsinittool.data.Actor.BasicTrait;
 
 public class InitTableTransferHandler extends TransferHandler {
 
@@ -83,7 +84,7 @@ public class InitTableTransferHandler extends TransferHandler {
     		if (DEBUG) { System.out.println("InitTreeTransferHandler: -E- Unsupported Flavor Exception"); }
         	return false;
         } catch (IOException e) {
-    		if (DEBUG) { System.out.println("InitTreeTransferHandler: -E- IO Exception"); }
+    		if (DEBUG) { System.out.println("InitTreeTransferHandler: -E- IO Exception:" + e.toString()); }
         	return false;
         }
         
@@ -153,7 +154,7 @@ public class InitTableTransferHandler extends TransferHandler {
 	        	return;
 	        }
 	        for (int i = 0; i < actors.length; i++) {
-	        	if (DEBUG) { System.out.println("InitTreeTransferHandler: After move, deleting actor " + actors[i].Name + "..."); }
+	        	if (DEBUG) { System.out.println("InitTreeTransferHandler: After move, deleting actor " + actors[i].getValue(BasicTrait.Name) + "..."); }
 	        	((InitTableModel) table.getModel()).removeActor(actors[i]);
 	        }
 		}

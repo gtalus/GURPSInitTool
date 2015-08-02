@@ -2,6 +2,7 @@ package gurpsinittool.data;
 
 import java.awt.Color;
 
+import gurpsinittool.data.Actor.BasicTrait;
 import gurpsinittool.data.Defense.DefenseType;
 import gurpsinittool.data.HitLocations.HitLocation;
 import gurpsinittool.util.DieRoller;
@@ -45,6 +46,8 @@ public class Defense {
 		int effParry = actor.getCurrentDefenseValue(DefenseType.Parry);
     	int effBlock = actor.getCurrentDefenseValue(DefenseType.Block);
     	int effDodge = actor.getCurrentDefenseValue(DefenseType.Dodge);
+    	int ShieldDB = actor.getValueInt(BasicTrait.Shield_DB);
+    	int ShieldHP = actor.getValueInt(BasicTrait.Shield_HP);
     	
 		// Pick the best by default
     	if ((effParry > effDodge) && (effParry >= effBlock)) {
@@ -56,7 +59,7 @@ public class Defense {
     	}
     	
     	// Set default options
-    	shield = (actor.DB > 0 && actor.ShieldDamage < actor.ShieldHP);
+    	shield = (ShieldDB > 0 && actor.ShieldDamage < ShieldHP);
     	if (actor.Status.contains(Actor.ActorStatus.Stunned))
     		stunned = true;
     	// Set position
@@ -95,7 +98,7 @@ public class Defense {
 			if (stunned)
 				effectiveDefense -= 4;
 			if (shield)
-				effectiveDefense += actor.DB;
+				effectiveDefense += actor.getValueInt(BasicTrait.Shield_DB);
 
 			//Position
 			if (position.equals("Kneeling"))
@@ -109,7 +112,7 @@ public class Defense {
 	}
 	
 	private void calcDefenseResult(Actor actor) {
-		int shield_db = shield ? actor.DB : 0;
+		int shield_db = shield ? actor.getValueInt(BasicTrait.Shield_DB) : 0;
 
 		// CritSuccess, Success, ShieldHit, Failure
 		if (type == DefenseType.None) { // No attempted defense
@@ -139,21 +142,24 @@ public class Defense {
 
     	// Calculate injury
     	// 
+    	int ShieldDR = actor.getValueInt(BasicTrait.Shield_DR);
+    	int ShieldHP = actor.getValueInt(BasicTrait.Shield_HP);
+    	int HP = actor.getValueInt(BasicTrait.HP);
     	switch (result) {
     	case CritSuccess:
     	case Success:
     		return;
     	case ShieldHit:
     		// Calculate shield damage
-    		int shieldBasicDamage = (int) (damage.BasicDamage - Math.floor(actor.ShieldDR/damage.ArmorDivisor));
+    		int shieldBasicDamage = (int) (damage.BasicDamage - Math.floor(ShieldDR/damage.ArmorDivisor));
     		// Apply min/max values
-    		shieldBasicDamage = Math.min((int)Math.ceil(actor.ShieldHP/4), shieldBasicDamage);
+    		shieldBasicDamage = Math.min((int)Math.ceil(ShieldHP/4), shieldBasicDamage);
     		shieldBasicDamage = Math.max(0, shieldBasicDamage);
     		shieldDamage = (int) (Math.floor(shieldBasicDamage*damage.DamageMultiplierHomogenous()));
     		// Min damage 1 if any got through DR
     		shieldDamage = (shieldDamage <= 0 && shieldBasicDamage > 0)?1:shieldDamage; 
     		// Calculate total cover DR provided (including armor divisor)
-    		coverDR = (int) (Math.floor(actor.ShieldDR/damage.ArmorDivisor) + Math.ceil(actor.ShieldHP/4));
+    		coverDR = (int) (Math.floor(ShieldDR/damage.ArmorDivisor) + Math.ceil(ShieldHP/4));
     	case Failure:
     		// Calculate actual basic damage to the target, including any cover DR
 			int totalDR = override_dr + location.extraDR;
@@ -165,7 +171,7 @@ public class Defense {
     		injury = (injury <= 0 && basicDamage > 0)?1:injury; // Min damage 1 if any got through DR
     		// Check for crippling
     		if (location.cripplingThreshold != 0) {
-    			int cripplingThreshold = (int) Math.floor(actor.HP * location.cripplingThreshold + 1.00001);
+    			int cripplingThreshold = (int) Math.floor(HP * location.cripplingThreshold + 1.00001);
     			if (injury >= cripplingThreshold) {
     				injury = cripplingThreshold;
     				cripplingInjury = true;
@@ -173,7 +179,7 @@ public class Defense {
     			}
     		} 
     		else { // Check for major wound
-    			int majorWoundThreshold = (int) Math.floor(actor.HP * 1/2 + 1.00001);
+    			int majorWoundThreshold = (int) Math.floor(HP * 1/2 + 1.00001);
     			if (injury >= majorWoundThreshold) {
     				majorWound = true;
     			}

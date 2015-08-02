@@ -25,6 +25,7 @@ import gurpsinittool.data.Defense;
 import gurpsinittool.data.Defense.DefenseResult;
 import gurpsinittool.data.Defense.DefenseType;
 import gurpsinittool.data.HitLocations;
+import gurpsinittool.data.Actor.BasicTrait;
 import gurpsinittool.util.DieRoller;
 
 /**
@@ -612,8 +613,8 @@ public class DefenseDialog extends javax.swing.JDialog {
     public void setActor(Actor actor) {
     	this.actor = actor;
     	defense.setInitialOptions(actor);
-    	
-    	name.setText(actor.Name);
+
+    	name.setText(actor.getValue(BasicTrait.Name));
     	switch (actor.Type) {
 		case PC:
 			name.setBackground(new Color(200,255,200));
@@ -636,10 +637,14 @@ public class DefenseDialog extends javax.swing.JDialog {
     	int effParry = actor.getCurrentDefenseValue(DefenseType.Parry);
     	int effBlock = actor.getCurrentDefenseValue(DefenseType.Block);
     	int effDodge = actor.getCurrentDefenseValue(DefenseType.Dodge);
+    	int Parry = actor.getValueInt(BasicTrait.Parry);
+    	int Block = actor.getValueInt(BasicTrait.Block);
+    	int Dodge = actor.getValueInt(BasicTrait.Dodge);
+
     	// Report base if different
-    	parryNote.setText(effParry + (effParry!=actor.Parry?" (base: " + actor.Parry + ")":""));
-    	blockNote.setText(effBlock + (effBlock!=actor.Block?" (base: " + actor.Block + ")":""));
-    	dodgeNote.setText(effDodge + (effDodge!=actor.Dodge?" (base: " + actor.Dodge + ")":""));
+    	parryNote.setText(effParry + (effParry!=Parry?" (base: " + Parry + ")":""));
+    	blockNote.setText(effBlock + (effBlock!=Block?" (base: " + Block + ")":""));
+    	dodgeNote.setText(effDodge + (effDodge!=Dodge?" (base: " + Dodge + ")":""));
     	
     	// Sync defense initial options to dialog components
     	switch (defense.type) {
@@ -663,10 +668,14 @@ public class DefenseDialog extends javax.swing.JDialog {
     	stunnedCheck.setSelected(defense.stunned);
     	shieldCheckBox.setSelected(defense.shield);
     	
-    	db.setText("DB: " + actor.DB);
-    	shield_dr.setText("DR: " + actor.ShieldDR);
-    	shield_hp.setText("HP: " + (actor.ShieldHP-actor.ShieldDamage) + "/" + actor.ShieldHP);
-    	drTextField.setText("" + actor.DR);
+       	int ShieldDB = actor.getValueInt(BasicTrait.Shield_DB);
+        int ShieldDR = actor.getValueInt(BasicTrait.Shield_DR);
+    	int ShieldHP = actor.getValueInt(BasicTrait.Shield_HP);
+    	int DR = actor.getValueInt(BasicTrait.DR);
+    	db.setText("DB: " + ShieldDB);
+    	shield_dr.setText("DR: " + ShieldDR);
+    	shield_hp.setText("HP: " + (ShieldHP-actor.ShieldDamage) + "/" + ShieldHP);
+    	drTextField.setText("" + DR);
     	
     	// Set position
     	// TODO: make this more flexible (perhaps based off of an ENUM???!!!)

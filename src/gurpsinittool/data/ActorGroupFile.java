@@ -19,6 +19,7 @@ import gurpsinittool.app.GroupTree;
 import gurpsinittool.app.GroupTreeNode;
 import gurpsinittool.data.Actor.ActorStatus;
 import gurpsinittool.data.Actor.ActorType;
+import gurpsinittool.data.Actor.BasicTrait;
 
 /**
  * This class encapsulates all file IO for saving/loading actor groups & lists
@@ -29,7 +30,7 @@ public class ActorGroupFile {
 
 	private static final boolean DEBUG = false;
 
-	public static int currentSchemaVer = 4; // Schema version. Incremented when major changes to format are made
+	public static int currentSchemaVer = 5; // Schema version. Incremented when major changes to format are made
 	
 	/**
 	 * Open a file and populate the GroupTree with its contents
@@ -82,8 +83,11 @@ public class ActorGroupFile {
 				case 4:
 					readSchema4(input,treeModel);
 					break;
+				case 5:
+					readSchema5(input,treeModel);
+					break;
 				default:
-					System.err.println("ActorGroupFile: Unknown schema verision: " + schemaVer + "!");
+					System.err.println("ActorGroupFile: Unknown schema version: " + schemaVer + "!");
 			}
 			
 			input.close();
@@ -160,34 +164,28 @@ public class ActorGroupFile {
 	 */
 	public static String SerializeActor(Actor actor) {
 		StringWriter stringWriter = new StringWriter();
-		stringWriter.append("<Actor name=\"" + actor.Name 
-				+ "\" ht=\"" + actor.HT
-				+ "\" hp=\"" + actor.HP
-				+ "\" damage=\"" + actor.Injury
-				+ "\" fp=\"" + actor.FP
-				+ "\" fatigue=\"" + actor.Fatigue
-				+ "\" move=\"" + actor.Move
-				+ "\" parry=\"" + actor.Parry
-				+ "\" block=\"" + actor.Block
-				+ "\" dodge=\"" + actor.Dodge
-				+ "\" dr=\"" + actor.DR
-				+ "\" db=\"" + actor.DB
-				+ "\" shield_dr=\"" + actor.ShieldDR
-				+ "\" shield_hp=\"" + actor.ShieldHP
-				+ "\" default_attack=\"" + actor.DefaultAttack
-				+ "\" state=\"" + actor.Status.toString()
-				+ "\" type=\"" + actor.Type.toString()
-				+ "\">\n");
+		stringWriter.append("<Actor"
+				+ " name=\"" + actor.getValue(BasicTrait.Name) + "\""
+				+ " default_attack=\"" + actor.DefaultAttack + "\""
+				+ " state=\"" + actor.Status.toString() + "\""
+				+ " type=\"" + actor.Type.toString() + "\""
+				+ ">\n");
 		
-		if (actor.Notes != null)
-			stringWriter.append("<notes>" + actor.Notes + "</notes>\n");
-		
+		// Serialize traits
+		for (Object value : actor.traits.values()) {
+			stringWriter.append(SerializeTrait((Actor.Trait) value));
+		}
+				
 		for (int i=0; i < actor.Attacks.size(); ++i) {
 			stringWriter.append(SerializeAttack(actor.Attacks.get(i)));
 		}
 		
 		stringWriter.append("</Actor>\n");
 		return stringWriter.toString();
+	}
+	
+	public static String SerializeTrait(Actor.Trait trait) {
+		return "<" + trait.name + ">" + trait.value + "</" + trait.name + ">\n";
 	}
 	
 	public static String SerializeAttack(Attack attack) {
@@ -233,6 +231,110 @@ public class ActorGroupFile {
 	}
 	
 	/**
+	 * Read data formatted using schema 5
+	 * @param input : The data to read, starting after the schema data
+	 * @param treeModel : DefaultTreeModel to populate
+	 */
+	public static void readSchema5(BufferedReader input, DefaultTreeModel treeModel) {
+		GroupTreeNode currentNode = (GroupTreeNode) treeModel.getRoot();
+
+		try {
+			String line;
+			Matcher matcher;
+			Pattern endFile = Pattern.compile("^</GURPSActorGroupList>$");
+			Pattern startFolder = Pattern.compile("^<GroupFolder name=\"([^\"]+)\">$");
+			Pattern endFolder = Pattern.compile("^</GroupFolder>$");
+			Pattern startGroup = Pattern.compile("^<ActorGroup name=\"([^\"]+)\">$");
+			Pattern endGroup = Pattern.compile("^</ActorGroup>$");
+			Pattern startActor = Pattern.compile("^<Actor name=\"([^\"]+)\" default_attack=\"([^\"]+)\" state=\"([^\"]+)\" type=\"([^\"]+)\">$");
+			Pattern attack = Pattern.compile("^<Attack name=\"([^\"]+)\" skill=\"([^\"]+)\" damage=\"([^\"]+)\" unbalanced=\"([^\"]+)\" />$");
+			Pattern endActor = Pattern.compile("^</Actor>$");
+			Pattern trait = Pattern.compile("^<([^\"]+)>(.*)</([^\"]+)>$");
+			Pattern startTrait = Pattern.compile("^<([^\"]+)>(.*)$");
+			Pattern endTrait = Pattern.compile("^(.*)</([^\"]+)>$");
+				
+			line = input.readLine();
+			if (!(matcher = startFolder.matcher(line)).matches()) {
+				System.err.println("Error: second line does not specify start of base folder!");
+				return;
+			}
+			while( (line = input.readLine()) != null) {
+				if ((matcher = startFolder.matcher(line)).matches()) {
+					String name = matcher.group(1);
+					GroupTreeNode newNode = new GroupTreeNode(name, true);
+					currentNode.add(newNode);
+					currentNode = newNode;
+				}
+				else if ((matcher = startGroup.matcher(line)).matches()) {
+					String name = matcher.group(1);
+					GroupTreeNode newNode = new GroupTreeNode(name, false);
+					currentNode.add(newNode);
+					currentNode = newNode;
+				}
+				else if ((matcher = startActor.matcher(line)).matches()) {
+					Actor currentActor = new Actor(matcher.group(1), ActorType.valueOf(matcher.group(4)));
+					currentActor.Status.addAll(parseState(matcher.group(3)));
+					currentActor.DefaultAttack = Integer.parseInt(matcher.group(2));
+					String aName = currentActor.getValue(BasicTrait.Name);
+					ArrayList<Actor> actorList = currentNode.getActorList();
+					actorList.add(actorList.size()-1, currentActor);
+					// Inside Actor
+					while ((line = input.readLine()) != null) {
+						if ((matcher = endActor.matcher(line)).matches()) {
+							break;
+						}
+						else if ((matcher = attack.matcher(line)).matches()) {
+							currentActor.Attacks.add(new Attack(matcher.group(1), Integer.parseInt(matcher.group(2)), matcher.group(3), Boolean.parseBoolean(matcher.group(4))));
+							if (DEBUG) { System.out.println("ActorGroupFile: Found attack for actor. Name: " + aName); }   	
+						}
+						else if ((matcher = trait.matcher(line)).matches()) {
+							if (matcher.group(1).equals(matcher.group(3))) {
+								currentActor.setTrait(matcher.group(1), matcher.group(2));
+								if (DEBUG) { System.out.println("ActorGroupFile: Found trait for actor. Actor: " + aName + ", Trait: " + matcher.group(1) + ", Value: " + matcher.group(2)); }
+							} else {
+								System.err.println("ActorGroupFile: start/end tags do not match! " + line);
+							}
+						}
+						else if ((matcher = startTrait.matcher(line)).matches()) {
+							String traitName = matcher.group(1);
+							StringBuilder traitValue = new StringBuilder(matcher.group(2) + "\n");
+							// Inside Notes
+							while ((line = input.readLine()) != null) {
+								if ((matcher = endTrait.matcher(line)).matches()) {
+									traitValue.append(matcher.group(1));
+									if (!traitName.equals(matcher.group(2))) {
+										System.err.println("ActorGroupFile: multiline start/end tags do not match! Start: " + traitName + ", End: " + matcher.group(2));
+									}
+									currentActor.setTrait(traitName, traitValue.toString());
+									if (DEBUG) { System.out.println("ActorGroupFile: Found multiline trait for actor. Actor: " + aName + ", Trait: " + traitName + ", Value: " + traitValue); }   	
+									break;
+								}	
+								traitValue.append(line + "\n");
+							}
+						}
+						else { System.out.println("ActorGroupFile: -W- Cannot parse line inside Actor: " + line); }   	
+					}
+				}
+				else if ((matcher = endFolder.matcher(line)).matches()) {
+					currentNode = (GroupTreeNode) currentNode.getParent();
+				}
+				else if ((matcher = endGroup.matcher(line)).matches()) {
+					currentNode = (GroupTreeNode) currentNode.getParent();
+				}
+				else if ((matcher = endFile.matcher(line)).matches()) {
+		      		if (DEBUG) { System.out.println("ActorGroupFile: Found end of Group List"); }   	
+		      		break;
+				}
+				else { System.out.println("ActorGroupFile: -W- Cannot parse line: " + line); }   	
+			}
+		}
+	    catch (IOException ex){
+	        ex.printStackTrace();
+	        return;
+	    }
+	}
+	
+	/**
 	 * Read data formatted using schema 4
 	 * @param input : The data to read, starting after the schema data
 	 * @param treeModel : DefaultTreeModel to populate
@@ -274,12 +376,13 @@ public class ActorGroupFile {
 					currentNode = newNode;
 				}
 				else if ((matcher = startActor.matcher(line)).matches()) {
-					Actor currentActor = new Actor(matcher.group(1), parseState(matcher.group(16)), ActorType.valueOf(matcher.group(17)), 
+					Actor currentActor = createLegacyActor(matcher.group(1), parseState(matcher.group(16)), ActorType.valueOf(matcher.group(17)), 
 							Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)), Integer.parseInt(matcher.group(4)), 
 							Integer.parseInt(matcher.group(5)), Integer.parseInt(matcher.group(6)), Integer.parseInt(matcher.group(7)), 
 							Integer.parseInt(matcher.group(8)), Integer.parseInt(matcher.group(9)), Integer.parseInt(matcher.group(10)), 
 							Integer.parseInt(matcher.group(11)), Integer.parseInt(matcher.group(12)), Integer.parseInt(matcher.group(13)), 
 							Integer.parseInt(matcher.group(14)), Integer.parseInt(matcher.group(15)));
+					String aName = currentActor.getValue(BasicTrait.Name);
 					ArrayList<Actor> actorList = currentNode.getActorList();
 					actorList.add(actorList.size()-1, currentActor);
 					// Inside Actor
@@ -289,11 +392,11 @@ public class ActorGroupFile {
 						}
 						else if ((matcher = attack.matcher(line)).matches()) {
 							currentActor.Attacks.add(new Attack(matcher.group(1), Integer.parseInt(matcher.group(2)), matcher.group(3), Boolean.parseBoolean(matcher.group(4))));
-							if (DEBUG) { System.out.println("ActorGroupFile: Found attack for actor. Name: " + currentActor.Name + ", Notes: " + currentActor.Notes); }   	
+							if (DEBUG) { System.out.println("ActorGroupFile: Found attack for actor. Name: " + aName); }   	
 						}
 						else if ((matcher = notes.matcher(line)).matches()) {
-							currentActor.Notes = matcher.group(1);
-							if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + currentActor.Name + ", Notes: " + currentActor.Notes); }   	
+							currentActor.setTrait(BasicTrait.Notes, matcher.group(1));
+							if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getValue(BasicTrait.Notes)); }   	
 						}
 						else if ((matcher = startNotes.matcher(line)).matches()) {
 							StringBuilder actorNotes = new StringBuilder(matcher.group(1) + "\n");
@@ -301,8 +404,8 @@ public class ActorGroupFile {
 							while ((line = input.readLine()) != null) {
 								if ((matcher = endNotes.matcher(line)).matches()) {
 									actorNotes.append(matcher.group(1));
-									currentActor.Notes = actorNotes.toString();
-									if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + currentActor.Name + ", Notes: " + currentActor.Notes); }   	
+									currentActor.setTrait(BasicTrait.Notes, actorNotes.toString());
+									if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getValue(BasicTrait.Notes)); }   	
 									break;
 								}	
 								actorNotes.append(line + "\n");
@@ -372,12 +475,13 @@ public class ActorGroupFile {
 					currentNode = newNode;
 				}
 				else if ((matcher = startActor.matcher(line)).matches()) {
-					Actor currentActor = new Actor(matcher.group(1), parseOldState(matcher.group(16)), ActorType.valueOf(matcher.group(17)), 
+					Actor currentActor = createLegacyActor(matcher.group(1), parseOldState(matcher.group(16)), ActorType.valueOf(matcher.group(17)), 
 							Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)), Integer.parseInt(matcher.group(4)), 
 							Integer.parseInt(matcher.group(5)), Integer.parseInt(matcher.group(6)), Integer.parseInt(matcher.group(7)), 
 							Integer.parseInt(matcher.group(8)), Integer.parseInt(matcher.group(9)), Integer.parseInt(matcher.group(10)), 
 							Integer.parseInt(matcher.group(11)), Integer.parseInt(matcher.group(12)), Integer.parseInt(matcher.group(13)), 
 							Integer.parseInt(matcher.group(14)), Integer.parseInt(matcher.group(15)));
+					String aName = currentActor.getValue(BasicTrait.Name);
 					ArrayList<Actor> actorList = currentNode.getActorList();
 					actorList.add(actorList.size()-1, currentActor);
 					// Inside Actor
@@ -387,11 +491,11 @@ public class ActorGroupFile {
 						}
 						else if ((matcher = attack.matcher(line)).matches()) {
 							currentActor.Attacks.add(new Attack(matcher.group(1), Integer.parseInt(matcher.group(2)), matcher.group(3), Boolean.parseBoolean(matcher.group(4))));
-							if (DEBUG) { System.out.println("ActorGroupFile: Found attack for actor. Name: " + currentActor.Name + ", Notes: " + currentActor.Notes); }   	
+							if (DEBUG) { System.out.println("ActorGroupFile: Found attack for actor. Name: " + aName); }   	
 						}
 						else if ((matcher = notes.matcher(line)).matches()) {
-							currentActor.Notes = matcher.group(1);
-							if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + currentActor.Name + ", Notes: " + currentActor.Notes); }   	
+							currentActor.setTrait(BasicTrait.Notes, matcher.group(1));
+							if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getValue(BasicTrait.Notes)); }   	
 						}
 						else if ((matcher = startNotes.matcher(line)).matches()) {
 							StringBuilder actorNotes = new StringBuilder(matcher.group(1) + "\n");
@@ -399,8 +503,8 @@ public class ActorGroupFile {
 							while ((line = input.readLine()) != null) {
 								if ((matcher = endNotes.matcher(line)).matches()) {
 									actorNotes.append(matcher.group(1));
-									currentActor.Notes = actorNotes.toString();
-									if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + currentActor.Name + ", Notes: " + currentActor.Notes); }   	
+									currentActor.setTrait(BasicTrait.Notes,  actorNotes.toString());
+									if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getValue(BasicTrait.Notes)); }   	
 									break;
 								}	
 								actorNotes.append(line + "\n");
@@ -469,9 +573,10 @@ public class ActorGroupFile {
 					currentNode = newNode;
 				}
 				else if ((matcher = startActor.matcher(line)).matches()) {
-					Actor currentActor = new Actor(matcher.group(1), parseOldState(matcher.group(9)), ActorType.valueOf(matcher.group(10)), 
+					Actor currentActor = createLegacyActor(matcher.group(1), parseOldState(matcher.group(9)), ActorType.valueOf(matcher.group(10)), 
 							Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)), Integer.parseInt(matcher.group(4)), 
 							Integer.parseInt(matcher.group(5)), Integer.parseInt(matcher.group(6)), Integer.parseInt(matcher.group(7)), 9, 9, Integer.parseInt(matcher.group(8)), 0, 0, 4, 20, 0);
+					String aName = currentActor.getValue(BasicTrait.Name);
 					ArrayList<Actor> actorList = currentNode.getActorList();
 					actorList.add(actorList.size()-1, currentActor);
 					// Inside Actor
@@ -480,8 +585,8 @@ public class ActorGroupFile {
 							break;
 						}
 						else if ((matcher = notes.matcher(line)).matches()) {
-							currentActor.Notes = matcher.group(1);
-							if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + currentActor.Name + ", Notes: " + currentActor.Notes); }   	
+							currentActor.setTrait(BasicTrait.Notes, matcher.group(1));
+							if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getValue(BasicTrait.Notes)); }   	
 						}
 						else if ((matcher = startNotes.matcher(line)).matches()) {
 							StringBuilder actorNotes = new StringBuilder(matcher.group(1) + "\n");
@@ -489,8 +594,8 @@ public class ActorGroupFile {
 							while ((line = input.readLine()) != null) {
 								if ((matcher = endNotes.matcher(line)).matches()) {
 									actorNotes.append(matcher.group(1));
-									currentActor.Notes = actorNotes.toString();
-									if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + currentActor.Name + ", Notes: " + currentActor.Notes); }   	
+									currentActor.setTrait(BasicTrait.Notes, actorNotes.toString());
+									if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getValue(BasicTrait.Notes)); }   	
 									break;
 								}	
 								actorNotes.append(line + "\n");
@@ -559,8 +664,9 @@ public class ActorGroupFile {
 					currentNode = newNode;
 				}
 				else if ((matcher = startActor.matcher(line)).matches()) {
-					Actor currentActor = new Actor(matcher.group(1), parseOldState(matcher.group(5)), ActorType.valueOf(matcher.group(6)), 
+					Actor currentActor = createLegacyActor(matcher.group(1), parseOldState(matcher.group(5)), ActorType.valueOf(matcher.group(6)), 
 							Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)),10,0,5,9,9,8,0,0,4,20,0);
+					String aName = currentActor.getValue(BasicTrait.Name);
 					ArrayList<Actor> actorList = currentNode.getActorList();
 					actorList.add(actorList.size()-1, currentActor);
 					// Inside Actor
@@ -569,8 +675,8 @@ public class ActorGroupFile {
 							break;
 						}
 						else if ((matcher = notes.matcher(line)).matches()) {
-							currentActor.Notes = matcher.group(1);
-							if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + currentActor.Name + ", Notes: " + currentActor.Notes); }   	
+							currentActor.setTrait(BasicTrait.Notes, matcher.group(1));
+							if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getValue(BasicTrait.Notes)); }   	
 						}
 						else if ((matcher = startNotes.matcher(line)).matches()) {
 							StringBuilder actorNotes = new StringBuilder(matcher.group(1) + "\n");
@@ -578,8 +684,8 @@ public class ActorGroupFile {
 							while ((line = input.readLine()) != null) {
 								if ((matcher = endNotes.matcher(line)).matches()) {
 									actorNotes.append(matcher.group(1));
-									currentActor.Notes = actorNotes.toString();
-									if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + currentActor.Name + ", Notes: " + currentActor.Notes); }   	
+									currentActor.setTrait(BasicTrait.Notes, actorNotes.toString());
+									if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getValue(BasicTrait.Notes)); }   	
 									break;
 								}	
 								actorNotes.append(line + "\n");
@@ -645,7 +751,7 @@ public class ActorGroupFile {
 					currentNode = newNode;
 				}
 				else if ((matcher = actor.matcher(line)).matches()) {
-					Actor currentActor = new Actor(matcher.group(1), parseOldState(matcher.group(5)), ActorType.valueOf(matcher.group(6)), 
+					Actor currentActor = createLegacyActor(matcher.group(1), parseOldState(matcher.group(5)), ActorType.valueOf(matcher.group(6)), 
 							Integer.parseInt(matcher.group(4)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)),10,0,5,9,9,8,0,0,4,20,0);
 					ArrayList<Actor> actorList = currentNode.getActorList();
 					actorList.add(actorList.size()-1, currentActor);
@@ -668,5 +774,30 @@ public class ActorGroupFile {
 	        return;
 	    }
 	}
-
+	
+	/**
+	 * Basic legacy constructor specifying 'all' options
+	 */
+	public static Actor createLegacyActor(String name, HashSet<ActorStatus> status, ActorType type, int ht, int hp, int damage, int fp, int fatigue, 
+			int move, int parry, int block, int dodge, int dr, int db, int shield_dr, int shield_hp, int default_attack) {
+		Actor a = new Actor(name, type);
+		a.Status.addAll(status);
+		a.DefaultAttack = default_attack;
+		
+		a.setTrait(BasicTrait.HT, ht);
+		a.setTrait(BasicTrait.HP, hp);
+		a.setTrait(BasicTrait.Injury, damage);
+		a.setTrait(BasicTrait.FP, fp);
+		a.setTrait(BasicTrait.Fatigue, fatigue);
+		a.setTrait(BasicTrait.Move, move);
+		a.setTrait(BasicTrait.Parry, parry);
+		a.setTrait(BasicTrait.Block, block);
+		a.setTrait(BasicTrait.Dodge, dodge);
+		a.setTrait(BasicTrait.DR, dr);
+		a.setTrait(BasicTrait.Shield_DB, db);
+		a.setTrait(BasicTrait.Shield_DR, shield_dr);
+		a.setTrait(BasicTrait.Shield_HP, shield_hp);
+		
+		return a;
+	}
 }
