@@ -20,7 +20,7 @@
           <Component id="attacks" alignment="1" max="32767" attributes="1"/>
           <Component id="jScrollPane1" alignment="0" pref="0" max="32767" attributes="1"/>
           <Component id="debugPanel" alignment="0" max="32767" attributes="0"/>
-          <Component id="jPanel1" max="32767" attributes="0"/>
+          <Component id="traits" max="32767" attributes="0"/>
           <Component id="shieldPanel" alignment="0" max="32767" attributes="0"/>
           <Group type="102" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
@@ -237,7 +237,7 @@
               <EmptySpace min="-2" pref="1" max="-2" attributes="0"/>
               <Component id="attacks" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="-2" pref="1" max="-2" attributes="0"/>
-              <Component id="jPanel1" min="-2" max="-2" attributes="0"/>
+              <Component id="traits" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="-2" pref="1" max="-2" attributes="0"/>
               <Component id="debugPanel" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="-2" max="-2" attributes="0"/>
@@ -1092,7 +1092,7 @@
         <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="actorIntPropertyChange"/>
       </Events>
     </Component>
-    <Container class="javax.swing.JPanel" name="jPanel1">
+    <Container class="javax.swing.JPanel" name="traits">
       <Properties>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
@@ -1126,7 +1126,7 @@
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
           <SubComponents>
-            <Component class="javax.swing.JTable" name="jTable1">
+            <Component class="javax.swing.JTable" name="traitsTable">
               <Properties>
                 <Property name="autoCreateRowSorter" type="boolean" value="true"/>
                 <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
@@ -1147,7 +1147,7 @@
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBoxLayout"/>
           <SubComponents>
-            <Component class="javax.swing.JButton" name="add_attack3">
+            <Component class="javax.swing.JButton" name="add_trait">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                   <Image iconType="3" name="/resources/images/add.png"/>
@@ -1158,10 +1158,10 @@
                 <Property name="verticalTextPosition" type="int" value="3"/>
               </Properties>
               <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="add_attack3ActionPerformed"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="add_traitActionPerformed"/>
               </Events>
             </Component>
-            <Component class="javax.swing.JButton" name="remove_attack3">
+            <Component class="javax.swing.JButton" name="remove_trait">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                   <Image iconType="3" name="/resources/images/delete.png"/>
@@ -1171,12 +1171,12 @@
                 <Property name="verticalTextPosition" type="int" value="3"/>
               </Properties>
               <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="remove_attack3ActionPerformed"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="remove_traitActionPerformed"/>
               </Events>
             </Component>
             <Component class="javax.swing.JToolBar$Separator" name="jSeparator5">
             </Component>
-            <Component class="javax.swing.JButton" name="resizeAttackTable3">
+            <Component class="javax.swing.JButton" name="resizeTraitTable">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                   <Image iconType="3" name="/resources/images/script_code.png"/>
@@ -1186,7 +1186,7 @@
                 <Property name="verticalTextPosition" type="int" value="3"/>
               </Properties>
               <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="resizeAttackTable3ActionPerformed"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="resizeTraitTableActionPerformed"/>
               </Events>
             </Component>
           </SubComponents>

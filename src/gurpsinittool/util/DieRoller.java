@@ -27,20 +27,19 @@ public class DieRoller {
 	}
 	
 	public static boolean isSuccess(int roll, int eff_skill) {
-		return roll <= eff_skill && roll < 17;
+		return (roll <= 4) || (roll <= eff_skill && roll < 17);
 	}
 
 	public static boolean isFailure(int roll, int eff_skill) {
-		return roll > eff_skill || roll > 16;
+		return (roll > 4 && roll > eff_skill) || roll > 16;
 	}
 	
 	public static boolean isCritSuccess(int roll, int eff_skill) {
-		//if (eff_skill <= 3) WHY!! Rules state that 3 or 4 is ALWAYS a crit
-		//	return false; 
+		// Rules state that 3 or 4 is ALWAYS a crit success!
 		return (roll <= 4 || (roll <= 6 && (roll+10) <= eff_skill));
 	}
 	
 	public static boolean isCritFailure(int roll, int eff_skill) {
-		return (roll >= 18 || (eff_skill < 16 && roll >= 17) || (roll-10) >= eff_skill);
+		return (roll >= 18 || (eff_skill < 16 && roll >= 17) || (roll > 4 && (roll-10) >= eff_skill));
 	}
 }

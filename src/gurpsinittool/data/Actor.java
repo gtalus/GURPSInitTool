@@ -8,6 +8,7 @@ import gurpsinittool.util.EncounterLogEventSource;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -24,7 +25,7 @@ public class Actor
 	public static EncounterLogEventSource LogEventSource; // where to send log messages
 	public static GameSettings settings; // Settings which determine game behavior, including automation
 	
-	public enum ActorStatus {Attacking, Waiting, Disarmed, Stunned, Prone, Kneeling, Disabled, Unconscious, Dead};
+	public enum ActorStatus {Attacking, Waiting, Disarmed, StunPhys, StunMental, StunRecovr, Prone, Kneeling, Disabled, Unconscious, Dead};
 	// Position, Status, Action, Disarmed
 	// TODO: hide behind interface and log changes
 	public HashSet<ActorStatus> Status;
@@ -165,26 +166,87 @@ public class Actor
 		}
 	}
 	
-	public void setTrait(BasicTrait trait, String value) {
+	public Trait setTrait(BasicTrait trait, String value) {
 		Trait theTrait = getTrait(trait);
 		theTrait.value = value;
+		return theTrait;
 	}
 	
-	public void setTrait(BasicTrait trait, int value) {
-		setTrait(trait, String.valueOf(value));
+	public Trait setTrait(BasicTrait trait, int value) {
+		return setTrait(trait, String.valueOf(value));
 	}
 	
-	public void setTrait(String name, String value) {
+	/**
+	 * Set the value of a trait, adding if that trait does not exist
+	 * @param name - the name of the trait
+	 * @param value - the value of the trait
+	 * @return the trait object created or modified
+	 */
+	public Trait setTrait(String name, String value) {
 		if (hasTrait(name)) {
 			Trait theTrait = getTrait(name);
 			theTrait.value = value;
+			return theTrait;
 		} else {
-			traits.put(name, new Trait(name, value));
+			Trait newTrait = new Trait(name, value);
+			traits.put(name, newTrait);
+			return newTrait;
 		}
 	}
 	
-	public void setTrait(String name, int value) {
-		setTrait(name, String.valueOf(value));
+	public Trait setTrait(String name, int value) {
+		return setTrait(name, String.valueOf(value));
+	}
+	
+	/**
+	 * Remove a trait (BasicTraits cannot be removed)
+	 * @param name - the name of the trait to remove
+	 * @return success
+	 */
+	public boolean removeTrait(String name) {
+		if (isBasicTrait(name)) {
+			System.out.println("-E- removeTrait: cannot remove basic traits! => " + name);
+			return false;
+		} else {
+			traits.remove(name);
+			return true;
+		}
+	}
+	
+	/**
+	 * Rename a trait, checking for the new name already taken or a BasicTrait
+	 * @param oldName - the current trait name
+	 * @param newName - the proposed new trait name
+	 * @return success
+	 */
+	public boolean renameTrait(String oldName, String newName) {
+		if (isBasicTrait(oldName)) {
+			System.out.println("-E- renameTrait: Cannot rename BasicTrait! oldName: " + oldName + ", newName: " + newName);
+			return false;
+		} else if (hasTrait(newName)) {
+			System.out.println("-E- renameTrait: New trait name already exists! oldName: " + oldName + ", newName: " + newName);
+			return false;
+		} else if (!hasTrait(oldName)) {
+			System.out.println("-E- renameTrait: Old name does not exist! oldName: " + oldName + ", newName: " + newName);
+			return false;
+		} else {
+			Trait trait = getTrait(oldName);
+			trait.name = newName;
+			traits.remove(oldName);
+			traits.put(newName, trait);
+			return true;
+		}
+	}
+	
+	public Collection<Trait> getAllTraits() {
+		return traits.values();
+	}
+	
+	public static boolean isBasicTrait(String name) {
+		for (BasicTrait b: BasicTrait.values()) {
+			if (b.name().equals(name)) return true;
+		}
+		return false;
 	}
 
     //================================================================================
@@ -221,7 +283,32 @@ public class Actor
 					logEvent("<b>" + Name + "</b> passed consciousness roll " + details);
 				}
 			}
-			if (settings.AUTO_ATTACK && Status.contains(ActorStatus.Attacking))
+			if (settings.AUTO_STUNRECOVERY) {
+				Status.remove(ActorStatus.StunRecovr); // This was from last turn, so recovered this turn
+				if (Status.contains(ActorStatus.StunMental)) {
+					int recoverTarget = getValueInt(BasicTrait.IQ);
+					if (hasTrait("CR")) recoverTarget += 6;
+					int roll = DieRoller.roll3d6();
+					if (DieRoller.isSuccess(roll, recoverTarget)) {
+						logEvent("<b>" + Name + "</b> is now recovering from Mental Stun (rolled " + roll + " against " + recoverTarget + ")"); 
+						Status.remove(ActorStatus.StunMental);
+						Status.add(ActorStatus.StunRecovr);
+					} else {
+						logEvent("<b>" + Name + "</b> <b>failed</b> recovery roll for Mental Stun (rolled " + roll + " against " + recoverTarget + ")"); 
+					}
+				} else if (Status.contains(ActorStatus.StunPhys)) {
+					int recoverTarget = getValueInt(BasicTrait.HT);
+					int roll = DieRoller.roll3d6();
+					if (DieRoller.isSuccess(roll, recoverTarget)) {
+						logEvent("<b>" + Name + "</b> is now recovering from Physical Stun (rolled " + roll + " against " + recoverTarget + ")");
+						Status.remove(ActorStatus.StunPhys);
+						Status.add(ActorStatus.StunRecovr);
+					} else {
+						logEvent("<b>" + Name + "</b> <b>failed</b> recovery roll for Physical Stun (rolled " + roll + " against " + recoverTarget + ")"); 
+					}
+				}
+			}
+			if (settings.AUTO_ATTACK && Status.contains(ActorStatus.Attacking) && !isStunned())
 				Attack();
 		}
 	}
@@ -241,6 +328,13 @@ public class Actor
 	private void logEvent(String text) {
 		if (LogEventSource != null)
 			LogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, text));
+	}
+	
+	// Helper method to deal with all the varieties of stun
+	public boolean isStunned() {
+		return (Status.contains(Actor.ActorStatus.StunPhys)
+    			|| Status.contains(Actor.ActorStatus.StunMental)
+    			|| Status.contains(Actor.ActorStatus.StunRecovr));
 	}
 	
     //================================================================================
@@ -324,10 +418,20 @@ public class Actor
     	int HT = getValueInt(BasicTrait.HT);
  		if (defense.cripplingInjury || defense.majorWound) {
  			int effHT = HT + defense.location.knockdownPenalty;
+ 			if (hasTrait("HPT")) effHT += 3;
+ 			if (hasTrait("LPT")) effHT -= 4;
  			int roll = DieRoller.roll3d6();
- 			int MoS = effHT - roll;
- 			String success = (MoS<0)?"<b>failed</b>":"succeeded";
- 			logEvent("<b>" + Name + "</b> Knockdown/Stunning check: rolled " + roll + " against " + effHT + " (" + success + " by " + Math.abs(MoS) + ")");
+ 			boolean success = DieRoller.isSuccess(roll, effHT);
+ 			logEvent("<b>" + Name + "</b> Knockdown/Stunning check: rolled " + roll + " against " + effHT + " => " + (!success?"<b>failed</b>":"succeeded"));
+ 			if (settings.AUTO_KNOCKDOWNSTUN) {
+ 				if (!success) {
+ 					Status.add(ActorStatus.StunPhys); // Check for mental stun and don't add this in that case?
+ 					Status.remove(ActorStatus.StunRecovr);
+ 					Status.add(ActorStatus.Prone);
+ 					Status.remove(ActorStatus.Kneeling);
+ 					Status.add(ActorStatus.Disarmed);
+ 				}
+ 			}
  		}
     }
 	    

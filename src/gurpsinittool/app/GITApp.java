@@ -137,8 +137,11 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
        		initTable.modifyStatusOfSelectedActors(Actor.ActorStatus.Kneeling, false);
        		initTable.modifyStatusOfSelectedActors(Actor.ActorStatus.Prone, true);
        	}
-       	else if ("actorsStunToggle".equals(e.getActionCommand())) {
-       		initTable.toggleStatusOfSelectedActors(Actor.ActorStatus.Stunned);
+       	else if ("actorsStunPhysToggle".equals(e.getActionCommand())) {
+       		initTable.toggleStatusOfSelectedActors(Actor.ActorStatus.StunPhys);
+       	}
+       	else if ("actorsStunMentalToggle".equals(e.getActionCommand())) {
+       		initTable.toggleStatusOfSelectedActors(Actor.ActorStatus.StunMental);
        	}
        	else if ("actorsDisarmToggle".equals(e.getActionCommand())) {
        		initTable.toggleStatusOfSelectedActors(Actor.ActorStatus.Disarmed);
@@ -434,12 +437,20 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
         button.addActionListener(this);
         toolbar.add(button);
         toolbar.addSeparator();
-        // Stunned
+        // Stunned Physical
         button = new JButton();
-        button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/transmit_blue.png"), "Stunned"));
+        button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/transmit.png"), "Physical Stun"));
         button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
-        button.setToolTipText("Stunned");
-        button.setActionCommand("actorsStunToggle");
+        button.setToolTipText("Physically Stunned");
+        button.setActionCommand("actorsStunPhysToggle");
+        button.addActionListener(this);
+        toolbar.add(button);
+        // Stunned Mental
+        button = new JButton();
+        button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/transmit_blue.png"), "Mental Stun"));
+        button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
+        button.setToolTipText("Mentally Stunned");
+        button.setActionCommand("actorsStunMentalToggle");
         button.addActionListener(this);
         toolbar.add(button);
         // Disarmed

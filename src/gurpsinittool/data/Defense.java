@@ -60,7 +60,7 @@ public class Defense {
     	
     	// Set default options
     	shield = (ShieldDB > 0 && actor.ShieldDamage < ShieldHP);
-    	if (actor.Status.contains(Actor.ActorStatus.Stunned))
+    	if (actor.isStunned())
     		stunned = true;
     	// Set position
     	if (actor.Status.contains(Actor.ActorStatus.Kneeling))

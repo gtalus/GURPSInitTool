@@ -294,7 +294,9 @@ public class InitTable extends JTable
         menuFile.setMnemonic(KeyEvent.VK_S);
         menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Attacking, KeyEvent.VK_A));
         menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Waiting, KeyEvent.VK_W));
-        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Stunned, KeyEvent.VK_S));
+        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.StunPhys, KeyEvent.VK_P));
+        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.StunMental, KeyEvent.VK_M));
+        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.StunRecovr, KeyEvent.VK_S));
         menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Disarmed, KeyEvent.VK_R));
         menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Kneeling, KeyEvent.VK_K));
         menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Prone, KeyEvent.VK_P));

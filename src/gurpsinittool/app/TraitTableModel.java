@@ -1,6 +1,7 @@
 package gurpsinittool.app;
 
 import java.awt.Component;
+import java.util.ArrayList;
 
 import javax.swing.JLabel;
 import javax.swing.JTable;
@@ -8,6 +9,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import gurpsinittool.data.*;
+import gurpsinittool.data.Actor.Trait;
 
 public class TraitTableModel extends AbstractTableModel {
 
@@ -18,13 +20,14 @@ public class TraitTableModel extends AbstractTableModel {
 
 	private static final boolean DEBUG = true;
 
-	private String[] columnNames = {"Name", "Skill", "Damage", "U"};
-	private Class<?>[] columnClasses = {String.class, Integer.class, String.class, Boolean.class};
-	public enum columns {Name, Skill, Damage, Unbalanced};
-	private static int numColumns = 4;
+	private String[] columnNames = {"Name", "Value"};
+	private Class<?>[] columnClasses = {String.class, String.class};
+	public enum columns {Name, Value};
+	private static int numColumns = 2;
 	
 	private InitTableModel actorModel = null;
 	private Actor currentActor = null;
+	private ArrayList<Trait> displayedTraits = new ArrayList<Trait>();
 
 	
 	public TraitTableModel(InitTableModel actorModel) {
@@ -49,22 +52,18 @@ public class TraitTableModel extends AbstractTableModel {
 	public int getRowCount() {
 		if (currentActor == null)
 			return 0;
-		return currentActor.Attacks.size();
+		return displayedTraits.size();
 	}
 
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		if (currentActor == null)
 			return null;
-		Attack attack = currentActor.Attacks.get(rowIndex);
+		Trait trait = displayedTraits.get(rowIndex);
 		switch (columns.values()[columnIndex]) {
 		case Name:
-			return attack.Name;
-		case Skill:
-			return attack.Skill;
-		case Damage:
-			return attack.Damage;
-		case Unbalanced:
-			return attack.Unbalanced;
+			return trait.name;
+		case Value:
+			return trait.value;
 		default:
 			return null;
 		}
@@ -72,9 +71,8 @@ public class TraitTableModel extends AbstractTableModel {
 	
 	/**
 	 * Set the value at the row/col specified
-	 * For cloned actors, this will update all clones (and fire table updated events)
-	 * @param value : Must be either int (for hp/damage/health) or String (for name/State/Type) 
-	 * @param row : The row where the actor lives. Any clones will be updated also.
+	 * @param value : String
+	 * @param row : Row of trait, as listed in displayedTraits
 	 * @param col : The column of the value to edit: use 'columns' enum to address.
 	 */
     @Override
@@ -92,19 +90,17 @@ public class TraitTableModel extends AbstractTableModel {
     		return;
         }
         
-        Attack a = currentActor.Attacks.get(row);
+        Trait trait = displayedTraits.get(row);;//currentActor.Attacks.get(row);
 		switch (columns.values()[col]) {
 		case Name:
-			a.Name = (String) value;
+			String newName = (String) value;
+			if (!currentActor.renameTrait(trait.name, newName)) {
+				System.out.println("AttackTableModel: setValueAt: rename failed!");
+			}
 			break;
-		case Skill:
-			a.Skill = (Integer) value;
+		case Value:
+			trait.value = (String) value;
 			break;
-		case Damage:
-			a.Damage = (String) value;
-			break;
-		case Unbalanced:
-			a.Unbalanced = (Boolean) value;
 		}
 		// Update the entire row, since changing state or type may affect formatting for all cells in the row.
 		setDirty();
@@ -124,15 +120,29 @@ public class TraitTableModel extends AbstractTableModel {
 	 */
 	public void setActor(Actor actor) {
 		currentActor = actor;
+		// Build displayedTraits list
+		displayedTraits.clear();
+		for (Object value : actor.getAllTraits()) {
+			Trait trait = (Trait) value;
+			if (Actor.isBasicTrait(trait.name)) continue;
+			displayedTraits.add(trait);
+		}
 		fireTableDataChanged();
 	}
 
 	/**
-	 * Add new attack row
+	 * Add new trait row
 	 */
-    public void addAttack() {
+    public void addTrait() {
     	if (currentActor != null) {
-    		currentActor.Attacks.add(new Attack());
+    		// Figure out a new name
+    		int num = 1;
+    		while (currentActor.hasTrait("newTrait" + String.valueOf(num))) {num++;}
+    		// Add the new trait
+    		System.out.println("HERE: preparing to add new trait: " + num);
+    		Trait newTrait = currentActor.setTrait("newTrait" + String.valueOf(num), "");
+    		displayedTraits.add(newTrait);
+    		System.out.println("HERE: added new trait: " + newTrait.name);
     		fireTableRowsInserted(getRowCount()-1, getRowCount()-1);
     	}
     }
@@ -140,34 +150,19 @@ public class TraitTableModel extends AbstractTableModel {
     /**
 	 * Remove all selected rows
 	 */
-    public void removeAttacks(int[] rows) {
+    public void removeTraits(int[] rows) {
     	if (currentActor != null && rows.length > 0) {
 			for (int i = rows.length-1; i >= 0; i--) {  // Go from bottom up to preserve numbering
-				if (DEBUG) { System.out.println("AttackTableModel: Deleting row: " + rows[i]); }   			
-				currentActor.Attacks.remove(rows[i]); // Just remove the rows indicated: not all instances of clones
-				if (rows[i] < currentActor.DefaultAttack)
-					--currentActor.DefaultAttack;
-				if (rows[i] == currentActor.DefaultAttack)
-					currentActor.DefaultAttack = 0;
+				if (DEBUG) { System.out.println("TraitTableModel: Deleting row: " + rows[i]); }   	
+				Trait trait = displayedTraits.get(rows[i]);
+				if(currentActor.removeTrait(trait.name)) {
+					displayedTraits.remove(rows[i]);
+				} else {
+					System.out.println("-W- TraitTableModel: skipping trait removal due to failure in base actor");
+				}
 			}
     		fireTableRowsDeleted(rows[0], rows[rows.length-1]);
     	}
-    }
-    
-    /**
-     * Set the current actor's default attack
-     * @param row the model row to set as default
-     */
-    public void setDefaultAttack(int row) {
-    	if (row < 0 || row >= currentActor.Attacks.size()) {
-    		System.out.println("AttackTableModel:setDefaultAttack: row out of range! " + row);
-    		return;
-    	}
-    	int oldDefault = currentActor.DefaultAttack;
-    	currentActor.DefaultAttack = row;
-    	fireTableRowsUpdated(oldDefault, oldDefault);
-    	fireTableRowsUpdated(row, row);
-    	actorModel.setDirty();
     }
  
     /**
@@ -176,27 +171,4 @@ public class TraitTableModel extends AbstractTableModel {
     public void setDirty() {
     	actorModel.setDirty();
     }
-    
-	/**
-	 * Renderer to deal with all the customizations based on Actor state/type/etc.
-	 * Assumes that the table model being used is an ActorTableModel.
-	 * @author dsmall
-	 *
-	 */
-	public class AttackTableCellRenderer extends DefaultTableCellRenderer {
-
-		/**
-		 * This class is not really serializable, I think.
-		 */
-		private static final long serialVersionUID = 1L;
-
-		@Override
-		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-			JLabel c = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-			if (table.getRowSorter().convertRowIndexToModel(row) == currentActor.DefaultAttack) {
-				c.setText("<html><strong>" + c.getText() + "</strong></html>");
-			}
-			return c;
-		}
-	}
 }

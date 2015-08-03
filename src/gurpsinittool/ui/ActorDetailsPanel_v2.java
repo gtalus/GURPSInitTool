@@ -23,6 +23,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
@@ -32,6 +33,8 @@ import javax.swing.text.JTextComponent;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
+import javax.swing.JPanel;
+import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
@@ -63,7 +66,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton add_attack;
-    private javax.swing.JButton add_attack3;
+    private javax.swing.JButton add_trait;
     private javax.swing.JPanel attacks;
     private javax.swing.JTable attacksTable;
     private javax.swing.JFormattedTextField block;
@@ -105,14 +108,12 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JToolBar.Separator jSeparator5;
-    private javax.swing.JTable jTable1;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar4;
     private javax.swing.JFormattedTextField move;
@@ -123,9 +124,9 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     private javax.swing.JFormattedTextField parry;
     private javax.swing.JFormattedTextField per;
     private javax.swing.JButton remove_attack;
-    private javax.swing.JButton remove_attack3;
+    private javax.swing.JButton remove_trait;
     private javax.swing.JButton resizeAttackTable;
-    private javax.swing.JButton resizeAttackTable3;
+    private javax.swing.JButton resizeTraitTable;
     private javax.swing.JLabel shieldDamageLabel;
     private javax.swing.JPanel shieldPanel;
     private javax.swing.JFormattedTextField shield_dr;
@@ -134,6 +135,8 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     private javax.swing.JFormattedTextField speed;
     private javax.swing.JFormattedTextField st;
     private javax.swing.JComboBox status;
+    private javax.swing.JPanel traits;
+    private javax.swing.JTable traitsTable;
     private javax.swing.JComboBox type;
     private javax.swing.JFormattedTextField will;
     // End of variables declaration//GEN-END:variables
@@ -232,14 +235,14 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         speed = new javax.swing.JFormattedTextField();
         jLabel26 = new javax.swing.JLabel();
         sm = new javax.swing.JFormattedTextField();
-        jPanel1 = new javax.swing.JPanel();
+        traits = new javax.swing.JPanel();
         jScrollPane5 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        traitsTable = new javax.swing.JTable();
         jToolBar4 = new javax.swing.JToolBar();
-        add_attack3 = new javax.swing.JButton();
-        remove_attack3 = new javax.swing.JButton();
+        add_trait = new javax.swing.JButton();
+        remove_trait = new javax.swing.JButton();
         jSeparator5 = new javax.swing.JToolBar.Separator();
-        resizeAttackTable3 = new javax.swing.JButton();
+        resizeTraitTable = new javax.swing.JButton();
 
         jLabel2.setFont(jLabel2.getFont().deriveFont(jLabel2.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel2.setText("Status:");
@@ -807,61 +810,61 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
             }
         });
 
-        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Traits"));
+        traits.setBorder(javax.swing.BorderFactory.createTitledBorder("Traits"));
 
-        jTable1.setAutoCreateRowSorter(true);
-        jTable1.setModel(traitTableModel);
-        jScrollPane5.setViewportView(jTable1);
+        traitsTable.setAutoCreateRowSorter(true);
+        traitsTable.setModel(traitTableModel);
+        jScrollPane5.setViewportView(traitsTable);
 
         jToolBar4.setBorder(null);
         jToolBar4.setFloatable(false);
         jToolBar4.setRollover(true);
 
-        add_attack3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/add.png"))); // NOI18N
-        add_attack3.setFocusable(false);
-        add_attack3.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        add_attack3.setIconTextGap(1);
-        add_attack3.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        add_attack3.addActionListener(new java.awt.event.ActionListener() {
+        add_trait.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/add.png"))); // NOI18N
+        add_trait.setFocusable(false);
+        add_trait.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        add_trait.setIconTextGap(1);
+        add_trait.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        add_trait.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                add_attack3ActionPerformed(evt);
+                add_traitActionPerformed(evt);
             }
         });
-        jToolBar4.add(add_attack3);
+        jToolBar4.add(add_trait);
 
-        remove_attack3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/delete.png"))); // NOI18N
-        remove_attack3.setFocusable(false);
-        remove_attack3.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        remove_attack3.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        remove_attack3.addActionListener(new java.awt.event.ActionListener() {
+        remove_trait.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/delete.png"))); // NOI18N
+        remove_trait.setFocusable(false);
+        remove_trait.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        remove_trait.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        remove_trait.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                remove_attack3ActionPerformed(evt);
+                remove_traitActionPerformed(evt);
             }
         });
-        jToolBar4.add(remove_attack3);
+        jToolBar4.add(remove_trait);
         jToolBar4.add(jSeparator5);
 
-        resizeAttackTable3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/script_code.png"))); // NOI18N
-        resizeAttackTable3.setFocusable(false);
-        resizeAttackTable3.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        resizeAttackTable3.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        resizeAttackTable3.addActionListener(new java.awt.event.ActionListener() {
+        resizeTraitTable.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/script_code.png"))); // NOI18N
+        resizeTraitTable.setFocusable(false);
+        resizeTraitTable.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        resizeTraitTable.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        resizeTraitTable.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                resizeAttackTable3ActionPerformed(evt);
+                resizeTraitTableActionPerformed(evt);
             }
         });
-        jToolBar4.add(resizeAttackTable3);
+        jToolBar4.add(resizeTraitTable);
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout traitsLayout = new javax.swing.GroupLayout(traits);
+        traits.setLayout(traitsLayout);
+        traitsLayout.setHorizontalGroup(
+            traitsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
             .addComponent(jToolBar4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+        traitsLayout.setVerticalGroup(
+            traitsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, traitsLayout.createSequentialGroup()
                 .addComponent(jToolBar4, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(1, 1, 1)
                 .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 27, Short.MAX_VALUE))
@@ -875,7 +878,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
             .addComponent(attacks, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
             .addComponent(debugPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(traits, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(shieldPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
@@ -1046,7 +1049,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                 .addGap(1, 1, 1)
                 .addComponent(attacks, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(1, 1, 1)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(traits, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(1, 1, 1)
                 .addComponent(debugPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1129,17 +1132,29 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     	}
     }//GEN-LAST:event_nameFocusLost
 
-    private void add_attack3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_add_attack3ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_add_attack3ActionPerformed
+    private void add_traitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_add_traitActionPerformed
+        traitTableModel.addTrait();
+        resizeTableInPanel(traits, traitsTable, traitTableModel);
+        actorModel.setDirty();
+    }//GEN-LAST:event_add_traitActionPerformed
 
-    private void remove_attack3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_remove_attack3ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_remove_attack3ActionPerformed
+    private void remove_traitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_remove_traitActionPerformed
+    	// Convert from sorted row numbers to model row numbers
+        // Most of this is not necessary, since the table has a single row selection model
+        int viewRows[] = traitsTable.getSelectedRows();
+        int modelRows[] = new int[viewRows.length];
+        for (int i = 0; i < viewRows.length; ++i) {
+            modelRows[i] = traitsTable.getRowSorter().convertRowIndexToModel(viewRows[i]);
+        }
+        Arrays.sort(modelRows);
+        traitTableModel.removeTraits(modelRows);
+        resizeTableInPanel(traits, traitsTable, traitTableModel);
+        actorModel.setDirty();
+    }//GEN-LAST:event_remove_traitActionPerformed
 
-    private void resizeAttackTable3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resizeAttackTable3ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_resizeAttackTable3ActionPerformed
+    private void resizeTraitTableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resizeTraitTableActionPerformed
+    	resizeTableInPanel(traits, traitsTable, traitTableModel);
+    }//GEN-LAST:event_resizeTraitTableActionPerformed
 
     private void resizeAttackTableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resizeAttackTableActionPerformed
         resizeAttacksTable();
@@ -1224,9 +1239,9 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     	name.setText("");
     	name.setBackground(new java.awt.Color(236, 233, 216));
     	name.setEnabled(false);
-    	add_attack3.setEnabled(false);
-    	remove_attack3.setEnabled(false);
-    	resizeAttackTable3.setEnabled(false);
+    	add_trait.setEnabled(false);
+    	remove_trait.setEnabled(false);
+    	resizeTraitTable.setEnabled(false);
     	add_attack.setEnabled(false);
        	remove_attack.setEnabled(false);
       	default_attack.setEnabled(false);
@@ -1273,6 +1288,9 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
        	remove_attack.setEnabled(true);
       	default_attack.setEnabled(true);
       	resizeAttackTable.setEnabled(true);
+      	add_trait.setEnabled(true);
+       	remove_trait.setEnabled(true);
+      	resizeTraitTable.setEnabled(true);
     	//add_timer.setEnabled(true);
     	notes.setEnabled(true);
     }
@@ -1307,6 +1325,38 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     	}
     	//this.resizeAndRepaint();
         attacks.revalidate();
+    }
+    
+    /** 
+     * Resize the attacks table to fit all rows
+     */
+    public void resizeTableInPanel(JPanel panel, JTable table, AbstractTableModel tableModel) {
+        panel.setPreferredSize(new Dimension(0, panel.getMinimumSize().height+table.getRowHeight()*(tableModel.getRowCount())));
+        if (DEBUG) { System.out.println("resizeTableInPanel: starting."); }
+    	//this.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+    	TableColumn column = null;
+    	for (int i = 0; i < table.getColumnCount(); i++) {
+    	    column = table.getColumnModel().getColumn(i);
+    	    
+    	    // Get width of column header 
+    	    TableCellRenderer renderer = column.getHeaderRenderer(); 
+    	    if (renderer == null) 
+    	    { renderer = table.getTableHeader().getDefaultRenderer(); } 
+    	    Component comp = renderer.getTableCellRendererComponent( table, column.getHeaderValue(), false, false, 0, 0); 
+    	    int width = comp.getPreferredSize().width; 
+     	    
+    	    // Check width of all the cells
+    	    // Get maximum width of column data
+    	    for (int j=0; j < table.getRowCount(); j++) {
+    	        renderer = table.getCellRenderer(j, i);
+    	        comp = renderer.getTableCellRendererComponent(table, table.getValueAt(j, i), false, false, j, i);
+    	        width = Math.max(width, comp.getPreferredSize().width);
+    	    }
+    	    
+       	    column.setPreferredWidth(width);
+    	}
+    	//this.resizeAndRepaint();
+        panel.revalidate();
     }
     
     /**
@@ -1369,7 +1419,8 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	    refreshActorStringField(notes);
 	    
 	    attackTableModel.setActor(actor);
-            
+	    traitTableModel.setActor(actor);
+	    
         // Debug
 	    shieldDamageLabel.setText(String.valueOf(actor.ShieldDamage));
 	    numParryLabel.setText(String.valueOf(actor.numParry));
@@ -1377,6 +1428,8 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	    //turnLabel.setText(String.valueOf(actor.turn));
             
 	    resizeAttacksTable();
+	    resizeTableInPanel(traits, traitsTable, traitTableModel);
+	    
 		actorLoaded = true; // turn property updates back on
 	}
 	
