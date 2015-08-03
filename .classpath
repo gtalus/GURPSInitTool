@@ -2,6 +2,5 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="C:/Program Files/NetBeans 8.0.2/java/modules/org-jdesktop-beansbinding.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

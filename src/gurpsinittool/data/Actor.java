@@ -264,7 +264,7 @@ public class Actor
 		
 		// Resolve auto actions at start of actor's turn:
     	if (Type == ActorType.Enemy) { // Do AUTO actions
-			if (settings.isAUTO_UNCONSCIOUS() 
+			if (settings.AUTO_UNCONSCIOUS 
 					&& Injury >= HP
 					&& !(Status.contains(ActorStatus.Unconscious) 
 						|| Status.contains(ActorStatus.Disabled) 
@@ -283,7 +283,7 @@ public class Actor
 					logEvent("<b>" + Name + "</b> passed consciousness roll " + details);
 				}
 			}
-			if (settings.isAUTO_STUNRECOVERY()) {
+			if (settings.AUTO_STUNRECOVERY) {
 				Status.remove(ActorStatus.StunRecovr); // This was from last turn, so recovered this turn
 				if (Status.contains(ActorStatus.StunMental)) {
 					int recoverTarget = getValueInt(BasicTrait.IQ);
@@ -308,7 +308,7 @@ public class Actor
 					}
 				}
 			}
-			if (settings.isAUTO_ATTACK() && Status.contains(ActorStatus.Attacking) && !isStunned())
+			if (settings.AUTO_ATTACK && Status.contains(ActorStatus.Attacking) && !isStunned())
 				Attack();
 		}
 	}
@@ -422,8 +422,8 @@ public class Actor
  			if (hasTrait("LPT")) effHT -= 4;
  			int roll = DieRoller.roll3d6();
  			boolean success = DieRoller.isSuccess(roll, effHT);
- 			logEvent("<b>" + Name + "</b> Knockdown/Stunning check: rolled " + roll + " against " + effHT + " => " + (!success?"<b>failed</b>":"succeeded") + (settings.isAUTO_KNOCKDOWNSTUN()?"":" (not applied)"));
- 			if (settings.isAUTO_KNOCKDOWNSTUN()) {
+ 			logEvent("<b>" + Name + "</b> Knockdown/Stunning check: rolled " + roll + " against " + effHT + " => " + (!success?"<b>failed</b>":"succeeded") + (settings.AUTO_KNOCKDOWNSTUN?"":" (not applied)"));
+ 			if (settings.AUTO_KNOCKDOWNSTUN) {
  				if (!success) {
  					Status.add(ActorStatus.StunPhys); // Check for mental stun and don't add this in that case?
  					Status.remove(ActorStatus.StunRecovr);

@@ -53,9 +53,9 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
 	private JSplitPane jSplitPaneVertical;
 	private JSplitPane jSplitPaneHorizontal;
 	
-	private UndoManager undoManager;
-	private JMenuItem undoMenuItem;
-	private JMenuItem redoMenuItem;
+	//private UndoManager undoManager;
+	//private JMenuItem undoMenuItem;
+	//private JMenuItem redoMenuItem;
 	
 	private Integer round = 0;
 	
@@ -155,13 +155,6 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
        		initTable.toggleStatusOfSelectedActors(Actor.ActorStatus.Dead);
        	}
        	else if ("Options".equals(e.getActionCommand())) {
-       		System.out.println("HERE!");
-       		validateOnScreen(optionsWindow);
-       		if (!optionsWindow.isVisible()) {
-       			optionsWindow.syncFromCurrentSettings();
-       		} else if (optionsWindow.getState() == java.awt.Frame.ICONIFIED) {
-       			optionsWindow.setState(java.awt.Frame.NORMAL);
-       		}
        		optionsWindow.setVisible(true);
        	}
        	else {
@@ -251,16 +244,16 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
         JMenuBar menubar = new JMenuBar();
         JMenu menuFile = new JMenu("Edit");
         menuFile.setMnemonic(KeyEvent.VK_E);
-        undoMenuItem = new JMenuItem("Undo", KeyEvent.VK_U);
-        undoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK));
-        undoMenuItem.getAccessibleContext().setAccessibleDescription("Undo the last reversible action");
-        undoMenuItem.addActionListener(this);
-        menuFile.add(undoMenuItem);
-        redoMenuItem = new JMenuItem("Redo", KeyEvent.VK_R);
-        redoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, ActionEvent.CTRL_MASK));
-        redoMenuItem.getAccessibleContext().setAccessibleDescription("Redo the last undone action");
-        redoMenuItem.addActionListener(this);
-        menuFile.add(redoMenuItem);
+//        undoMenuItem = new JMenuItem("Undo", KeyEvent.VK_U);
+//        undoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK));
+//        undoMenuItem.getAccessibleContext().setAccessibleDescription("Undo the last reversible action");
+//        undoMenuItem.addActionListener(this);
+//        menuFile.add(undoMenuItem);
+//        redoMenuItem = new JMenuItem("Redo", KeyEvent.VK_R);
+//        redoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, ActionEvent.CTRL_MASK));
+//        redoMenuItem.getAccessibleContext().setAccessibleDescription("Redo the last undone action");
+//        redoMenuItem.addActionListener(this);
+//        menuFile.add(redoMenuItem);
 
         JMenuItem menuItem = new JMenuItem(new DefaultEditorKit.CutAction());
         menuItem.setText("Cut");
@@ -289,7 +282,6 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
         menuItem.addActionListener(this);
         menuFile.add(menuItem);
-
         
         menubar.add(menuFile);
         setJMenuBar(menubar);
@@ -536,8 +528,8 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
         getContentPane().add(jSplitPaneHorizontal, BorderLayout.CENTER);
        
         // Undo support
-        undoManager = new UndoManager();
-        refreshUndoRedo();
+        //undoManager = new UndoManager();
+        //refreshUndoRedo();
               
         //Display the window.
         setLocation(Integer.valueOf(propertyBag.getProperty("GITApp.location.x")),
@@ -685,27 +677,27 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
 		 c.setLocation(window.x, window.y);
 	 }
 	 
-	 /**
-	  * This method is called after each undoable operation
-	  * in order to refresh the presentation state of the
-	  * undo/redo GUI
-	  */
-	  public void refreshUndoRedo() {
-	     // refresh undo
-		 undoMenuItem.setText(undoManager.getUndoPresentationName());
-		 undoMenuItem.setEnabled(undoManager.canUndo());
+//	 /**
+//	  * This method is called after each undoable operation
+//	  * in order to refresh the presentation state of the
+//	  * undo/redo GUI
+//	  */
+//	  public void refreshUndoRedo() {
+//	     // refresh undo
+//		 undoMenuItem.setText(undoManager.getUndoPresentationName());
+//		 undoMenuItem.setEnabled(undoManager.canUndo());
+//
+//	     // refresh redo
+//	     redoMenuItem.setText(undoManager.getRedoPresentationName());
+//	     redoMenuItem.setEnabled(undoManager.canRedo());
+//	  }
 
-	     // refresh redo
-	     redoMenuItem.setText(undoManager.getRedoPresentationName());
-	     redoMenuItem.setEnabled(undoManager.canRedo());
-	  }
-
-	 /**
-	  * Accessor method for undoManager
-	  */
-	 public UndoManager getUndoManager() {
-		 return undoManager;
-	 }
+//	 /**
+//	  * Accessor method for undoManager
+//	  */
+//	 public UndoManager getUndoManager() {
+//		 return undoManager;
+//	 }
 	 
     /**
      * An Inner class to monitor the window events

@@ -5,6 +5,7 @@
  */
 package gurpsinittool.ui;
 
+import gurpsinittool.app.GITApp;
 import gurpsinittool.data.GameSettings;
 
 import java.util.Properties;
@@ -15,7 +16,20 @@ import java.util.Properties;
  */
 public class OptionsWindow extends javax.swing.JFrame {
 
-    public GameSettings currentSettings;
+    @Override
+	public void setVisible(boolean visible) {
+    	if (visible) {
+	    	GITApp.validateOnScreen(this);
+	   		if (!isVisible()) {
+	   			copySettingsToComponents();
+	   		} else if (getState() == java.awt.Frame.ICONIFIED) {
+	   			setState(java.awt.Frame.NORMAL);
+	   		}
+    	}
+		super.setVisible(visible);
+	}
+
+	public GameSettings currentSettings;
     private Properties propertyBag;
     
     /**
@@ -33,13 +47,13 @@ public class OptionsWindow extends javax.swing.JFrame {
         		Integer.valueOf(propertyBag.getProperty("Options.size.height")));
         
 		 if (propertyBag.containsKey("Options.game.AUTO_ATTACK")) {
-			 currentSettings.setAUTO_ATTACK(Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_ATTACK"))); }
+			 currentSettings.AUTO_ATTACK = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_ATTACK")); }
 		 if (propertyBag.containsKey("Options.game.AUTO_KNOCKDOWNSTUN")) {
-			 currentSettings.setAUTO_KNOCKDOWNSTUN(Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_KNOCKDOWNSTUN"))); }
+			 currentSettings.AUTO_KNOCKDOWNSTUN = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_KNOCKDOWNSTUN")); }
 		 if (propertyBag.containsKey("Options.game.AUTO_STUNRECOVERY")) {
-			 currentSettings.setAUTO_STUNRECOVERY(Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_STUNRECOVERY"))); }
+			 currentSettings.AUTO_STUNRECOVERY = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_STUNRECOVERY")); }
 		 if (propertyBag.containsKey("Options.game.AUTO_UNCONSCIOUS")) {
-			 currentSettings.setAUTO_UNCONSCIOUS(Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_UNCONSCIOUS"))); }
+			 currentSettings.AUTO_UNCONSCIOUS = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_UNCONSCIOUS")); }
 
     }
 
@@ -66,10 +80,10 @@ public class OptionsWindow extends javax.swing.JFrame {
 		 propertyBag.setProperty("Options.location.y", String.valueOf(getLocation().y));
 		 propertyBag.setProperty("Options.size.width", String.valueOf(getSize().width));
 		 propertyBag.setProperty("Options.size.height", String.valueOf(getSize().height));
-		 propertyBag.setProperty("Options.game.AUTO_ATTACK", String.valueOf(currentSettings.isAUTO_ATTACK()));
-		 propertyBag.setProperty("Options.game.AUTO_KNOCKDOWNSTUN", String.valueOf(currentSettings.isAUTO_KNOCKDOWNSTUN()));
-		 propertyBag.setProperty("Options.game.AUTO_STUNRECOVERY", String.valueOf(currentSettings.isAUTO_STUNRECOVERY()));
-		 propertyBag.setProperty("Options.game.AUTO_UNCONSCIOUS", String.valueOf(currentSettings.isAUTO_UNCONSCIOUS()));
+		 propertyBag.setProperty("Options.game.AUTO_ATTACK", String.valueOf(currentSettings.AUTO_ATTACK));
+		 propertyBag.setProperty("Options.game.AUTO_KNOCKDOWNSTUN", String.valueOf(currentSettings.AUTO_KNOCKDOWNSTUN));
+		 propertyBag.setProperty("Options.game.AUTO_STUNRECOVERY", String.valueOf(currentSettings.AUTO_STUNRECOVERY));
+		 propertyBag.setProperty("Options.game.AUTO_UNCONSCIOUS", String.valueOf(currentSettings.AUTO_UNCONSCIOUS));
 	 }
 	 
     /**
@@ -80,7 +94,6 @@ public class OptionsWindow extends javax.swing.JFrame {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-        bindingGroup = new org.jdesktop.beansbinding.BindingGroup();
 
         localSettings = new gurpsinittool.data.GameSettings();
         combatAutomationPanel = new javax.swing.JPanel();
@@ -100,26 +113,14 @@ public class OptionsWindow extends javax.swing.JFrame {
         auto_attack.setText("Attack");
         auto_attack.setToolTipText("Enemy creatures with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
 
-        org.jdesktop.beansbinding.Binding binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, localSettings, org.jdesktop.beansbinding.ELProperty.create("${AUTO_ATTACK}"), auto_attack, org.jdesktop.beansbinding.BeanProperty.create("selected"));
-        bindingGroup.addBinding(binding);
-
         auto_unconsciousness.setText("Unconsciousness Checks");
         auto_unconsciousness.setToolTipText("Enemy creatures check for unconsciousness at the start of each of their turns.");
-
-        binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, localSettings, org.jdesktop.beansbinding.ELProperty.create("${AUTO_UNCONSCIOUS}"), auto_unconsciousness, org.jdesktop.beansbinding.BeanProperty.create("selected"));
-        bindingGroup.addBinding(binding);
 
         auto_knockdown.setText("Knockdown and Stunning");
         auto_knockdown.setToolTipText("Enemy Creatures check for knockdown and stunning when taking sufficient damage.");
 
-        binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, localSettings, org.jdesktop.beansbinding.ELProperty.create("${AUTO_KNOCKDOWNSTUN}"), auto_knockdown, org.jdesktop.beansbinding.BeanProperty.create("selected"));
-        bindingGroup.addBinding(binding);
-
         auto_stunrecovery.setText("Stun Recovery");
         auto_stunrecovery.setToolTipText("Stunned Enemy Creatures check for stun recovery at the start of their turns.");
-
-        binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, localSettings, org.jdesktop.beansbinding.ELProperty.create("${AUTO_STUNRECOVERY}"), auto_stunrecovery, org.jdesktop.beansbinding.BeanProperty.create("selected"));
-        bindingGroup.addBinding(binding);
 
         javax.swing.GroupLayout combatAutomationPanelLayout = new javax.swing.GroupLayout(combatAutomationPanel);
         combatAutomationPanel.setLayout(combatAutomationPanelLayout);
@@ -191,30 +192,36 @@ public class OptionsWindow extends javax.swing.JFrame {
                     .addComponent(okButton)))
         );
 
-        bindingGroup.bind();
-
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
         System.out.println("DefenseDialog: OK!");
-        currentSettings.syncFrom(localSettings);
+        copyComponentsToSettings();
     	setVisible(false);
     }//GEN-LAST:event_okButtonActionPerformed
 
     private void applyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_applyButtonActionPerformed
         System.out.println("OptionsWindow: Apply!");
-    	currentSettings.syncFrom(localSettings);
+        copyComponentsToSettings();
     }//GEN-LAST:event_applyButtonActionPerformed
 
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
-        System.out.println("OptionsWindow: CANCEL!");
-        localSettings.syncFrom(currentSettings);
-    	setVisible(false);
+        setVisible(false);
     }//GEN-LAST:event_cancelButtonActionPerformed
 
-    public void syncFromCurrentSettings() {
-    	localSettings.syncFrom(currentSettings);
+    private void copySettingsToComponents() {
+    	auto_attack.setSelected(currentSettings.AUTO_ATTACK);
+    	auto_knockdown.setSelected(currentSettings.AUTO_KNOCKDOWNSTUN);
+    	auto_stunrecovery.setSelected(currentSettings.AUTO_STUNRECOVERY);
+    	auto_unconsciousness.setSelected(currentSettings.AUTO_UNCONSCIOUS);    	
+    }
+    
+    public void copyComponentsToSettings() {
+    	currentSettings.AUTO_ATTACK = auto_attack.isSelected();
+    	currentSettings.AUTO_KNOCKDOWNSTUN = auto_knockdown.isSelected();
+    	currentSettings.AUTO_STUNRECOVERY = auto_stunrecovery.isSelected();
+    	currentSettings.AUTO_UNCONSCIOUS = auto_unconsciousness.isSelected();    	
     }
     /**
      * @param args the command line arguments
@@ -261,6 +268,5 @@ public class OptionsWindow extends javax.swing.JFrame {
     private javax.swing.JPanel combatAutomationPanel;
     private gurpsinittool.data.GameSettings localSettings;
     private javax.swing.JButton okButton;
-    private org.jdesktop.beansbinding.BindingGroup bindingGroup;
     // End of variables declaration//GEN-END:variables
 }
