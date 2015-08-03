@@ -1,13 +1,8 @@
 package gurpsinittool.app;
 
-import java.awt.Component;
 import java.util.ArrayList;
 
-import javax.swing.JLabel;
-import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
-
 import gurpsinittool.data.*;
 import gurpsinittool.data.Actor.Trait;
 

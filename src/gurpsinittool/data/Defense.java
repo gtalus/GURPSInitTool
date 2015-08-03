@@ -1,9 +1,6 @@
 package gurpsinittool.data;
 
-import java.awt.Color;
-
 import gurpsinittool.data.Actor.BasicTrait;
-import gurpsinittool.data.Defense.DefenseType;
 import gurpsinittool.data.HitLocations.HitLocation;
 import gurpsinittool.util.DieRoller;
 

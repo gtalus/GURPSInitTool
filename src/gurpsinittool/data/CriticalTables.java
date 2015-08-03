@@ -4,9 +4,6 @@ import gurpsinittool.util.DieRoller;
 
 import java.util.ArrayList;
 
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-
 public class CriticalTables {
 
 	public static class Entry {

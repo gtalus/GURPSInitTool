@@ -110,7 +110,7 @@ public class GroupManager extends JFrame
 
         setJMenuBar(jMenuBar);
         
-        groupTable = new InitTable(false);
+        groupTable = new InitTable(propertyBag, false);
         groupTable.setVisible(false);
         groupTable.getActorTableModel().addFileChangeEventListener(new GroupFileChangeEventListener());
         groupTable.getActorTableModel().addTableModelListener(new GroupInitTableModelListener());

@@ -26,7 +26,6 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
-import javax.swing.table.TableRowSorter;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
@@ -39,7 +38,6 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import gurpsinittool.app.*;
-import gurpsinittool.app.AttackTableModel.AttackTableCellRenderer;
 import gurpsinittool.data.Actor;
 import gurpsinittool.data.Actor.ActorStatus;
 import gurpsinittool.data.Actor.ActorType;

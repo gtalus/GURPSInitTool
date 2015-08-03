@@ -42,8 +42,8 @@ public class DefenseDialog extends javax.swing.JDialog {
     /**
      * Creates new form DefenseDialog
      */
-    public DefenseDialog(Actor actor, java.awt.Frame parent, boolean modal) {
-        super(parent, modal);
+    public DefenseDialog(Actor actor, java.awt.Window parent) {
+        super(parent, DEFAULT_MODALITY_TYPE);
         initComponents();
         initEnterEsc();
         initLocationCombo();
@@ -560,7 +560,7 @@ public class DefenseDialog extends javax.swing.JDialog {
         /* Create and display the dialog */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                DefenseDialog dialog = new DefenseDialog(null, new javax.swing.JFrame(), true);
+                DefenseDialog dialog = new DefenseDialog(null, new javax.swing.JWindow());
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
                     @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {

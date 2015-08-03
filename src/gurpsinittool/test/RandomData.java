@@ -1,13 +1,6 @@
 package gurpsinittool.test;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Random;
-
-import gurpsinittool.app.InitTableModel;
-import gurpsinittool.data.Actor;
-import gurpsinittool.data.Actor.ActorStatus;
-import gurpsinittool.data.Actor.ActorType;
 
 public class RandomData {
 

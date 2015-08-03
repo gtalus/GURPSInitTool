@@ -120,6 +120,7 @@ public class Damage {
 		case imp:
 			return 0.5;	
 		case burn:
+		case tbb:
 		case cor:
 		case tox:
 		case cr:

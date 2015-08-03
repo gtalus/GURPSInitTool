@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,6 +44,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
@@ -58,6 +60,7 @@ import gurpsinittool.data.*;
 import gurpsinittool.data.Actor.ActorStatus;
 import gurpsinittool.data.Actor.ActorType;
 import gurpsinittool.data.Actor.BasicTrait;
+import gurpsinittool.ui.DefenseDialog;
 
 public class InitTable extends JTable 
 	implements ActionListener {
@@ -73,12 +76,14 @@ public class InitTable extends JTable
 	private Map<ActorStatus, JMenuItem> coordinatedStatusMenuItems;
 	private InitTableModel tableModel;
 	private boolean isInitTable;
+	private Properties propertyBag;
 	
 	/**
 	 * Default Constructor
 	 */
-	public InitTable(boolean isInitTable) {
+	public InitTable(Properties propertyBag, boolean isInitTable) {
 		super(new InitTableModel());
+		this.propertyBag = propertyBag;
 		this.isInitTable = isInitTable;
 		tableModel = (InitTableModel) dataModel;
 		initialize();
@@ -135,6 +140,9 @@ public class InitTable extends JTable
     	}
     	else if ("Attack".equals(e.getActionCommand())) {
     		selectedActorsAttack();
+    	}
+    	else if ("Defend".equals(e.getActionCommand())) {
+    		selectedActorDefend();
     	}
 //     	if ("Clone".equals(e.getActionCommand())) { // Clone selected rows at the end (as "Haste" spell)
 //     		Actor[] actors = tableModel.getActors(getSelectedRows());
@@ -314,6 +322,7 @@ public class InitTable extends JTable
         popupMenu.add(menuFile);
         if (isInitTable) { popupMenu.add(createMenuItem("Set Active", KeyEvent.VK_A)); }
         if (isInitTable) { popupMenu.add(createMenuItem("Attack", KeyEvent.VK_K)); }
+        if (isInitTable) { popupMenu.add(createMenuItem("Defend", KeyEvent.VK_D)); }
         //popupMenu.add(createMenuItem("Clone", KeyEvent.VK_C));
         popupMenu.add(createMenuItem("Reset", KeyEvent.VK_R));
         popupMenu.add(createMenuItem("Delete", KeyEvent.VK_DELETE));
@@ -474,6 +483,34 @@ public class InitTable extends JTable
 			Actor actor = tableModel.getActor(row);
 			actor.Attack();
     	}
+    }
+    
+    /**
+     * Show the Defense Dialog and forward to the actor for processing if valid
+     */
+    public void selectedActorDefend() {
+    	System.out.println("InitTable: selectedActorDefend: start");
+    	// Verify valid actor
+    	Actor actor = getSelectedActor();
+    	if (actor == null)
+    		return;
+    	// Clear out edits in progress
+    	stopCellEditing();
+    	// Show Defense Dialog window
+    	DefenseDialog defenseDialog = new DefenseDialog(actor, SwingUtilities.getWindowAncestor(this));
+    	// TODO: this is a hack of the property bag system: fix!
+    	defenseDialog.setLocation(Integer.valueOf(propertyBag.getProperty("GITApp.defense.location.x")),
+        					Integer.valueOf(propertyBag.getProperty("GITApp.defense.location.y")));
+        GITApp.validateOnScreen(defenseDialog);
+        defenseDialog.setVisible(true); // Modal call
+    	// Process and log result!
+    	if (defenseDialog.valid) {
+    		actor.Defend(defenseDialog.defense);
+			getActorTableModel().fireRefresh(actor);
+    	}
+    	// TODO: this is a hack of the property bag system: fix!
+    	propertyBag.setProperty("GITApp.defense.location.x", String.valueOf(defenseDialog.getLocation().x));
+    	propertyBag.setProperty("GITApp.defense.location.y", String.valueOf(defenseDialog.getLocation().y));
     }
     
 	/**

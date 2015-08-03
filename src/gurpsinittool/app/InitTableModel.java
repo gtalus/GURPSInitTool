@@ -3,7 +3,6 @@ package gurpsinittool.app;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Locale.Category;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,8 +40,6 @@ public class InitTableModel extends AbstractTableModel {
 		// This is a special row which allows new actors to be added.
 		addNewActor();
 		Actor.LogEventSource = encounterLogEventSource;
-		// TODO: serialize this/ hook it up to a UI? Probably need to move to GITApp class
-		Actor.settings = new GameSettings();
 	}
 	
 	/**

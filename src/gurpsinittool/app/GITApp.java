@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Properties;
 import gurpsinittool.data.Actor;
+import gurpsinittool.data.GameSettings;
 import gurpsinittool.ui.*;
 import gurpsinittool.util.EncounterLogEvent;
 import gurpsinittool.util.EncounterLogEventListener;
@@ -45,6 +46,7 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
 	private HTMLEditorKit kit;
 	private ActorDetailsPanel_v2 detailsPanel;
 	private GroupManager groupManager;
+	private OptionsWindow optionsWindow;
 	private CriticalTablesDialog criticalTables;
 	private Properties propertyBag = new Properties();
 	private JLabel roundCounter;
@@ -152,6 +154,16 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
        	else if ("actorsDeadToggle".equals(e.getActionCommand())) {
        		initTable.toggleStatusOfSelectedActors(Actor.ActorStatus.Dead);
        	}
+       	else if ("Options".equals(e.getActionCommand())) {
+       		System.out.println("HERE!");
+       		validateOnScreen(optionsWindow);
+       		if (!optionsWindow.isVisible()) {
+       			optionsWindow.syncFromCurrentSettings();
+       		} else if (optionsWindow.getState() == java.awt.Frame.ICONIFIED) {
+       			optionsWindow.setState(java.awt.Frame.NORMAL);
+       		}
+       		optionsWindow.setVisible(true);
+       	}
        	else {
    			System.out.println("GITApp: -W- Unknown action performed: " + e.getActionCommand());
        	}
@@ -181,32 +193,6 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
 		}
     	// Move cursor to the end.
     	logTextArea.select(logTextDocument.getLength(), logTextDocument.getLength());
-    }
-    
-    /**
-     * Show the Defense Dialog and forward to the actor for processing if valid
-     */
-    public void selectedActorDefend() {
-    	System.out.println("GITApp: selectedActorDefend: start");
-    	// Verify valid actor
-    	Actor actor = initTable.getSelectedActor();
-    	if (actor == null)
-    		return;
-    	// Clear out edits in progress
-    	initTable.stopCellEditing();
-    	// Show Defense Dialog window
-    	DefenseDialog defenseDialog = new DefenseDialog(actor, this, true);
-    	defenseDialog.setLocation(Integer.valueOf(propertyBag.getProperty("GITApp.defense.location.x")),
-        					Integer.valueOf(propertyBag.getProperty("GITApp.defense.location.y")));
-        validateOnScreen(defenseDialog);
-        defenseDialog.setVisible(true); // Modal call
-    	// Process and log result!
-    	if (defenseDialog.valid) {
-    		actor.Defend(defenseDialog.defense);
-			initTable.getActorTableModel().fireRefresh(actor);
-    	}
-    	propertyBag.setProperty("GITApp.defense.location.x", String.valueOf(defenseDialog.getLocation().x));
-    	propertyBag.setProperty("GITApp.defense.location.y", String.valueOf(defenseDialog.getLocation().y));
     }
     
     /**
@@ -251,7 +237,11 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
     private void addComponentsToPane() {
         //contentPanel.setOpaque(true);
         //frame.setContentPane(contentPanel);
-        
+    	// Options window
+      	optionsWindow = new OptionsWindow(propertyBag);
+        optionsWindow.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE); // Don't close the program when closing the options window
+      	Actor.settings = optionsWindow.currentSettings;
+    	
         // The group Manager
         groupManager = new GroupManager(propertyBag);
         criticalTables = new CriticalTablesDialog(this, false);
@@ -293,6 +283,14 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
         menuItem.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/paste_plain.png"), "Paste"));
         menuFile.add(menuItem);
 
+        menuItem = new JMenuItem("Options", KeyEvent.VK_O);
+        menuItem.setText("Options");
+        menuItem.setMnemonic(KeyEvent.VK_O);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
+        menuItem.addActionListener(this);
+        menuFile.add(menuItem);
+
+        
         menubar.add(menuFile);
         setJMenuBar(menubar);
   
@@ -389,7 +387,7 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
         button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
         button.setToolTipText("Selected actor defends (Ctrl+D)");
         action = new AbstractAction("selectedActorDefend") {
-        	public void actionPerformed(ActionEvent e) { selectedActorDefend(); }
+        	public void actionPerformed(ActionEvent e) { initTable.selectedActorDefend(); }
         };
         button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("control D"), "actorDefend");
         button.getActionMap().put("actorDefend", action);
@@ -508,7 +506,7 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
         logTextArea.setFont(new java.awt.Font("Tahoma", 0, 11));
 
         // The actor table
-        initTable = new InitTable(true);
+        initTable = new InitTable(propertyBag, true);
         initTable.getActorTableModel().addEncounterLogEventListener(this);
         // Replace Ctrl+A = select all map for init table to actors attack
         initTable.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control A"), "actorsAttack");
@@ -614,6 +612,7 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
 			 propertyBag.setProperty("GITApp.size.width", "760"); }
 		 if (!propertyBag.containsKey("GITApp.size.height")) {
 			 propertyBag.setProperty("GITApp.size.height", "480"); }
+	     // TODO: this is a hack of the property bag system: fix!
 		 if (!propertyBag.containsKey("GITApp.defense.location.x")) {
 			 propertyBag.setProperty("GITApp.defense.location.x", "200"); }
 		 if (!propertyBag.containsKey("GITApp.defense.location.y")) {
@@ -638,7 +637,7 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
 		 //else { propertyBag.remove("GITApp.currentLoadedFile");}
 	 }
 	 
-	 public void validateOnScreen(Component c) {
+	 public static void validateOnScreen(Component c) {
 		 final Rectangle window = c.getBounds();
 		 
 		 Rectangle virtualscreen = new Rectangle();
@@ -723,6 +722,7 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
 			// Update all the various properties:
 			updateProperties();
 			groupManager.updateProperties();
+			optionsWindow.updateProperties();
 			// Check to make sure everything is clean
 			if(groupManager.querySaveChanges() && saveProperties()) {
 				System.exit(0);
