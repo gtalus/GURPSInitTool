@@ -1,7 +1,6 @@
 package gurpsinittool.app;
 
 import java.awt.Component;
-
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
@@ -23,14 +22,7 @@ public class AttackTableModel extends AbstractTableModel {
 	public enum columns {Name, Skill, Damage, Unbalanced};
 	private static int numColumns = 4;
 	
-	private InitTableModel actorModel = null;
 	private Actor currentActor = null;
-
-	
-	public AttackTableModel(InitTableModel actorModel) {
-		super();
-		this.actorModel = actorModel;
-	}
 
 	@Override
 	public Class<?> getColumnClass(int c) {
@@ -49,13 +41,13 @@ public class AttackTableModel extends AbstractTableModel {
 	public int getRowCount() {
 		if (currentActor == null)
 			return 0;
-		return currentActor.Attacks.size();
+		return currentActor.getNumAttacks();
 	}
 
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		if (currentActor == null)
 			return null;
-		Attack attack = currentActor.Attacks.get(rowIndex);
+		Attack attack = currentActor.getAttack(rowIndex);
 		switch (columns.values()[columnIndex]) {
 		case Name:
 			return attack.Name;
@@ -92,7 +84,7 @@ public class AttackTableModel extends AbstractTableModel {
     		return;
         }
         
-        Attack a = currentActor.Attacks.get(row);
+        Attack a = currentActor.getAttack(row);
 		switch (columns.values()[col]) {
 		case Name:
 			a.Name = (String) value;
@@ -107,7 +99,6 @@ public class AttackTableModel extends AbstractTableModel {
 			a.Unbalanced = (Boolean) value;
 		}
 		// Update the entire row, since changing state or type may affect formatting for all cells in the row.
-		setDirty();
 		fireTableRowsUpdated(row, row);
     }
     
@@ -132,7 +123,7 @@ public class AttackTableModel extends AbstractTableModel {
 	 */
     public void addAttack() {
     	if (currentActor != null) {
-    		currentActor.Attacks.add(new Attack());
+    		currentActor.addAttack(new Attack());
     		fireTableRowsInserted(getRowCount()-1, getRowCount()-1);
     	}
     }
@@ -144,11 +135,7 @@ public class AttackTableModel extends AbstractTableModel {
     	if (currentActor != null && rows.length > 0) {
 			for (int i = rows.length-1; i >= 0; i--) {  // Go from bottom up to preserve numbering
 				if (DEBUG) { System.out.println("AttackTableModel: Deleting row: " + rows[i]); }   			
-				currentActor.Attacks.remove(rows[i]); // Just remove the rows indicated: not all instances of clones
-				if (rows[i] < currentActor.DefaultAttack)
-					--currentActor.DefaultAttack;
-				if (rows[i] == currentActor.DefaultAttack)
-					currentActor.DefaultAttack = 0;
+				currentActor.removeAttack(rows[i]); // Just remove the rows indicated: not all instances of clones	
 			}
     		fireTableRowsDeleted(rows[0], rows[rows.length-1]);
     	}
@@ -159,24 +146,16 @@ public class AttackTableModel extends AbstractTableModel {
      * @param row the model row to set as default
      */
     public void setDefaultAttack(int row) {
-    	if (row < 0 || row >= currentActor.Attacks.size()) {
+    	if (row < 0 || row >= currentActor.getNumAttacks()) {
     		System.out.println("AttackTableModel:setDefaultAttack: row out of range! " + row);
     		return;
     	}
-    	int oldDefault = currentActor.DefaultAttack;
-    	currentActor.DefaultAttack = row;
+    	int oldDefault = currentActor.getDefaultAttack();
+    	currentActor.setDefaultAttack(row);
     	fireTableRowsUpdated(oldDefault, oldDefault);
     	fireTableRowsUpdated(row, row);
-    	actorModel.setDirty();
     }
  
-    /**
-     * Set the status of the initTable as dirty. Should be called after making any changes.
-     */
-    public void setDirty() {
-    	actorModel.setDirty();
-    }
-    
 	/**
 	 * Renderer to deal with all the customizations based on Actor state/type/etc.
 	 * Assumes that the table model being used is an ActorTableModel.
@@ -193,7 +172,7 @@ public class AttackTableModel extends AbstractTableModel {
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 			JLabel c = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-			if (table.getRowSorter().convertRowIndexToModel(row) == currentActor.DefaultAttack) {
+			if (table.getRowSorter().convertRowIndexToModel(row) == currentActor.getDefaultAttack()) {
 				c.setText("<html><strong>" + c.getText() + "</strong></html>");
 			}
 			return c;

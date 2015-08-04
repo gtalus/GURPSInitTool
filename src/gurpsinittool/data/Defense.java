@@ -43,8 +43,8 @@ public class Defense {
 		int effParry = actor.getCurrentDefenseValue(DefenseType.Parry);
     	int effBlock = actor.getCurrentDefenseValue(DefenseType.Block);
     	int effDodge = actor.getCurrentDefenseValue(DefenseType.Dodge);
-    	int ShieldDB = actor.getValueInt(BasicTrait.Shield_DB);
-    	int ShieldHP = actor.getValueInt(BasicTrait.Shield_HP);
+    	int ShieldDB = actor.getTraitValueInt(BasicTrait.Shield_DB);
+    	int ShieldHP = actor.getTraitValueInt(BasicTrait.Shield_HP);
     	
 		// Pick the best by default
     	if ((effParry > effDodge) && (effParry >= effBlock)) {
@@ -56,13 +56,13 @@ public class Defense {
     	}
     	
     	// Set default options
-    	shield = (ShieldDB > 0 && actor.ShieldDamage < ShieldHP);
+    	shield = (ShieldDB > 0 && actor.getTempInt("ShieldDamage") < ShieldHP);
     	if (actor.isStunned())
     		stunned = true;
     	// Set position
-    	if (actor.Status.contains(Actor.ActorStatus.Kneeling))
+    	if (actor.hasStatus(Actor.ActorStatus.Kneeling))
     		position = "Kneeling";
-    	if (actor.Status.contains(Actor.ActorStatus.Prone))
+    	if (actor.hasStatus(Actor.ActorStatus.Prone))
     		position = "Prone";
 	}
 
@@ -95,7 +95,7 @@ public class Defense {
 			if (stunned)
 				effectiveDefense -= 4;
 			if (shield)
-				effectiveDefense += actor.getValueInt(BasicTrait.Shield_DB);
+				effectiveDefense += actor.getTraitValueInt(BasicTrait.Shield_DB);
 
 			//Position
 			if (position.equals("Kneeling"))
@@ -109,7 +109,7 @@ public class Defense {
 	}
 	
 	private void calcDefenseResult(Actor actor) {
-		int shield_db = shield ? actor.getValueInt(BasicTrait.Shield_DB) : 0;
+		int shield_db = shield ? actor.getTraitValueInt(BasicTrait.Shield_DB) : 0;
 
 		// CritSuccess, Success, ShieldHit, Failure
 		if (type == DefenseType.None) { // No attempted defense
@@ -139,9 +139,9 @@ public class Defense {
 
     	// Calculate injury
     	// 
-    	int ShieldDR = actor.getValueInt(BasicTrait.Shield_DR);
-    	int ShieldHP = actor.getValueInt(BasicTrait.Shield_HP);
-    	int HP = actor.getValueInt(BasicTrait.HP);
+    	int ShieldDR = actor.getTraitValueInt(BasicTrait.Shield_DR);
+    	int ShieldHP = actor.getTraitValueInt(BasicTrait.Shield_HP);
+    	int HP = actor.getTraitValueInt(BasicTrait.HP);
     	switch (result) {
     	case CritSuccess:
     	case Success:

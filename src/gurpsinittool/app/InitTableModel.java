@@ -1,5 +1,7 @@
 package gurpsinittool.app;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -18,7 +20,7 @@ import gurpsinittool.util.EncounterLogEventListener;
 import gurpsinittool.util.EncounterLogEventSource;
 import gurpsinittool.util.FileChangeEventListener;
 
-public class InitTableModel extends AbstractTableModel {
+public class InitTableModel extends AbstractTableModel implements PropertyChangeListener {
 
 	/**
 	 * Default UID
@@ -45,19 +47,22 @@ public class InitTableModel extends AbstractTableModel {
 	/**
 	 * Add a new actor to the specified slot
 	 * @param source : the actor object to add
-	 * @param dest : the index of the slot to insert into (pushes current actor down one)
+	 * @param destRow : the index of the slot to insert into (pushes current actor down one)
 	 */
-	public void addActor(Actor source, int dest) {
-		System.out.println("table model: addActor: start");
-		if (dest > actorList.size()-1) // Don't put anything after the 'new' row
-			dest = actorList.size()-1;
-		else if (dest < 0) // Don't try to put stuff before the beginning!
-			dest = 0;
+	public void addActor(Actor actor, int destRow) {
+		System.out.println("table model.addActor: start: " + actor.getTraitValue(BasicTrait.Name));
+		//Actor addedActor = new Actor(source);
+		actor.addPropertyChangeListener(this);
+		if (destRow > actorList.size()-1) // Don't put anything after the 'new' row
+			destRow = actorList.size()-1;
+		else if (destRow < 0) // Don't try to put stuff before the beginning!
+			destRow = 0;
 			
-		if (dest <= activeActor) { activeActor++; } // Track active actor
-		actorList.add(dest, source);
+		if (destRow <= activeActor) { activeActor++; } // Track active actor
+		actorList.add(destRow, actor);
 		setDirty();
-		fireTableRowsInserted(dest,dest);
+		fireTableRowsInserted(destRow,destRow);
+		System.out.println("table model.addActor: done");
 	}
 	
 	/**
@@ -65,6 +70,7 @@ public class InitTableModel extends AbstractTableModel {
 	 */
 	private void addNewActor() {
 		Actor actor = new Actor(newActor);
+		actor.addPropertyChangeListener(this);
 		actorList.add(actorList.size(),actor);
 		setDirty();
     	fireTableRowsInserted(actorList.size()-1,actorList.size()-1);
@@ -82,18 +88,6 @@ public class InitTableModel extends AbstractTableModel {
 		Actor movingActor = getActor(source);
 		actorList.add(dest, movingActor);
 	}*/
-	
-	/**
-	 * Fires a row updated for the listed actor.
-	 * @param actor
-	 */
-	public void fireRefresh(Actor actor) {
-		int [] rows = getActorRows(actor);
-		for (int i=0; i < rows.length; i++) {
-			setDirty();
-			fireTableRowsUpdated(rows[i], rows[i]);
-		}
-	}
 	
 	/**
 	 * Get index of current active actor
@@ -179,25 +173,25 @@ public class InitTableModel extends AbstractTableModel {
 		Actor actor = (Actor) actorList.get(rowIndex);
 		switch (columns.values()[columnIndex]) {
 		case Name:
-			return actor.getValue(BasicTrait.Name);
+			return actor.getTraitValue(BasicTrait.Name);
 		case Move:
-			return actor.getValueInt(BasicTrait.Move);
+			return actor.getTraitValueInt(BasicTrait.Move);
 		case Dodge:
-			return actor.getValueInt(BasicTrait.Dodge);
+			return actor.getTraitValueInt(BasicTrait.Dodge);
 		case HT:
-			return actor.getValueInt(BasicTrait.HT);
+			return actor.getTraitValueInt(BasicTrait.HT);
 		case HP:
-			return actor.getValueInt(BasicTrait.HP);
+			return actor.getTraitValueInt(BasicTrait.HP);
 		case Damage:
-			return actor.getValueInt(BasicTrait.Injury);
+			return actor.getTraitValueInt(BasicTrait.Injury);
 		case FP:
-			return actor.getValueInt(BasicTrait.FP);
+			return actor.getTraitValueInt(BasicTrait.FP);
 		case Fatigue:
-			return actor.getValueInt(BasicTrait.Fatigue);
+			return actor.getTraitValueInt(BasicTrait.Fatigue);
 		case Status:
-			return actor.Status;
+			return actor.getAllStatuses();
 		case Type:
-			return actor.Type;
+			return actor.getType();
 		default:
 			return null;
 		}
@@ -226,18 +220,18 @@ public class InitTableModel extends AbstractTableModel {
         default:
         }
         
-        // Check if there is any actual change
-        if (getValueAt(row, col).equals(value)) {
-    		if (DEBUG) { System.out.println("ActorTableModel: setValueAt: values are identical. Exiting."); }
-    		return;
-        }
-
-        // Create a new row if necessary (editing the 'new...' row)
-        if (row == actorList.size() -1)
-        	addNewActor();
+//        // Check if there is any actual change
+//        if (getValueAt(row, col).equals(value)) {
+//    		if (DEBUG) { System.out.println("ActorTableModel: setValueAt: values are identical. Exiting."); }
+//    		return;
+//        }
+//
+//        // Create a new row if necessary (editing the 'new...' row)
+//        if (row == actorList.size() -1)
+//        	addNewActor();
         
         Actor a = (Actor) actorList.get(row);
-        String aName = a.getValue(BasicTrait.Name);
+        String aName = a.getTraitValue(BasicTrait.Name);
         int newValue;
         int diff;
 		switch (columns.values()[col]) {
@@ -258,8 +252,8 @@ public class InitTableModel extends AbstractTableModel {
 			break;
 		case Damage:
 			newValue = (Integer) value;
-			int HP = a.getValueInt(BasicTrait.HP);
-			diff = a.getValueInt(BasicTrait.Injury) - newValue;
+			int HP = a.getTraitValueInt(BasicTrait.HP);
+			diff = a.getTraitValueInt(BasicTrait.Injury) - newValue;
 			if (diff < 0) {
 				encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + aName + "</b> took <b><font color=red>" + (-1*diff) + "</font></b> damage (now " + (HP - newValue) + " HP)."));
 			} else {
@@ -272,8 +266,8 @@ public class InitTableModel extends AbstractTableModel {
 			break;
 		case Fatigue:
 			newValue = (Integer) value;
-			int FP = a.getValueInt(BasicTrait.FP);
-			diff = a.getValueInt(BasicTrait.Fatigue) - newValue;
+			int FP = a.getTraitValueInt(BasicTrait.FP);
+			diff = a.getTraitValueInt(BasicTrait.Fatigue) - newValue;
 			if (diff < 0) {
 				encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + aName + "</b> lost <b>" + (-1*diff) + "</b> fatigue (now " + (FP - newValue) + " FP)."));
 			} else {
@@ -283,21 +277,21 @@ public class InitTableModel extends AbstractTableModel {
 			break;
 		case Status:
 			// TODO: test this code!
-			a.Status = (HashSet<ActorStatus>) value;
-			encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + aName + "</b> status changed to <b>" + a.Status + "</b>"));
+			a.setAllStatuses((HashSet<ActorStatus>) value);
+			encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + aName + "</b> status changed to <b>[" + a.getStatusesString() + "]</b>"));
 			break;
 		case Type:
 			ActorType newType = (ActorType) value;
 			encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + aName + "</b> type changed to <b>" + newType + "</b>"));
-			a.Type = newType;
+			a.setType(newType);
 		default:
 		}
-		// Update the entire row, since changing state or type may affect formatting for all cells in the row.
-		setDirty();
-		int [] rows = getActorRows(a);
-		for (int i=0; i < rows.length; i++) {
-			fireTableRowsUpdated(rows[i], rows[i]);
-		}
+//		// Update the entire row, since changing state or type may affect formatting for all cells in the row.
+//		setDirty();
+//		int [] rows = getActorRows(a);
+//		for (int i=0; i < rows.length; i++) {
+//			fireTableRowsUpdated(rows[i], rows[i]);
+//		}
     }
     
 	@Override
@@ -359,11 +353,10 @@ public class InitTableModel extends AbstractTableModel {
 			}
 			Actor currentActor = getActiveActor();
 			currentActor.NextTurn();
-			fireRefresh(currentActor);
 		// Skip over disabled/unconscious/dead actors
-		} while (getActiveActor().Status.contains(ActorStatus.Disabled)
-				|| getActiveActor().Status.contains(ActorStatus.Unconscious)
-				|| getActiveActor().Status.contains(ActorStatus.Dead));
+		} while (getActiveActor().hasStatus(ActorStatus.Disabled)
+				|| getActiveActor().hasStatus(ActorStatus.Unconscious)
+				|| getActiveActor().hasStatus(ActorStatus.Dead));
 		return false;
 	}
 
@@ -372,6 +365,8 @@ public class InitTableModel extends AbstractTableModel {
 	 * @param row : the actor to remove
 	 */
 	public void removeActor(int row) {
+		Actor actor = getActor(row);
+		actor.removePropertyChangeListener(this);
 		actorList.remove(row);
 		if (row < activeActor) { activeActor--; } // track active Actor
 		else if (row == activeActor) { activeActor--; nextActor(); }
@@ -411,11 +406,19 @@ public class InitTableModel extends AbstractTableModel {
 	 * @param actorList : the new ArrayList<Actor> to use as the base for the ActorTableModel
 	 */
 	public void setActorList(ArrayList<Actor> actorList) {
+		for(Actor a: this.actorList) {
+			a.removePropertyChangeListener(this);
+		}
 		fireTableRowsDeleted(0, getRowCount()); // remove current selection
-		if (actorList == null) 
-			this.actorList = new ArrayList<Actor>(Arrays.asList(new Actor(newActor)));
-		else 
+		
+		if (actorList == null) {
+			this.actorList = new ArrayList<Actor>();
+			addNewActor();
+		} else { 
 			this.actorList = actorList;
+			for(Actor a: this.actorList)
+				a.addPropertyChangeListener(this);
+		}
 		fireTableDataChanged();
 	}
 	
@@ -431,7 +434,7 @@ public class InitTableModel extends AbstractTableModel {
 			fireTableCellUpdated(activeActor, 0);
 		}
 		activeActor = row;
-		getActiveActor().Status.remove(ActorStatus.Waiting); // Remove any 'waiting' state automatically
+		getActiveActor().removeStatus(ActorStatus.Waiting); // Remove any 'waiting' state automatically
 		setDirty();
 		fireTableCellUpdated(activeActor, 0);
 	}
@@ -444,10 +447,10 @@ public class InitTableModel extends AbstractTableModel {
     	// Now go thorough and add tags to non-unconscious/dead enemy actors
     	for (int i = 0; i < actorList.size()-1; ++i) {
     		Actor a = actorList.get(i);
-    		if (a.Type == ActorType.Enemy && !(a.Status.contains(ActorStatus.Unconscious)
-    											|| a.Status.contains(ActorStatus.Disabled)
-     											|| a.Status.contains(ActorStatus.Dead)
-    											|| a.Status.contains(ActorStatus.Waiting))) {
+    		if (a.getType() == ActorType.Enemy && !(a.hasStatus(ActorStatus.Unconscious)
+    											|| a.hasStatus(ActorStatus.Disabled)
+     											|| a.hasStatus(ActorStatus.Dead)
+    											|| a.hasStatus(ActorStatus.Waiting))) {
 	    		tagActor(a, tags);
     		}
     	}
@@ -460,11 +463,10 @@ public class InitTableModel extends AbstractTableModel {
     public void removeTag(Actor actor) {
     	Matcher matcher;
 		Pattern nameTag = Pattern.compile("^(.*) \\[([^\\s]+)\\]$");
-		String aName = actor.getValue(BasicTrait.Name);
+		String aName = actor.getTraitValue(BasicTrait.Name);
 		if ((matcher = nameTag.matcher(aName)).matches()) {
     		String name = matcher.group(1);
     		actor.setTrait(BasicTrait.Name, name);
-    		fireRefresh(actor);
 		}
     }
     
@@ -482,13 +484,12 @@ public class InitTableModel extends AbstractTableModel {
      * @param tags A list of all tags currently in use
      */
     public void tagActor(Actor actor, HashSet<String> tags) {
-    	String aName = actor.getValue(BasicTrait.Name);
+    	String aName = actor.getTraitValue(BasicTrait.Name);
 		if (!nameTag.matcher(aName).matches()) {
 			String tag = getNextTag(tags);
 			if (DEBUG) System.out.println("InitTableModel:tagActor: Tagging actor " + aName + " with " + "[" + tag + "]");
 			actor.setTrait(BasicTrait.Name, aName + " [" + tag + "]");
 			tags.add(tag);
-			fireRefresh(actor);
 		}
     }
     
@@ -505,18 +506,17 @@ public class InitTableModel extends AbstractTableModel {
     	// First go through actors, removing unneeded tags (unconscious/dead) and logging existing ones
     	for (int i = 0; i < actorList.size()-1; ++i) {
     		Actor a = actorList.get(i);
-    		String aName = a.getValue(BasicTrait.Name);
+    		String aName = a.getTraitValue(BasicTrait.Name);
     		if (DEBUG) System.out.println("catalogTags: Cataloging actor: " + aName);
     		if ((matcher = nameTag.matcher(aName)).matches()) {
     			String name = matcher.group(1);
     			String tag = matcher.group(2);
     			// Check if tag should be cleared
-    			if (clean && a.Type == ActorType.Enemy && (a.Status.contains(ActorStatus.Unconscious)
-    														|| a.Status.contains(ActorStatus.Disabled)
-    														|| a.Status.contains(ActorStatus.Dead))) {
+    			if (clean && a.getType() == ActorType.Enemy && (a.hasStatus(ActorStatus.Unconscious)
+    														|| a.hasStatus(ActorStatus.Disabled)
+    														|| a.hasStatus(ActorStatus.Dead))) {
     				System.out.println("catalogTags: cleaning tag: " + tag);
     				a.setTrait(BasicTrait.Name, name);
-    				fireRefresh(a);
     			} else {
 	    			if (tags.contains(tag)) 
 	    				System.out.println("-W- InitTableModel::catalogTags: Duplicate tag detected! " + tag);
@@ -603,5 +603,21 @@ public class InitTableModel extends AbstractTableModel {
 	 */
 	public void removeFileChangeEventListener(FileChangeEventListener listener) {
 		cleanFileChangeEventSource.removeFileChangeEventListener(listener);
+	}
+
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		if(Actor.class.isInstance(e.getSource())) {
+			setDirty();
+			Actor actor = (Actor)e.getSource();
+			System.out.println("InitTableModel: propertyChange: got notification from actor " + actor.getTraitValue(BasicTrait.Name));
+			int [] rows = getActorRows(actor);
+			for (int i=0; i < rows.length; i++) {
+				if (rows[i] == getRowCount() -1) { // changed last row
+					addNewActor();
+				}
+				fireTableRowsUpdated(rows[i], rows[i]);
+			}
+		}		
 	}
 }

@@ -3,7 +3,7 @@ package gurpsinittool.util;
 import javax.swing.event.EventListenerList;
 
 public class CleanFileChangeEventSource {
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	private boolean clean = true;
 	
 	private Object Source;

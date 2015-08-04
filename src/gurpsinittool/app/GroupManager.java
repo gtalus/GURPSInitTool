@@ -25,6 +25,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.event.TreeSelectionEvent;
@@ -33,7 +35,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.tree.DefaultTreeModel;
 
 public class GroupManager extends JFrame 
-	implements TreeSelectionListener, ActionListener, ItemListener {
+	implements TreeSelectionListener, ActionListener, ItemListener, ListSelectionListener {
 
 	// Default SVUID
 	private static final long serialVersionUID = 1L;
@@ -112,9 +114,10 @@ public class GroupManager extends JFrame
         
         groupTable = new InitTable(propertyBag, false);
         groupTable.setVisible(false);
+        groupTable.getSelectionModel().addListSelectionListener(this);
         groupTable.getActorTableModel().addFileChangeEventListener(new GroupFileChangeEventListener());
         groupTable.getActorTableModel().addTableModelListener(new GroupInitTableModelListener());
-        actorDetailsPanel = new ActorDetailsPanel_v2(groupTable);
+        actorDetailsPanel = new ActorDetailsPanel_v2();
         groupTree = new GroupTree(groupTable);
         groupTree.addTreeSelectionListener(this);
         groupTree.addFileChangeEventListener(new GroupFileChangeEventListener());
@@ -431,6 +434,7 @@ public class GroupManager extends JFrame
 			// Check for auto-resize
 			if(Boolean.valueOf(propertyBag.getProperty("Manager.groupTable.autoResize")))
 				groupTable.autoSizeColumns();
+			actorDetailsPanel.setActor(groupTable.getSelectedActor());
 		}
     }
     
@@ -442,6 +446,13 @@ public class GroupManager extends JFrame
 		@Override
 		public String getDescription() {
 			return "InitTool Group (*.igroup)";
+		}
+	}
+
+	@Override
+	public void valueChanged(ListSelectionEvent e) {
+		if (!e.getValueIsAdjusting()) {
+			actorDetailsPanel.setActor(groupTable.getSelectedActor());
 		}
 	}
 

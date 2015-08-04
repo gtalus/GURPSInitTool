@@ -614,8 +614,8 @@ public class DefenseDialog extends javax.swing.JDialog {
     	this.actor = actor;
     	defense.setInitialOptions(actor);
 
-    	name.setText(actor.getValue(BasicTrait.Name));
-    	switch (actor.Type) {
+    	name.setText(actor.getTraitValue(BasicTrait.Name));
+    	switch (actor.getType()) {
 		case PC:
 			name.setBackground(new Color(200,255,200));
 			break;
@@ -637,9 +637,9 @@ public class DefenseDialog extends javax.swing.JDialog {
     	int effParry = actor.getCurrentDefenseValue(DefenseType.Parry);
     	int effBlock = actor.getCurrentDefenseValue(DefenseType.Block);
     	int effDodge = actor.getCurrentDefenseValue(DefenseType.Dodge);
-    	int Parry = actor.getValueInt(BasicTrait.Parry);
-    	int Block = actor.getValueInt(BasicTrait.Block);
-    	int Dodge = actor.getValueInt(BasicTrait.Dodge);
+    	int Parry = actor.getTraitValueInt(BasicTrait.Parry);
+    	int Block = actor.getTraitValueInt(BasicTrait.Block);
+    	int Dodge = actor.getTraitValueInt(BasicTrait.Dodge);
 
     	// Report base if different
     	parryNote.setText(effParry + (effParry!=Parry?" (base: " + Parry + ")":""));
@@ -668,13 +668,13 @@ public class DefenseDialog extends javax.swing.JDialog {
     	stunnedCheck.setSelected(defense.stunned);
     	shieldCheckBox.setSelected(defense.shield);
     	
-       	int ShieldDB = actor.getValueInt(BasicTrait.Shield_DB);
-        int ShieldDR = actor.getValueInt(BasicTrait.Shield_DR);
-    	int ShieldHP = actor.getValueInt(BasicTrait.Shield_HP);
-    	int DR = actor.getValueInt(BasicTrait.DR);
+       	int ShieldDB = actor.getTraitValueInt(BasicTrait.Shield_DB);
+        int ShieldDR = actor.getTraitValueInt(BasicTrait.Shield_DR);
+    	int ShieldHP = actor.getTraitValueInt(BasicTrait.Shield_HP);
+    	int DR = actor.getTraitValueInt(BasicTrait.DR);
     	db.setText("DB: " + ShieldDB);
     	shield_dr.setText("DR: " + ShieldDR);
-    	shield_hp.setText("HP: " + (ShieldHP-actor.ShieldDamage) + "/" + ShieldHP);
+    	shield_hp.setText("HP: " + (ShieldHP-actor.getTempInt("ShieldDamage")) + "/" + ShieldHP);
     	drTextField.setText("" + DR);
     	
     	// Set position
@@ -767,7 +767,7 @@ public class DefenseDialog extends javax.swing.JDialog {
     		defense.roll = Integer.parseInt(rollTextField.getText());
     		rollTextField.setForeground(Color.BLACK);
     	} catch (Exception e) {
-   		rollTextField.setForeground(Color.RED);
+    		rollTextField.setForeground(Color.RED);
     		System.out.println("-W- DefenseDialog.parseInputFields: Error parsing roll field! '" + rollTextField.getText() + "': " + e.getMessage());
     		parseSuccess = false;
     	}    

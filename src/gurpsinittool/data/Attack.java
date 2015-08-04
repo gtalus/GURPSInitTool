@@ -2,6 +2,7 @@ package gurpsinittool.data;
 
 import java.io.Serializable;
 
+//TODO: implement change tracking? Only way to actually track actor changes all the way down
 public class Attack implements Serializable {
 	// Default SVUID
 	private static final long serialVersionUID = 1L;

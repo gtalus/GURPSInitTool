@@ -1,6 +1,10 @@
 package gurpsinittool.app;
 
-import javax.swing.*;  
+import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.html.HTMLDocument;
@@ -33,7 +37,8 @@ import gurpsinittool.ui.*;
 import gurpsinittool.util.EncounterLogEvent;
 import gurpsinittool.util.EncounterLogEventListener;
 
-public class GITApp extends JFrame implements ActionListener, EncounterLogEventListener {
+public class GITApp extends JFrame 
+	implements ActionListener, EncounterLogEventListener, ListSelectionListener, TableModelListener {
 
 	// Default SVUID
 	private static final long serialVersionUID = 1L;
@@ -238,7 +243,13 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
         // The group Manager
         groupManager = new GroupManager(propertyBag);
         criticalTables = new CriticalTablesDialog(this, false);
-        setDefaultProperties();
+        // Here because the defaults depend on the crit table's default location
+        setDefaultProperties(); // TODO: figure out when we actually set the defaults
+        criticalTables.setLocation(Integer.valueOf(propertyBag.getProperty("GITApp.crittables.location.x")),
+                Integer.valueOf(propertyBag.getProperty("GITApp.crittables.location.y")));
+        criticalTables.setSize(Integer.valueOf(propertyBag.getProperty("GITApp.crittables.size.width")),
+        		Integer.valueOf(propertyBag.getProperty("GITApp.crittables.size.height")));
+
         
         // The main menu bar
         JMenuBar menubar = new JMenuBar();
@@ -499,7 +510,9 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
 
         // The actor table
         initTable = new InitTable(propertyBag, true);
+        initTable.getSelectionModel().addListSelectionListener(this);
         initTable.getActorTableModel().addEncounterLogEventListener(this);
+        initTable.getActorTableModel().addTableModelListener(this);
         // Replace Ctrl+A = select all map for init table to actors attack
         initTable.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control A"), "actorsAttack");
         action = new AbstractAction("selectedActorsAttack") {
@@ -512,7 +525,7 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
         JScrollPane logScrollPane = new JScrollPane(logTextArea);
         
         // The actor info pane
-        detailsPanel = new ActorDetailsPanel_v2(initTable);
+        detailsPanel = new ActorDetailsPanel_v2();
         JScrollPane actorDetailsPane = new JScrollPane(detailsPanel);
         actorDetailsPane.setMinimumSize(new Dimension(detailsPanel.getPreferredSize().width+20,0));
 
@@ -610,6 +623,14 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
 		 if (!propertyBag.containsKey("GITApp.defense.location.y")) {
 			 propertyBag.setProperty("GITApp.defense.location.y", "200"); }
 
+		 if (!propertyBag.containsKey("GITApp.crittables.location.x")) {
+			 propertyBag.setProperty("GITApp.crittables.location.x", "175"); }
+		 if (!propertyBag.containsKey("GITApp.crittables.location.y")) {
+			 propertyBag.setProperty("GITApp.crittables.location.y", "175"); }
+		 if (!propertyBag.containsKey("GITApp.crittables.size.width")) {
+			 propertyBag.setProperty("GITApp.crittables.size.width",  String.valueOf(criticalTables.getPreferredSize().width)); }
+		 if (!propertyBag.containsKey("GITApp.crittables.size.height")) {
+			 propertyBag.setProperty("GITApp.crittables.size.height",  String.valueOf(criticalTables.getPreferredSize().height)); }
 	 }
 	 
 	 /**
@@ -624,6 +645,10 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
 		 propertyBag.setProperty("GITApp.location.y", String.valueOf(getLocation().y));
 		 propertyBag.setProperty("GITApp.size.width", String.valueOf(getSize().width));
 		 propertyBag.setProperty("GITApp.size.height", String.valueOf(getSize().height));
+		 propertyBag.setProperty("GITApp.crittables.location.x", String.valueOf(criticalTables.getLocation().x));
+		 propertyBag.setProperty("GITApp.crittables.location.y", String.valueOf(criticalTables.getLocation().y));
+		 propertyBag.setProperty("GITApp.crittables.size.width", String.valueOf(criticalTables.getSize().width));
+		 propertyBag.setProperty("GITApp.crittables.size.height", String.valueOf(criticalTables.getSize().height));
 		 // Optional properties
 		// if (saveAsFile != null) { propertyBag.setProperty("GITApp.currentLoadedFile", saveAsFile.getAbsolutePath());}
 		 //else { propertyBag.remove("GITApp.currentLoadedFile");}
@@ -730,4 +755,16 @@ public class GITApp extends JFrame implements ActionListener, EncounterLogEventL
 		@Override
 		public void windowOpened(WindowEvent arg0) {}
     }
+
+	@Override
+	public void tableChanged(TableModelEvent e) {
+		detailsPanel.setActor(initTable.getSelectedActor());
+	}
+
+	@Override
+	public void valueChanged(ListSelectionEvent e) {
+		if (!e.getValueIsAdjusting()) {
+			detailsPanel.setActor(initTable.getSelectedActor());
+		}
+	}
 }

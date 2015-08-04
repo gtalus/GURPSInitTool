@@ -20,14 +20,12 @@ public class TraitTableModel extends AbstractTableModel {
 	public enum columns {Name, Value};
 	private static int numColumns = 2;
 	
-	private InitTableModel actorModel = null;
 	private Actor currentActor = null;
 	private ArrayList<Trait> displayedTraits = new ArrayList<Trait>();
 
 	
-	public TraitTableModel(InitTableModel actorModel) {
+	public TraitTableModel() {
 		super();
-		this.actorModel = actorModel;
 	}
 
 	@Override
@@ -98,7 +96,6 @@ public class TraitTableModel extends AbstractTableModel {
 			break;
 		}
 		// Update the entire row, since changing state or type may affect formatting for all cells in the row.
-		setDirty();
 		fireTableRowsUpdated(row, row);
     }
     
@@ -158,12 +155,5 @@ public class TraitTableModel extends AbstractTableModel {
 			}
     		fireTableRowsDeleted(rows[0], rows[rows.length-1]);
     	}
-    }
- 
-    /**
-     * Set the status of the initTable as dirty. Should be called after making any changes.
-     */
-    public void setDirty() {
-    	actorModel.setDirty();
     }
 }

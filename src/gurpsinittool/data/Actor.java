@@ -6,8 +6,13 @@ import gurpsinittool.util.DieRoller;
 import gurpsinittool.util.EncounterLogEvent;
 import gurpsinittool.util.EncounterLogEventSource;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,7 +20,7 @@ import java.util.HashSet;
 /** 
  * Encapsulates a single actor in the current encounter.
  * Contains all status information.
- *
+ * Provides change notification services.
  */
 public class Actor 
 	implements Serializable {
@@ -24,23 +29,19 @@ public class Actor
 	private static final long serialVersionUID = 1L;
 	public static EncounterLogEventSource LogEventSource; // where to send log messages
 	public static GameSettings settings; // Settings which determine game behavior, including automation
+
+	private transient PropertyChangeSupport mPcs = new PropertyChangeSupport(this); // Change reporting, don't serialize!
 	
 	public enum ActorStatus {Attacking, Waiting, Disarmed, StunPhys, StunMental, StunRecovr, Prone, Kneeling, Disabled, Unconscious, Dead};
-	// Position, Status, Action, Disarmed
-	// TODO: hide behind interface and log changes
-	public HashSet<ActorStatus> Status;
+	private HashSet<ActorStatus> statuses;
 
 	public enum ActorType {PC, Enemy, Ally, Neutral, Special};
-	// TODO: hide behind interface, and log changes
-	public ActorType Type;
+	private ActorType type;
 	
 	// All actors must have these traits defined:
 	public enum BasicTrait {Name, ST, HP, Speed, DX, Will, Move, IQ, Per, HT, FP, SM, Fatigue, Injury, Dodge, Parry, Block, DR, Shield_DB, Shield_DR, Shield_HP, Notes}
-	//private Class<?>[] basicTraitClasses = {String.class, Integer.class, Integer.class, Float.class, Integer.class, Integer.class, Integer.class, 
-	//		Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, 
-	//		Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, String.class};
-	// Default values?
 	
+	// TODO: implement change tracking? Only way to actually track changes all the way down
 	public class Trait implements Serializable {
 		// Default SVUID
 		private static final long serialVersionUID = 1L;
@@ -65,17 +66,20 @@ public class Actor
 	protected HashMap<String, Trait> traits = new HashMap<String, Trait>();
 	
 	// Attack info
-	// TODO: hide behind interface?
-	public int DefaultAttack = 0;
-	public ArrayList<Attack> Attacks;
+	private int defaultAttack = 0;
+	private ArrayList<Attack> attacks;
 
-	// Volatile (not currently stored)
+	// Volatile (not currently stored or changes reported)
+	protected HashMap<String, Trait> temps = new HashMap<String, Trait>();
+	// TODO: FIX!!!
 	// public int Shock = 0;
 	//public String tag;
-	public int ShieldDamage = 0;
-	public int numParry = 0;
-	public int numBlock = 0;
+	//public int ShieldDamage = 0;
+	//public int numParry = 0;
+	//public int numBlock = 0;
 
+	 
+	 
     //================================================================================
     // Constructors
     //================================================================================
@@ -86,13 +90,13 @@ public class Actor
 	 * @param type : Actor type (PC, NPC, etc)
 	 */
 	public Actor(String name, ActorType type) {
-		Status = new HashSet<ActorStatus>();
-		this.Type = type;
+		statuses = new HashSet<ActorStatus>();
+		this.type = type;
 		
 		InitializeBasicTraits();
 		setTrait(BasicTrait.Name, name);
 		
-		Attacks = new ArrayList<Attack>();
+		attacks = new ArrayList<Attack>();
 	}
 	
 	/**
@@ -100,8 +104,8 @@ public class Actor
 	 * @param anActor reference Actor
 	 */
 	public Actor(Actor anActor) {
-		this(anActor.getTrait(BasicTrait.Name).value,anActor.Type);
-		Status.addAll(anActor.Status);
+		this(anActor.getTrait(BasicTrait.Name).value,anActor.type);
+		statuses.addAll(anActor.statuses);
 		
 		// Deep copy of traits
 		for (Object value : anActor.traits.values()) {
@@ -109,8 +113,8 @@ public class Actor
 			setTrait(trait.name, trait.value);
 		}
 		
-		for(int i = 0; i < anActor.Attacks.size(); ++i) {
-			Attacks.add(anActor.Attacks.get(i));
+		for(int i = 0; i < anActor.attacks.size(); ++i) {
+			attacks.add(anActor.attacks.get(i));
 		}
 	}
 	
@@ -124,17 +128,124 @@ public class Actor
 			String traitName = traitNames[i].toString();
 			setTrait(traitName, traitValue);			
 		}
+		setTemp("numParry", 0);
+		setTemp("numBlock", 0);
+		setTemp("ShieldDamage", 0);
+	}
+	
+	// post- de-serialize/serialize helper
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException
+	{
+		// default implementation
+		in.defaultReadObject();
+		// Re-constitute transient properties
+		mPcs = new PropertyChangeSupport(this);
 	}
 	
     //================================================================================
-    // Trait Accessors
+    // Accessors
     //================================================================================
 
+	// Statuses
+	public boolean hasStatus(ActorStatus status) {
+		return statuses.contains(status);
+	}
+	public void addStatus(ActorStatus status) {
+		if (!statuses.contains(status)) {
+			statuses.add(status);
+			mPcs.firePropertyChange("Status", null, status);
+		}
+	}
+	public HashSet<ActorStatus> getAllStatuses() {
+		return new HashSet<ActorStatus>(statuses);
+	}
+	public void setAllStatuses(HashSet<ActorStatus> newStatuses) {
+		if (!statuses.containsAll(newStatuses) || !newStatuses.containsAll(statuses)) {
+			String oldStatuses = getStatusesString();
+			statuses.clear();
+			statuses.addAll(newStatuses);
+			mPcs.firePropertyChange("Statuses", oldStatuses, getStatusesString());
+		}
+	}
+	public void removeStatus(ActorStatus status) {
+		if (statuses.contains(status)) {
+			statuses.remove(status);
+			mPcs.firePropertyChange("Status", status, null);
+		}
+	}
+	public void clearStatuses() {
+		if (statuses.size() > 0) {
+			int size = statuses.size();
+			statuses.clear();
+			mPcs.firePropertyChange("Status", size, null);
+		}
+	}
+	public String getStatusesString() {
+		int[] scodes = new int[statuses.size()];
+		int i = 0;
+		for (ActorStatus as: statuses) 
+			scodes[i++] = as.ordinal();
+		Arrays.sort(scodes);
+		String text = "";
+		for (int j = 0; j < scodes.length; ++j) {
+			if (j != 0) {
+				text += ", ";
+			}
+			text += ActorStatus.values()[scodes[j]].toString();
+		}
+		return text;
+	}
+
+	// Type
+	public ActorType getType() {
+		return type;
+	}
+	public void setType(ActorType type) {
+		if (this.type != type) {
+			ActorType oldType = this.type;
+			this.type = type;
+			mPcs.firePropertyChange("Type", oldType, type);	
+		}
+	}
+	
+	// Attack Table
+	public int getDefaultAttack() {
+		return defaultAttack;
+	}
+	public void setDefaultAttack(int index) {
+		if (defaultAttack != index && index < attacks.size()) {
+			int oldDefault = defaultAttack;
+			defaultAttack = index;
+			mPcs.firePropertyChange("DefaultAttack", oldDefault, defaultAttack);
+		}
+	}
+	public int getNumAttacks() {
+		return attacks.size();
+	}
+	public Attack getAttack(int index) {
+		return attacks.get(index);
+	}
+	public void addAttack(Attack attack) {
+		attacks.add(attack);
+		mPcs.firePropertyChange("Attacks", attacks.size()-1 ,attacks.size());
+	}
+	public void removeAttack(int index) {
+		if (index < attacks.size()) {
+			if (index < defaultAttack)
+				--defaultAttack;
+			if (index == defaultAttack)
+				defaultAttack = 0;
+			attacks.remove(index);
+			mPcs.firePropertyChange("Attacks", attacks.size()+1, attacks.size());
+		}
+	}
+	
+	// Traits
 	public boolean hasTrait(String name) {
 		return traits.containsKey(name);
 	}
 	
-	public Trait getTrait(BasicTrait trait) {
+	private Trait getTrait(BasicTrait trait) {
 		if (!traits.containsKey(trait.toString())) { // This is a serious error
 			System.err.println("ERROR in Actor:getTrait unable to find basic trait " + trait);
 			return null; // Consider returning a new trait with no value?
@@ -143,11 +254,11 @@ public class Actor
 		}
 	}
 	
-	public String getValue(BasicTrait trait) {
+	public String getTraitValue(BasicTrait trait) {
 		return getTrait(trait).value;
 	}
 	
-	public int getValueInt(BasicTrait trait) {
+	public int getTraitValueInt(BasicTrait trait) {
 		try {
 			return Integer.parseInt(getTrait(trait).value);
 		} catch (NumberFormatException e) {
@@ -157,18 +268,26 @@ public class Actor
 		}
 	}
 	
-	public Trait getTrait(String name) {
+	private Trait getTrait(String name) {
 		if (!traits.containsKey(name)) { // This is not a serious error?
 			System.out.println("-E- Actor:GetTrait: requested trait that does not exist: " + name);
-			return null; // Consider returning a new trait with no value?
+			return null; // Consider returning a new trait with no value? Probably not with the change support.
 		} else {
 			return traits.get(name);
 		}
 	}
 	
+	public String getTraitValue(String name) {
+		return getTrait(name).value;
+	}
+	
 	public Trait setTrait(BasicTrait trait, String value) {
 		Trait theTrait = getTrait(trait);
-		theTrait.value = value;
+		if (theTrait.value != value) {
+			String oldValue = theTrait.value;
+			theTrait.value = value;
+			mPcs.firePropertyChange("trait." + theTrait.name, oldValue, value);
+		}
 		return theTrait;
 	}
 	
@@ -185,11 +304,16 @@ public class Actor
 	public Trait setTrait(String name, String value) {
 		if (hasTrait(name)) {
 			Trait theTrait = getTrait(name);
-			theTrait.value = value;
+			if (theTrait.value != value) {
+				String oldValue = theTrait.value;
+				theTrait.value = value;
+				mPcs.firePropertyChange("trait." + theTrait.name, oldValue, value);
+			}
 			return theTrait;
 		} else {
 			Trait newTrait = new Trait(name, value);
 			traits.put(name, newTrait);
+			mPcs.firePropertyChange("trait." + name, null, value);
 			return newTrait;
 		}
 	}
@@ -207,10 +331,37 @@ public class Actor
 		if (isBasicTrait(name)) {
 			System.out.println("-E- removeTrait: cannot remove basic traits! => " + name);
 			return false;
+		} else if (!hasTrait(name)) {
+			System.out.println("-E- removeTrait: cannot remove non-existant trait! => " + name);
+			return false;
 		} else {
+			String oldValue = getTraitValue(name);
 			traits.remove(name);
+			mPcs.firePropertyChange("trait." + name, oldValue, null);
 			return true;
 		}
+	}
+	
+	// Temps
+	public boolean hasTemp(String name) {
+		return temps.containsKey(name);
+	}
+	public Trait getTemp(String name) {
+		return temps.get(name);
+	}
+	public int getTempInt(String name) {
+		return Integer.parseInt(getTemp(name).value);
+	}
+	public void setTemp(String name, String value) {
+		if (hasTemp(name)) {
+			getTemp(name).value = value;
+		} else {
+			Trait newTrait = new Trait(name, value);
+			temps.put(name, newTrait);
+		}
+	}
+	public void setTemp(String name, int value) {
+		setTemp(name, String.valueOf(value));
 	}
 	
 	/**
@@ -231,9 +382,12 @@ public class Actor
 			return false;
 		} else {
 			Trait trait = getTrait(oldName);
+			String value = trait.value;
 			trait.name = newName;
 			traits.remove(oldName);
+			mPcs.firePropertyChange("trait." + oldName, value, null);
 			traits.put(newName, trait);
+			mPcs.firePropertyChange("trait." + newName, null, value);
 			return true;
 		}
 	}
@@ -249,66 +403,73 @@ public class Actor
 		return false;
 	}
 
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+        mPcs.addPropertyChangeListener(listener);
+    }
+    
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        mPcs.removePropertyChangeListener(listener);
+    }
     //================================================================================
     // Basic Operations
     //================================================================================
 	
 	public void NextTurn() {
-		numParry = 0;
-		numBlock = 0;
+		setTemp("numParry", 0);
+		setTemp("numBlock", 0);
 		// Shock
-		String Name = getValue(BasicTrait.Name);
-		int Injury = getValueInt(BasicTrait.Injury);
-		int HP = getValueInt(BasicTrait.HP);
-		int HT = getValueInt(BasicTrait.HT);
+		String Name = getTraitValue(BasicTrait.Name);
+		int Injury = getTraitValueInt(BasicTrait.Injury);
+		int HP = getTraitValueInt(BasicTrait.HP);
+		int HT = getTraitValueInt(BasicTrait.HT);
 		
 		// Resolve auto actions at start of actor's turn:
-    	if (Type == ActorType.Enemy) { // Do AUTO actions
+    	if (type == ActorType.Enemy) { // Do AUTO actions
 			if (settings.AUTO_UNCONSCIOUS 
 					&& Injury >= HP
-					&& !(Status.contains(ActorStatus.Unconscious) 
-						|| Status.contains(ActorStatus.Disabled) 
-						|| Status.contains(ActorStatus.Dead) 
-						|| Status.contains(ActorStatus.Waiting))) { 
+					&& !(hasStatus(ActorStatus.Unconscious) 
+						|| hasStatus(ActorStatus.Disabled) 
+						|| hasStatus(ActorStatus.Dead) 
+						|| hasStatus(ActorStatus.Waiting))) { 
 				int penalty = (int) (-1*(Math.floor((double)Injury/HP)-1));
 				int result = DieRoller.roll3d6();
 				String details = "(HT: " + HT + ", penalty: " + penalty + ", roll: " + result + ")";
-				if (result > HT+penalty) {
+				if (DieRoller.isFailure(result, HT+penalty)) {
 					logEvent("<b>" + Name + "</b> <b><font color=red>failed</font></b> consciousness roll " + details);
-					Status.clear(); // Clear other status' (Attacking/whatever)
-					Status.add(ActorStatus.Unconscious);
-					Status.add(ActorStatus.Prone);
-					Status.add(ActorStatus.Disarmed);
+					clearStatuses(); // Clear other status' (Attacking/whatever)
+					addStatus(ActorStatus.Unconscious);
+					addStatus(ActorStatus.Prone);
+					addStatus(ActorStatus.Disarmed);
 				} else {
 					logEvent("<b>" + Name + "</b> passed consciousness roll " + details);
 				}
 			}
 			if (settings.AUTO_STUNRECOVERY) {
-				Status.remove(ActorStatus.StunRecovr); // This was from last turn, so recovered this turn
-				if (Status.contains(ActorStatus.StunMental)) {
-					int recoverTarget = getValueInt(BasicTrait.IQ);
+				removeStatus(ActorStatus.StunRecovr); // This was from last turn, so recovered this turn
+				if (hasStatus(ActorStatus.StunMental)) {
+					int recoverTarget = getTraitValueInt(BasicTrait.IQ);
 					if (hasTrait("CR")) recoverTarget += 6;
 					int roll = DieRoller.roll3d6();
 					if (DieRoller.isSuccess(roll, recoverTarget)) {
 						logEvent("<b>" + Name + "</b> is now recovering from Mental Stun (rolled " + roll + " against " + recoverTarget + ")"); 
-						Status.remove(ActorStatus.StunMental);
-						Status.add(ActorStatus.StunRecovr);
+						removeStatus(ActorStatus.StunMental);
+						addStatus(ActorStatus.StunRecovr);
 					} else {
 						logEvent("<b>" + Name + "</b> <b>failed</b> recovery roll for Mental Stun (rolled " + roll + " against " + recoverTarget + ")"); 
 					}
-				} else if (Status.contains(ActorStatus.StunPhys)) {
-					int recoverTarget = getValueInt(BasicTrait.HT);
+				} else if (hasStatus(ActorStatus.StunPhys)) {
+					int recoverTarget = getTraitValueInt(BasicTrait.HT);
 					int roll = DieRoller.roll3d6();
 					if (DieRoller.isSuccess(roll, recoverTarget)) {
 						logEvent("<b>" + Name + "</b> is now recovering from Physical Stun (rolled " + roll + " against " + recoverTarget + ")");
-						Status.remove(ActorStatus.StunPhys);
-						Status.add(ActorStatus.StunRecovr);
+						removeStatus(ActorStatus.StunPhys);
+						addStatus(ActorStatus.StunRecovr);
 					} else {
 						logEvent("<b>" + Name + "</b> <b>failed</b> recovery roll for Physical Stun (rolled " + roll + " against " + recoverTarget + ")"); 
 					}
 				}
 			}
-			if (settings.AUTO_ATTACK && Status.contains(ActorStatus.Attacking) && !isStunned())
+			if (settings.AUTO_ATTACK && hasStatus(ActorStatus.Attacking) && !isStunned())
 				Attack();
 		}
 	}
@@ -317,12 +478,12 @@ public class Actor
 	 * Reset actor state- Active, 0 Injury, 0 fatigue, numParry/numBlock/ShieldDamage = 0
 	 */
 	public void Reset() {
-		Status.clear();
+		clearStatuses();
 		setTrait(BasicTrait.Injury, "0");
 		setTrait(BasicTrait.Fatigue, "0");
-		numParry = 0;
-		numBlock = 0;
-		ShieldDamage = 0;
+		setTemp("numParry", 0);
+		setTemp("numBlock", 0);
+		setTemp("ShieldDamage", 0);
 	}
 	
 	private void logEvent(String text) {
@@ -332,9 +493,9 @@ public class Actor
 	
 	// Helper method to deal with all the varieties of stun
 	public boolean isStunned() {
-		return (Status.contains(Actor.ActorStatus.StunPhys)
-    			|| Status.contains(Actor.ActorStatus.StunMental)
-    			|| Status.contains(Actor.ActorStatus.StunRecovr));
+		return (hasStatus(Actor.ActorStatus.StunPhys)
+    			|| hasStatus(Actor.ActorStatus.StunMental)
+    			|| hasStatus(Actor.ActorStatus.StunRecovr));
 	}
 	
     //================================================================================
@@ -342,16 +503,16 @@ public class Actor
     //================================================================================
 
 	public void Attack() {
-		String Name = getValue(BasicTrait.Name);
-		if (Attacks.size() < 1) {
+		String Name = getTraitValue(BasicTrait.Name);
+		if (attacks.size() < 1) {
 			logEvent("<i><font color=gray>" + Name + " has no attacks defined!</font></i>");
 			return;
 		}	
-		if (DefaultAttack < 0 || DefaultAttack >= Attacks.size()) {
-			logEvent("<i><font color=gray>" + Name + " has invalid default attack: " + DefaultAttack + "</font></i>");
+		if (defaultAttack < 0 || defaultAttack >= attacks.size()) {
+			logEvent("<i><font color=gray>" + Name + " has invalid default attack: " + defaultAttack + "</font></i>");
 			return;
 		}
-		Attack attack = Attacks.get(DefaultAttack);
+		Attack attack = attacks.get(defaultAttack);
 		int roll = DieRoller.roll3d6();
 		int margin = attack.Skill - roll;
 		String hit_miss;
@@ -372,7 +533,7 @@ public class Actor
 			hit_miss = "miss";
 		Damage damage = Damage.ParseDamage(attack.Damage);
 		if (attack.Unbalanced) {
-			++numParry;
+			setTemp("numParry", getTempInt("numParry")+1);
 		}
 		String armorDivStr = "";
 		if (damage.ArmorDivisor != 1) {
@@ -396,26 +557,26 @@ public class Actor
 	}
 	
 	 private void ProcessDefense(Defense defense) {
-		int Fatigue = getValueInt(BasicTrait.Fatigue);
-		int Injury = getValueInt(BasicTrait.Injury);
+		int Fatigue = getTraitValueInt(BasicTrait.Fatigue);
+		int Injury = getTraitValueInt(BasicTrait.Injury);
 		// Process shield damage/injury/fatigue
-		ShieldDamage += defense.shieldDamage;
+		setTemp("ShieldDamage", getTempInt("ShieldDamage") + defense.shieldDamage);
 		setTrait(BasicTrait.Injury, String.valueOf(Injury+defense.injury));
 		setTrait(BasicTrait.Fatigue, String.valueOf(Fatigue+defense.fatigue));
 		switch (defense.type) { // Record defense attempts
 		case Parry:
-			++numParry;
+			setTemp("numParry", getTempInt("numParry")+1);
 			break;
 		case Block:
-			++numBlock;
+			setTemp("numBlock", getTempInt("numBlock")+1);
 			break;
 		default:
 		}
     }
 	    
     private void KnockdownStunningCheck(Defense defense) {
-    	String Name = getValue(BasicTrait.Name);
-    	int HT = getValueInt(BasicTrait.HT);
+    	String Name = getTraitValue(BasicTrait.Name);
+    	int HT = getTraitValueInt(BasicTrait.HT);
  		if (defense.cripplingInjury || defense.majorWound) {
  			int effHT = HT + defense.location.knockdownPenalty;
  			if (hasTrait("HPT")) effHT += 3;
@@ -425,18 +586,18 @@ public class Actor
  			logEvent("<b>" + Name + "</b> Knockdown/Stunning check: rolled " + roll + " against " + effHT + " => " + (!success?"<b>failed</b>":"succeeded") + (settings.AUTO_KNOCKDOWNSTUN?"":" (not applied)"));
  			if (settings.AUTO_KNOCKDOWNSTUN) {
  				if (!success) {
- 					Status.add(ActorStatus.StunPhys); // Check for mental stun and don't add this in that case?
- 					Status.remove(ActorStatus.StunRecovr);
- 					Status.add(ActorStatus.Prone);
- 					Status.remove(ActorStatus.Kneeling);
- 					Status.add(ActorStatus.Disarmed);
+ 					addStatus(ActorStatus.StunPhys); // Check for mental stun and don't add this in that case?
+ 					removeStatus(ActorStatus.StunRecovr);
+ 					addStatus(ActorStatus.Prone);
+ 					removeStatus(ActorStatus.Kneeling);
+ 					addStatus(ActorStatus.Disarmed);
  				}
  			}
  		}
     }
 	    
     private void GenerateDefenseLog(Defense defense) {
-    	String Name = getValue(BasicTrait.Name);
+    	String Name = getTraitValue(BasicTrait.Name);
 		// Defense description
 		String resultType = (defense.result == DefenseResult.CritSuccess)?"<b><font color=blue>critically</font></b>"
 							:(defense.result == DefenseResult.Success)?"successfully"
@@ -482,20 +643,20 @@ public class Actor
      * @return the current value of that defense
      */
     public int getCurrentDefenseValue(DefenseType type) {
-    	int Parry = getValueInt(BasicTrait.Parry);
-    	int Block = getValueInt(BasicTrait.Block);
-    	int Dodge = getValueInt(BasicTrait.Dodge);
-    	int Injury = getValueInt(BasicTrait.Injury);
-    	int Fatigue = getValueInt(BasicTrait.Fatigue);
-    	int HP = getValueInt(BasicTrait.HP);
-    	int FP = getValueInt(BasicTrait.FP);
+    	int Parry = getTraitValueInt(BasicTrait.Parry);
+    	int Block = getTraitValueInt(BasicTrait.Block);
+    	int Dodge = getTraitValueInt(BasicTrait.Dodge);
+    	int Injury = getTraitValueInt(BasicTrait.Injury);
+    	int Fatigue = getTraitValueInt(BasicTrait.Fatigue);
+    	int HP = getTraitValueInt(BasicTrait.HP);
+    	int FP = getTraitValueInt(BasicTrait.FP);
     	int currentDefense = 0;
     	switch (type) {
     	case Parry:
-    		currentDefense = Parry - numParry * 4;
+    		currentDefense = Parry - getTempInt("numParry") * 4;
     		break;
     	case Block:
-    		currentDefense = Block - numBlock*5;
+    		currentDefense = Block - getTempInt("numBlock") * 5;
     		break;
     	case Dodge:
     		currentDefense = Dodge;   

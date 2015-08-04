@@ -70,7 +70,7 @@ public class InitTable extends JTable
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 
 	private JPopupMenu popupMenu;
 	private Map<ActorStatus, JMenuItem> coordinatedStatusMenuItems;
@@ -83,6 +83,7 @@ public class InitTable extends JTable
 	 */
 	public InitTable(Properties propertyBag, boolean isInitTable) {
 		super(new InitTableModel());
+		putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
 		this.propertyBag = propertyBag;
 		this.isInitTable = isInitTable;
 		tableModel = (InitTableModel) dataModel;
@@ -109,16 +110,15 @@ public class InitTable extends JTable
     	else if ("Reset".equals(e.getActionCommand())) { // Delete selected rows
     		stopCellEditing();
       		int[] rows = getSelectedRows();
-       		if (DEBUG) { System.out.println("InitTable: Resetting actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).getValue(BasicTrait.Name)); }   	
+       		if (DEBUG) { System.out.println("InitTable: Resetting actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).getTraitValue(BasicTrait.Name)); }   	
        		for (int i = 0; i < rows.length; i++) {
        			Actor actor = tableModel.getActor(rows[i]);
        			actor.Reset();
-       			tableModel.fireRefresh(actor);
        		}
     	}
     	else if ("Set Active".equals(e.getActionCommand())) { // Clone selected rows at the end (as "Haste" spell)
       		int[] rows = getSelectedRows();
-      		if (DEBUG) { System.out.println("InitTable: Setting active actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).getValue(BasicTrait.Name)); }   	
+      		if (DEBUG) { System.out.println("InitTable: Setting active actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).getTraitValue(BasicTrait.Name)); }   	
       		tableModel.setActiveRow(rows[0]); // sets actor as current active, and sets state to active
 //       		for (int i = 0; i < rows.length; i++) {
 //       			tableModel.setValueAt("Active", rows[i], InitTableModel.columns.State.ordinal());
@@ -126,14 +126,14 @@ public class InitTable extends JTable
     	}
     	else if ("Tag".equals(e.getActionCommand())) { // Add tag to selected rows
       		int[] rows = getSelectedRows();
-      		if (DEBUG) { System.out.println("InitTable: Tagging actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).getValue(BasicTrait.Name)); }   	
+      		if (DEBUG) { System.out.println("InitTable: Tagging actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).getTraitValue(BasicTrait.Name)); }   	
        		for (int i = 0; i < rows.length; i++) {
        			tableModel.tagActor(tableModel.getActor(rows[i]));
        		}
     	}
     	else if ("Remove Tag".equals(e.getActionCommand())) { // Remove tag from selected rows
       		int[] rows = getSelectedRows();
-      		if (DEBUG) { System.out.println("InitTable: Un-tagging actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).getValue(BasicTrait.Name)); }   	
+      		if (DEBUG) { System.out.println("InitTable: Un-tagging actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).getTraitValue(BasicTrait.Name)); }   	
        		for (int i = 0; i < rows.length; i++) {
        			tableModel.removeTag(tableModel.getActor(rows[i]));
        		}
@@ -250,7 +250,7 @@ public class InitTable extends JTable
     		boolean all_unset = true;
     		for (int row: getSelectedRows()) {
     			Actor actor = tableModel.getActor(row);
-    			if (actor.Status.contains(status))
+    			if (actor.hasStatus(status))
     				all_unset = false;
     			else
     				all_set = false;
@@ -415,10 +415,9 @@ public class InitTable extends JTable
 		for (int row: getSelectedRows()) {
 			Actor actor = tableModel.getActor(row);
 			if (add)
-				actor.Status.add(status);
+				actor.addStatus(status);
 			else 
-				actor.Status.remove(status);
-			tableModel.fireRefresh(actor);
+				actor.removeStatus(status);
 		}
 	}
 	
@@ -429,11 +428,10 @@ public class InitTable extends JTable
 	public void toggleStatusOfSelectedActors(ActorStatus status) {
 		for (int row: getSelectedRows()) {
 			Actor actor = tableModel.getActor(row);
-			if (actor.Status.contains(status))
-				actor.Status.remove(status);
+			if (actor.hasStatus(status))
+				actor.removeStatus(status);
 			else
-				actor.Status.add(status);
-			tableModel.fireRefresh(actor);
+				actor.addStatus(status);
 		}
 	}
 	
@@ -448,7 +446,7 @@ public class InitTable extends JTable
 		// First, determine which way to go
 		for (int row: getSelectedRows()) {
 			Actor actor = tableModel.getActor(row);
-			if (!actor.Status.contains(status)) {
+			if (!actor.hasStatus(status)) {
 				all_set = false;
 				break;
 			}
@@ -456,10 +454,9 @@ public class InitTable extends JTable
 		for (int row: getSelectedRows()) {
 			Actor actor = tableModel.getActor(row);
 			if (all_set)
-				actor.Status.remove(status);
+				actor.removeStatus(status);
 			else
-				actor.Status.add(status);
-			tableModel.fireRefresh(actor);
+				actor.addStatus(status);
 		}
 	}
 	
@@ -506,7 +503,6 @@ public class InitTable extends JTable
     	// Process and log result!
     	if (defenseDialog.valid) {
     		actor.Defend(defenseDialog.defense);
-			getActorTableModel().fireRefresh(actor);
     	}
     	// TODO: this is a hack of the property bag system: fix!
     	propertyBag.setProperty("GITApp.defense.location.x", String.valueOf(defenseDialog.getLocation().x));
@@ -532,7 +528,7 @@ public class InitTable extends JTable
 		c.setHorizontalAlignment(SwingConstants.LEFT);
 		c.setHorizontalTextPosition(JLabel.LEADING);
 
-		if (a.Status.contains(ActorStatus.Waiting)) {
+		if (a.hasStatus(ActorStatus.Waiting)) {
 			c.setHorizontalAlignment(SwingConstants.RIGHT);
 		}
 
@@ -548,7 +544,7 @@ public class InitTable extends JTable
 	 */
 	public static void formatComponentAlignment(JTextField c, Actor a) {
 		c.setHorizontalAlignment(SwingConstants.LEFT);	
-		if (a.Status.contains(ActorStatus.Waiting)) {
+		if (a.hasStatus(ActorStatus.Waiting)) {
 			c.setHorizontalAlignment(SwingConstants.RIGHT);
 		}
 	}
@@ -569,7 +565,7 @@ public class InitTable extends JTable
 		}
 		
 		if (isSelected) {
-			switch (a.Type) {
+			switch (a.getType()) {
 			case PC:
 				c.setBackground(new Color(128,255,128));
 				break;
@@ -588,7 +584,7 @@ public class InitTable extends JTable
 			}
 		}
 		else {
-			switch (a.Type) {
+			switch (a.getType()) {
 			case PC:
 				c.setBackground(new Color(200,255,200));
 				break;
@@ -607,9 +603,9 @@ public class InitTable extends JTable
 			}
 		}
 		
-		if (a.Status.contains(ActorStatus.Unconscious)
-				|| a.Status.contains(ActorStatus.Disabled)
-				|| a.Status.contains(ActorStatus.Dead)) {
+		if (a.hasStatus(ActorStatus.Unconscious)
+				|| a.hasStatus(ActorStatus.Disabled)
+				|| a.hasStatus(ActorStatus.Dead)) {
 			c.setForeground(new Color(128,128,128));
 		}
 
@@ -651,10 +647,10 @@ public class InitTable extends JTable
 			// Custom rendering for various columns
 			//ActorTableModel.columns col = ActorTableModel.columns.values()[column];
 			Actor a = ((InitTableModel)table.getModel()).getActor(row);
-			int Injury = a.getValueInt(BasicTrait.Injury);
-			int Fatigue = a.getValueInt(BasicTrait.Fatigue);
-			int HP = a.getValueInt(BasicTrait.HP);
-			int FP = a.getValueInt(BasicTrait.FP);
+			int Injury = a.getTraitValueInt(BasicTrait.Injury);
+			int Fatigue = a.getTraitValueInt(BasicTrait.Fatigue);
+			int HP = a.getTraitValueInt(BasicTrait.HP);
+			int FP = a.getTraitValueInt(BasicTrait.FP);
 			if (col == columns.Act && (tableModel.getActiveActorIndex() == row)) {
 				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/go.png"), "Current Actor"));  
 			}
@@ -678,19 +674,7 @@ public class InitTable extends JTable
 				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png"), "Must check to stay conscious"));
 			}
 			else if (col == columns.Status) { // comma separated, ordered by enum order
-				int[] scodes = new int[a.Status.size()];
-				int i = 0;
-				for (ActorStatus as: a.Status) 
-					scodes[i++] = as.ordinal();
-				Arrays.sort(scodes);
-				String text = "";
-				for (int j = 0; j < scodes.length; ++j) {
-					if (j != 0) {
-						text += ", ";
-					}
-					text += ActorStatus.values()[scodes[j]].toString();
-				}
-				c.setText(text);
+				c.setText(a.getStatusesString());
 				c.setIcon(new ImageIcon());
 			}
 			else {
@@ -1081,7 +1065,7 @@ public class InitTable extends JTable
 			
 			InitTableModel.columns col = InitTableModel.columns.valueOf(table.getColumnName(column));
 			Actor a = ((InitTableModel)table.getModel()).getActor(row);
-			actorName = a.getValue(BasicTrait.Name);
+			actorName = a.getTraitValue(BasicTrait.Name);
 			formatComponentColor(c, a, isSelected, col);
 			formatComponentAlignment(c, a);
 	    	
@@ -1094,7 +1078,7 @@ public class InitTable extends JTable
 	    	// check for modifications in the base Actor
 	    	// This hack is only needed if setClickCountToStart = 1, since in that 
 	    	// case the table is not updated in time when there is a modification on focus lost
-	    	String selctedActorName = getSelectedActor().getValue(BasicTrait.Name);
+	    	String selctedActorName = getSelectedActor().getTraitValue(BasicTrait.Name);
 	    	if (!selctedActorName.equals(actorName)) {
 	    		JTextField t = (JTextField) evt.getComponent();
 	    		actorName = selctedActorName;
@@ -1110,6 +1094,7 @@ public class InitTable extends JTable
 		@Override
 		public void focusLost(FocusEvent evt) {
 			if (DEBUG) { System.out.println("InitTable: Focus lost on " + evt.toString()); }
+			stopCellEditing();
 		}
 		
 	}
