@@ -102,35 +102,32 @@
         <Component class="javax.swing.JCheckBox" name="auto_attack">
           <Properties>
             <Property name="text" type="java.lang.String" value="Attack"/>
-            <Property name="toolTipText" type="java.lang.String" value="Enemy creatures with the &apos;Attacking&apos; status automatically perform their default attack when it is their turn, as long as they are not Stunned."/>
+            <Property name="toolTipText" type="java.lang.String" value="NPCs with the &apos;Attacking&apos; status automatically perform their default attack when it is their turn, as long as they are not Stunned."/>
           </Properties>
         </Component>
         <Component class="javax.swing.JCheckBox" name="auto_unconsciousness">
           <Properties>
             <Property name="text" type="java.lang.String" value="Unconsciousness Checks"/>
-            <Property name="toolTipText" type="java.lang.String" value="Enemy creatures check for unconsciousness at the start of each of their turns."/>
+            <Property name="toolTipText" type="java.lang.String" value="NPCs check for unconsciousness at the start of each of their turns."/>
           </Properties>
         </Component>
         <Component class="javax.swing.JCheckBox" name="auto_knockdown">
           <Properties>
             <Property name="text" type="java.lang.String" value="Knockdown and Stunning"/>
-            <Property name="toolTipText" type="java.lang.String" value="Enemy Creatures check for knockdown and stunning when taking sufficient damage."/>
+            <Property name="toolTipText" type="java.lang.String" value="NPCs check for knockdown and stunning when taking sufficient damage."/>
           </Properties>
         </Component>
         <Component class="javax.swing.JCheckBox" name="auto_stunrecovery">
           <Properties>
             <Property name="text" type="java.lang.String" value="Stun Recovery"/>
-            <Property name="toolTipText" type="java.lang.String" value="Stunned Enemy Creatures check for stun recovery at the start of their turns."/>
+            <Property name="toolTipText" type="java.lang.String" value="Stunned NPCs check for stun recovery at the start of their turns."/>
           </Properties>
         </Component>
         <Component class="javax.swing.JCheckBox" name="auto_shock">
           <Properties>
             <Property name="text" type="java.lang.String" value="Shock"/>
-            <Property name="toolTipText" type="java.lang.String" value="Track and apply shock to Enemy attack rolls"/>
+            <Property name="toolTipText" type="java.lang.String" value="Track and apply shock to all attack rolls"/>
           </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="auto_shockActionPerformed"/>
-          </Events>
         </Component>
       </SubComponents>
     </Container>
@@ -185,12 +182,9 @@
       <SubComponents>
         <Component class="javax.swing.JCheckBox" name="log_statuschanges">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Status Changes"/>
-            <Property name="toolTipText" type="java.lang.String" value="Log all status changes in the encounter log"/>
+            <Property name="text" type="java.lang.String" value="Verbose Status Changes"/>
+            <Property name="toolTipText" type="java.lang.String" value="Log all status changes"/>
           </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="log_statuschangesActionPerformed"/>
-          </Events>
         </Component>
       </SubComponents>
     </Container>

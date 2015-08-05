@@ -37,9 +37,9 @@ import javax.swing.JTextField;
 
 import gurpsinittool.app.*;
 import gurpsinittool.data.Actor;
-import gurpsinittool.data.Actor.ActorStatus;
-import gurpsinittool.data.Actor.ActorType;
-import gurpsinittool.data.Actor.BasicTrait;
+import gurpsinittool.data.ActorBase.ActorStatus;
+import gurpsinittool.data.ActorBase.ActorType;
+import gurpsinittool.data.ActorBase.BasicTrait;
 
 
 /**
@@ -54,7 +54,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 
 	private static final boolean DEBUG = false;
 	
-	private boolean actorLoaded = false; // Block for property updates while in the middle of an update
+	private int actorLoading = 0; // Block for property updates while in the middle of an update
 	private Actor actor;
 	private AttackTableModel attackTableModel;
 	private TraitTableModel traitTableModel;
@@ -149,7 +149,8 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         attacksTable.setDefaultRenderer(String.class, attackTableModel.new AttackTableCellRenderer());
         attacksTable.setDefaultRenderer(Integer.class, attackTableModel.new AttackTableCellRenderer());
         notes.getDocument().addDocumentListener(new ActorTextDocumentListener(textListenField.Notes));
-        disablePanel();
+        showTempCheckBox.setSelected(false); showTempCheckBoxActionPerformed(null); // Start hidden
+        disableAndClearPanel();
     }
 
     /** This method is called from within the constructor to
@@ -706,8 +707,9 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jLabel25.setFont(jLabel25.getFont().deriveFont(jLabel25.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel25.setText("Speed:");
 
-        speed.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
+        speed.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0.00"))));
         speed.setText("99");
+        speed.setToolTipText("");
         speed.setName("Speed"); // NOI18N
         speed.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
@@ -716,7 +718,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         });
         speed.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
             public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                actorIntPropertyChange(evt);
+                actorFloatPropertyChange(evt);
             }
         });
 
@@ -1053,21 +1055,43 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     }// </editor-fold>//GEN-END:initComponents
     
     private void actorIntPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_actorIntPropertyChange
-        Object source = evt.getSource();
+    	if (actorLoading != 0 || actor == null) return; // Ignore
+    	Object source = evt.getSource();
         if (JFormattedTextField.class.isInstance(source)) {
-            if(actorLoaded && evt.getPropertyName().equals("value")) {
+            if(evt.getPropertyName().equals("value")) {
                 JFormattedTextField field = JFormattedTextField.class.cast(source);
                 String name = field.getName();
                 Object value = field.getValue();
+                actorLoading++;
                 setActorTraitValue(name, String.valueOf((Long) value));
+                refreshActorIntField(field); // Refresh the field to allow for any actor-based filtering
+                actorLoading--;
             }
         } else {
             System.err.println("ERROR: ActorDetailsPanel: property change from non-JFormattedTextField source! " + evt.toString());
         }
     }//GEN-LAST:event_actorIntPropertyChange
         
+    private void actorFloatPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_actorFloatPropertyChange
+        if (actorLoading != 0 || actor == null) return; // Ignore
+    	Object source = evt.getSource();
+        if (JFormattedTextField.class.isInstance(source)) {
+            if(evt.getPropertyName().equals("value")) {
+                JFormattedTextField field = JFormattedTextField.class.cast(source);
+                String name = field.getName();
+                Object value = field.getValue();
+                actorLoading++;
+                setActorTraitValue(name, String.valueOf(value));
+                refreshActorFloatField(field); // Refresh the field to allow for any actor-based filtering
+                actorLoading--;
+            }
+        } else {
+            System.err.println("ERROR: ActorDetailsPanel: property change from non-JFormattedTextField source! " + evt.toString());
+        }
+    }//GEN-LAST:event_actorFloatPropertyChange
+
     private void typeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_typeActionPerformed
-        if(actorLoaded) {
+        if(actorLoading == 0 && actor != null) {
         	setActorType(((JComboBox)evt.getSource()).getSelectedItem().toString());
         }
     }//GEN-LAST:event_typeActionPerformed
@@ -1111,7 +1135,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 
     private void nameFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_nameFocusLost
     	if (DEBUG) { System.out.println("ActorDetailsPanel: nameFocusLost" + evt.toString()); }
-    	if (!evt.isTemporary() && actorLoaded) {
+    	if (!evt.isTemporary() && actorLoading == 0) {
     		setActorTraitValue("Name", name.getText());
     	}
     }//GEN-LAST:event_nameFocusLost
@@ -1186,10 +1210,12 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     }//GEN-LAST:event_showTempCheckBoxActionPerformed
 
 
+
     /**
      * Disable the panel, setting all values to default
      */
-    protected void disablePanel() {
+    protected void disableAndClearPanel() {
+    	actorLoading++;
     	st.setValue(null);
     	st.setEnabled(false);
     	hp.setValue(null);
@@ -1233,6 +1259,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     	
     	//status.setSelectedIndex(-1);
     	//status.setEnabled(false);
+    	status_label.setText("");
     	type.setSelectedIndex(-1);
     	type.setEnabled(false);
     	name.setText("");
@@ -1252,6 +1279,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
       	//add_timer.setEnabled(false);
     	notes.setText("");
     	notes.setEnabled(false);
+    	actorLoading--;
     }
 
     /**
@@ -1330,16 +1358,17 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
      * Refresh the actor in the display
      */
     protected void refreshActor () {
-		actorLoaded = false; // turn off property updates
-		
+    	if (actorLoading != 0) return;
+		actorLoading++; // turn off property updates
 		refreshActorName();
 	
 		// TODO: clean-up / replace with editor component
 		status_label.setText(actor.getStatusesString());
+		
 	    type.setSelectedItem(actor.getType());
 	    refreshActorIntField(st);
 	    refreshActorIntField(hp);
-	    refreshActorIntField(speed);
+	    refreshActorFloatField(speed);
 	    refreshActorIntField(dx);
 	    refreshActorIntField(will);
 	    refreshActorIntField(move);
@@ -1359,19 +1388,15 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	    refreshActorIntField(shield_hp);
 	    
 	    refreshActorStringField(notes);
-	    
-        // Debug: TODO:
-	    //shieldDamageLabel.setText(String.valueOf(actor.ShieldDamage));
-	    //numParryLabel.setText(String.valueOf(actor.numParry));
-	    //numBlockLabel.setText(String.valueOf(actor.numBlock));
-            
-		actorLoaded = true; // turn property updates back on
+	             
+		actorLoading--; // turn property updates back on
 	}
 	
 	/**
 	 * Refresh actor name field, which depends on the type and status
 	 */
 	protected void refreshActorName() {
+		actorLoading++;
 		refreshActorStringField(name);
 		switch (actor.getType()) {
 		case PC:
@@ -1394,16 +1419,28 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 		if (actor.hasStatus(ActorStatus.Unconscious) || actor.hasStatus(ActorStatus.Dead)) {
 			name.setForeground(new Color(128,128,128));
 		}
+		actorLoading--;
 	}
 	
 	protected void refreshActorIntField(JFormattedTextField field) {
+		actorLoading++;
 		String traitName = field.getName();
 		field.setValue(Integer.parseInt(actor.getTraitValue(traitName)));
+		actorLoading--;
+	}
+	
+	protected void refreshActorFloatField(JFormattedTextField field) {
+		actorLoading++;
+		String traitName = field.getName();
+		field.setValue(Float.parseFloat(actor.getTraitValue(traitName)));
+		actorLoading--;
 	}
 	
 	protected void refreshActorStringField(JTextComponent field) {
+		actorLoading++;
 		String traitName = field.getName();
 		field.setText(actor.getTraitValue(traitName));
+		actorLoading--;
 	}
 
 	/**
@@ -1412,9 +1449,9 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	 * @param value - the value to set
 	 */
 	protected void setActorTraitValue(String name, String value){
-            actorLoaded = false;
+            actorLoading++;
             actor.setTrait(name, value);
-            actorLoaded = true;
+            actorLoading--;
 	}
 	
 	/**
@@ -1423,10 +1460,10 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	 * @param value - the value to set
 	 */
 	protected void setActorType(String value){
-            actorLoaded = false;
+			actorLoading++;
             actor.setType(ActorType.valueOf(value));
-            actorLoaded = true;
             refreshActorName(); // need to refresh actor name, since this may cause a change in formatting
+            actorLoading--;
 	}
 	
 	/**
@@ -1437,26 +1474,25 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 		if (actor == newActor) return; // Don't be an idiot
 		System.out.println("ActorDetails: setActor w/ new actor! " + ((newActor==null)?"[null]":newActor.getTraitValue(BasicTrait.Name)));
 		if (actor != null) {
-			// TODO: stop in-progress edits
-			//cancel
+			// TODO: stop any in-progress edits somehow
 			actor.removePropertyChangeListener(this);
 		}
 
 		actor = newActor;
+		attackTableModel.setActor(actor);
+	    traitTableModel.setActor(actor);
+	    tempTableModel.setActor(actor);
+	    resizeTableInPanel(attacks, attacksTable, attackTableModel);
+	    resizeTableInPanel(traits, traitsTable, traitTableModel);
+	    resizeTableInPanel(tempPanel, tempTable, tempTableModel);
 		if (actor != null) {
 			actor.addPropertyChangeListener(this);
 			enablePanel();
-		    attackTableModel.setActor(actor);
-		    traitTableModel.setActor(actor);
-		    tempTableModel.setActor(actor);
-		    resizeTableInPanel(attacks, attacksTable, attackTableModel);
-		    resizeTableInPanel(traits, traitsTable, traitTableModel);
-		    resizeTableInPanel(tempPanel, tempTable, tempTableModel);
 			refreshActor();
 		} else {
-			actorLoaded = false;
-			disablePanel();
-		}                 
+			disableAndClearPanel();
+		}      
+		
 	}
     
 	protected enum textListenField {Name, Notes};
@@ -1482,7 +1518,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	    	processTextChanges(e);
 	    }
 	    private void processTextChanges(DocumentEvent e) {
-	    	if (actorLoaded) {
+	    	if (actorLoading == 0) {
 	    		Document document = (Document)e.getDocument();
 	    		try {
 	    			switch (lField) {
@@ -1507,8 +1543,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	public void propertyChange(PropertyChangeEvent e) {
 		// TODO: add some intelligence to this?
 		System.out.println("ActorDetailsPanel: received actor property changed notification!");
-		if (actorLoaded)
-			refreshActor();		
+		refreshActor();		
 	} 
 
 }

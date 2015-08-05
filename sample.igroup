@@ -1,0 +1,185 @@
+<GURPSActorGroupList schemaVer="5">
+<GroupFolder name="Groups">
+<GroupFolder name="Creatures">
+<ActorGroup name="Human">
+<Actor name="Bandit, Common" default_attack="0" state="[]" type="Enemy">
+<ST>12</ST>
+<Speed>5.25</Speed>
+<Dodge>8</Dodge>
+<Injury>0</Injury>
+<Shield_DB>2</Shield_DB>
+<HP>12</HP>
+<IQ>10</IQ>
+<Fatigue>0</Fatigue>
+<FP>10</FP>
+<HT>10</HT>
+<Shield_HP>20</Shield_HP>
+<DR>2</DR>
+<Name>Bandit, Common</Name>
+<DX>11</DX>
+<Move>4</Move>
+<Shield_DR>4</Shield_DR>
+<Stealth>11</Stealth>
+<Block>9</Block>
+<SM>0</SM>
+<Will>10</Will>
+<Per>10</Per>
+<Parry>9</Parry>
+<Notes>(from http://gurpswiki.wikidot.com/m:bandit-common)
+Basic bandit, wears leather armor and wields an axe or cheap shortsword as well as a regular bow with bodkin arrows. Carries $1d in coins.</Notes>
+<Attack name="Axe" skill="13" damage="1d+4 cut" unbalanced="true" />
+<Attack name="Shortsword" skill="13" damage="1d+2 cut" unbalanced="false" />
+<Attack name="Punch" skill="13" damage="1d-1 cr" unbalanced="false" />
+<Attack name="Bow" skill="13" damage="1d+2 (2) pi" unbalanced="false" />
+</Actor>
+<Actor name="Bandit Sergeant" default_attack="0" state="[]" type="Enemy">
+<Leadership>11</Leadership>
+<Dodge>8</Dodge>
+<Injury>0</Injury>
+<HP>15</HP>
+<FP>11</FP>
+<HT>11</HT>
+<HPT></HPT>
+<DR>4</DR>
+<Name>Bandit Sergeant</Name>
+<DX>12</DX>
+<Move>4</Move>
+<Shield_DR>4</Shield_DR>
+<SM>0</SM>
+<Will>11</Will>
+<Parry>11</Parry>
+<Notes>(from http://gurpswiki.wikidot.com/m:bandit-sergeant)
+Bandit, wears mail armor and wields an axe or shortsword as well as a regular bow with bodkin arrows. Carries $5x(2d-2) in coins.</Notes>
+<ST>15</ST>
+<Speed>5.75</Speed>
+<Intimidation>11</Intimidation>
+<Shield_DB>2</Shield_DB>
+<IQ>11</IQ>
+<Fatigue>0</Fatigue>
+<Shield_HP>20</Shield_HP>
+<CR></CR>
+<Stealth>12</Stealth>
+<Block>11</Block>
+<Per>11</Per>
+<Attack name="Axe" skill="14" damage="2d+3 cut" unbalanced="true" />
+<Attack name="Shortsword" skill="14" damage="2d+1 cut" unbalanced="false" />
+<Attack name="Punch" skill="14" damage="1d+2 cut" unbalanced="false" />
+<Attack name="Bow" skill="14" damage="1d (2) pi" unbalanced="false" />
+</Actor>
+</ActorGroup>
+<ActorGroup name="Animals">
+<Actor name="Elephant" default_attack="0" state="[]" type="Enemy">
+<Bad Sight>4</Bad Sight>
+<Tracking>14</Tracking>
+<Enhanced Move>1/2</Enhanced Move>
+<Dodge>8</Dodge>
+<Injury>0</Injury>
+<HP>38</HP>
+<Acute Hearing>2</Acute Hearing>
+<FP>11</FP>
+<HT>11</HT>
+<DR>4</DR>
+<Name>Elephant</Name>
+<DX>10</DX>
+<Move>5</Move>
+<Shield_DR>0</Shield_DR>
+<SM>3</SM>
+<Will>10</Will>
+<Parry>0</Parry>
+<Notes>(from http://panoptesv.com/RPGs/animalia/mammalia/eutheria/proboscidea/Proboscidian.html)
+	
+Additional traits not listed.</Notes>
+<ST>38</ST>
+<Speed>5.25</Speed>
+<Peripheral Vision></Peripheral Vision>
+<Night Vision>4</Night Vision>
+<Shield_DB>0</Shield_DB>
+<IQ>5</IQ>
+<Discriminatory Smell></Discriminatory Smell>
+<Fatigue>0</Fatigue>
+<Shield_HP>0</Shield_HP>
+<Stealth>10</Stealth>
+<Block>0</Block>
+<Per>11</Per>
+<Attack name="Tusks" skill="10" damage="4d imp" unbalanced="false" />
+<Attack name="Trunk Slap (1,2)" skill="10" damage="2d-2 cr" unbalanced="false" />
+<Attack name="Bite" skill="10" damage="4d-9 cr" unbalanced="false" />
+<Attack name="Kick" skill="10" damage="4d-5 cr" unbalanced="false" />
+</Actor>
+<Actor name="Tiger" default_attack="0" state="[]" type="Enemy">
+<Bad Sight>4</Bad Sight>
+<Dodge>10</Dodge>
+<Injury>0</Injury>
+<HP>17</HP>
+<Acute Hearing>2</Acute Hearing>
+<FP>9</FP>
+<HT>11</HT>
+<Flexibility></Flexibility>
+<DR>1</DR>
+<Wrestling>15</Wrestling>
+<Name>Tiger</Name>
+<DX>13</DX>
+<Move>12</Move>
+<Shield_DR>0</Shield_DR>
+<Compulsive Pouncing>12</Compulsive Pouncing>
+<SM>1</SM>
+<Will>10</Will>
+<Parry>0</Parry>
+<Notes>(from http://panoptesv.com/RPGs/animalia/mammalia/eutheria/carnivora/felidae/Felid.html)
+
+Additional traits not listed.</Notes>
+<ST>17</ST>
+<Speed>6.25</Speed>
+<Night Vision>6</Night Vision>
+<Shield_DB>0</Shield_DB>
+<IQ>4</IQ>
+<Discriminatory Smell></Discriminatory Smell>
+<Fatigue>0</Fatigue>
+<Catfall></Catfall>
+<Parabolic Hearing>2</Parabolic Hearing>
+<Shield_HP>0</Shield_HP>
+<CR></CR>
+<Stealth>15</Stealth>
+<Block>0</Block>
+<Per>12</Per>
+<Jumping>13</Jumping>
+<Attack name="Bite" skill="15" damage="1d+2 cut" unbalanced="false" />
+<Attack name="Claw" skill="15" damage="1d+2 cut" unbalanced="false" />
+</Actor>
+</ActorGroup>
+</GroupFolder>
+<ActorGroup name="PCs">
+<Actor name="Waldemar Bohumil" default_attack="0" state="[]" type="PC">
+<Dodge>10</Dodge>
+<Injury>0</Injury>
+<HP>12</HP>
+<FP>12</FP>
+<HT>12</HT>
+<HPT></HPT>
+<DR>2</DR>
+<Name>Waldemar Bohumil</Name>
+<DX>12</DX>
+<Move>6</Move>
+<Shield_DR>4</Shield_DR>
+<SM>0</SM>
+<Will>10</Will>
+<Parry>11</Parry>
+<Notes>(from: http://www.gurpscharacter.com/)
+Striking ST 3 included in Broadsword damage.
+Likes Fighting up close</Notes>
+<ST>12</ST>
+<Speed>6</Speed>
+<Shield_DB>2</Shield_DB>
+<IQ>10</IQ>
+<Fatigue>0</Fatigue>
+<Shield_HP>20</Shield_HP>
+<CR></CR>
+<Fearlessness>1</Fearlessness>
+<Block>12</Block>
+<Per>11</Per>
+<Attack name="Broadsword" skill="15" damage="2d+2 cut" unbalanced="false" />
+<Attack name="Bow" skill="13" damage="1d imp" unbalanced="false" />
+</Actor>
+</ActorGroup>
+</GroupFolder>
+</GURPSActorGroupList>

@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import gurpsinittool.data.Actor;
-import gurpsinittool.data.Actor.ActorType;
-
 import javax.swing.tree.DefaultMutableTreeNode;
 
 public class GroupTreeNode extends DefaultMutableTreeNode {
@@ -20,7 +18,7 @@ public class GroupTreeNode extends DefaultMutableTreeNode {
 		super(name, isFolder);
 		this.isFolder = isFolder;
 		if (!isFolder) {
-			actorList = new ArrayList<Actor>(Arrays.asList(new Actor("", ActorType.Enemy)));
+			actorList = new ArrayList<Actor>(Arrays.asList(new Actor()));
 		}
 	}
 	

@@ -70,7 +70,9 @@ public class GroupManager extends JFrame
         // The file chooser
         fileChooser = new JFileChooser();
         fileChooser.setCurrentDirectory(new File("."));
-        fileChooser.addChoosableFileFilter(new GroupFilter());
+        GroupFilter defaultFilter = new GroupFilter();
+        fileChooser.addChoosableFileFilter(defaultFilter);
+        fileChooser.setFileFilter(defaultFilter);
  
         // The menu bar
         jMenuBar = new JMenuBar();
@@ -345,7 +347,7 @@ public class GroupManager extends JFrame
 		 if (!propertyBag.containsKey("Manager.actorDetails.visible")) {
 			 propertyBag.setProperty("Manager.actorDetails.visible", "true"); }
 		 if (!propertyBag.containsKey("Manager.groupTable.autoResize")) {
-			 propertyBag.setProperty("Manager.groupTable.autoResize", "false"); }
+			 propertyBag.setProperty("Manager.groupTable.autoResize", "true"); }
 		 if (!propertyBag.containsKey("Manager.splitHorizontal.dividerLocation")) {
 			 propertyBag.setProperty("Manager.splitHorizontal.dividerLocation", "340"); }
 		 if (!propertyBag.containsKey("Manager.splitVertical.dividerLocation")) {

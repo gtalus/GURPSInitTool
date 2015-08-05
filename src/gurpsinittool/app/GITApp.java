@@ -1,6 +1,8 @@
 package gurpsinittool.app;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
@@ -9,11 +11,11 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
-import javax.swing.undo.UndoManager;
-
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -30,9 +32,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URISyntaxException;
 import java.util.Properties;
 import gurpsinittool.data.Actor;
-import gurpsinittool.data.GameSettings;
+import gurpsinittool.data.ActorBase.ActorStatus;
 import gurpsinittool.ui.*;
 import gurpsinittool.util.EncounterLogEvent;
 import gurpsinittool.util.EncounterLogEventListener;
@@ -43,6 +46,7 @@ public class GITApp extends JFrame
 	// Default SVUID
 	private static final long serialVersionUID = 1L;
 	
+	public static final String version = "1.2.0";
 	private static final boolean DEBUG = false;
 	
 	private InitTable initTable;
@@ -133,34 +137,37 @@ public class GITApp extends JFrame
     		initTable.autoSizeColumns();
     	}	
        	else if ("actorsStand".equals(e.getActionCommand())) {
-       		initTable.modifyStatusOfSelectedActors(Actor.ActorStatus.Kneeling, false);
-       		initTable.modifyStatusOfSelectedActors(Actor.ActorStatus.Prone, false);
+       		initTable.modifyStatusOfSelectedActors(ActorStatus.Kneeling, false);
+       		initTable.modifyStatusOfSelectedActors(ActorStatus.Prone, false);
        	}
        	else if ("actorsKneel".equals(e.getActionCommand())) {
-       		initTable.modifyStatusOfSelectedActors(Actor.ActorStatus.Kneeling, true);
-       		initTable.modifyStatusOfSelectedActors(Actor.ActorStatus.Prone, false);
+       		initTable.modifyStatusOfSelectedActors(ActorStatus.Kneeling, true);
+       		initTable.modifyStatusOfSelectedActors(ActorStatus.Prone, false);
        	}
        	else if ("actorsProne".equals(e.getActionCommand())) {
-       		initTable.modifyStatusOfSelectedActors(Actor.ActorStatus.Kneeling, false);
-       		initTable.modifyStatusOfSelectedActors(Actor.ActorStatus.Prone, true);
+       		initTable.modifyStatusOfSelectedActors(ActorStatus.Kneeling, false);
+       		initTable.modifyStatusOfSelectedActors(ActorStatus.Prone, true);
        	}
        	else if ("actorsStunPhysToggle".equals(e.getActionCommand())) {
-       		initTable.toggleStatusOfSelectedActors(Actor.ActorStatus.StunPhys);
+       		initTable.toggleStatusOfSelectedActors(ActorStatus.StunPhys);
        	}
        	else if ("actorsStunMentalToggle".equals(e.getActionCommand())) {
-       		initTable.toggleStatusOfSelectedActors(Actor.ActorStatus.StunMental);
+       		initTable.toggleStatusOfSelectedActors(ActorStatus.StunMental);
        	}
        	else if ("actorsDisarmToggle".equals(e.getActionCommand())) {
-       		initTable.toggleStatusOfSelectedActors(Actor.ActorStatus.Disarmed);
+       		initTable.toggleStatusOfSelectedActors(ActorStatus.Disarmed);
        	}
        	else if ("actorsUnconsciousToggle".equals(e.getActionCommand())) {
-       		initTable.toggleStatusOfSelectedActors(Actor.ActorStatus.Unconscious);
+       		initTable.toggleStatusOfSelectedActors(ActorStatus.Unconscious);
        	}
        	else if ("actorsDeadToggle".equals(e.getActionCommand())) {
-       		initTable.toggleStatusOfSelectedActors(Actor.ActorStatus.Dead);
+       		initTable.toggleStatusOfSelectedActors(ActorStatus.Dead);
        	}
        	else if ("Options".equals(e.getActionCommand())) {
        		optionsWindow.setVisible(true);
+       	}
+       	else if ("About".equals(e.getActionCommand())) {   
+       		showAboutDialog();
        	}
        	else {
    			System.out.println("GITApp: -W- Unknown action performed: " + e.getActionCommand());
@@ -295,6 +302,23 @@ public class GITApp extends JFrame
         menuFile.add(menuItem);
         
         menubar.add(menuFile);
+        menubar.add(Box.createHorizontalGlue());
+        
+        JButton menuButton = new JButton("About");
+        menuButton.setOpaque(true);
+        menuButton.setContentAreaFilled(false);
+        menuButton.setBorderPainted(false);
+        menuButton.setFocusable(false);
+        menuButton.addActionListener(this);
+        menubar.add(menuButton);
+        
+       // menuItem = new JMenuItem("About");
+        //menuItem.setText("About");
+       // menuItem.setMaximumSize( menuItem.getPreferredSize() );
+        //menuFile.setMnemonic(KeyEvent.VK_A);
+       // menuItem.addActionListener(this);
+        //menubar.add(menuItem);
+        
         setJMenuBar(menubar);
   
         // The top tool bar
@@ -308,7 +332,7 @@ public class GITApp extends JFrame
         //button.setIcon(new ImageIcon("src/resources/images/control_play_blue.png", "Next Actor"));
         button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
         //button.setText("Forward");
-        button.setToolTipText("Step to next actor (Alt+N)");
+        button.setToolTipText("Step to next combatant (Alt+N)");
         Action action = new AbstractAction("nextActor") {
         	public void actionPerformed(ActionEvent e) { nextActor(); }
         };
@@ -374,7 +398,7 @@ public class GITApp extends JFrame
         button = new JButton();
         button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/wrench_orange.png"), "Attack"));
         button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
-        button.setToolTipText("Selected actors attack (Ctrl+A)");
+        button.setToolTipText("Selected combatants attack (Ctrl+A)");
         action = new AbstractAction("selectedActorsAttack") {
         	public void actionPerformed(ActionEvent e) { initTable.selectedActorsAttack(); }
         };
@@ -388,7 +412,7 @@ public class GITApp extends JFrame
         button = new JButton();
         button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/shield.png"), "Defend"));
         button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
-        button.setToolTipText("Selected actor defends (Ctrl+D)");
+        button.setToolTipText("Selected combatants defends (Ctrl+D)");
         action = new AbstractAction("selectedActorDefend") {
         	public void actionPerformed(ActionEvent e) { initTable.selectedActorDefend(); }
         };
@@ -401,7 +425,7 @@ public class GITApp extends JFrame
         button = new JButton();
         button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/tag_blue_add.png"), "Tag"));
         button.setBorder(javax.swing.BorderFactory.createEmptyBorder(1,1,1,1));
-        button.setToolTipText("Add enemy tags (Ctrl+T)");
+        button.setToolTipText("Add NPC tags (Ctrl+T)");
         action = new AbstractAction("tagActors") {
         	public void actionPerformed(ActionEvent e) { initTable.getActorTableModel().autoTagActors(); initTable.autoSizeColumns(); }
         };
@@ -491,7 +515,7 @@ public class GITApp extends JFrame
         toolbar.addSeparator();
         button = new JButton();
         button.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/group.png"), "Group Manager"));
-        button.setToolTipText("Manage Actor Groups (Alt+G)");
+        button.setToolTipText("Open Group Manager (Alt+G)");
         button.setActionCommand("openGroupManager");
         button.setMnemonic(KeyEvent.VK_G);
         button.addActionListener(this);
@@ -566,8 +590,8 @@ public class GITApp extends JFrame
 			InputStream propIn = new FileInputStream(propertyFile);
 			propertyBag.load(propIn);
 		} catch (FileNotFoundException e) {
-			System.out.println("GITApp: loadProperties: File not found? " + e.toString());
-			e.printStackTrace();
+			System.out.println("GITApp: loadProperties: File not found: " + e.toString());
+
 		} catch (IOException e) {
 			System.out.println("GITApp: loadProperties: Error reading file! " + e.toString());
 			e.printStackTrace();
@@ -700,6 +724,36 @@ public class GITApp extends JFrame
 			 }
 		 }
 		 c.setLocation(window.x, window.y);
+	 }
+	 
+	 private void showAboutDialog() {
+		 String famfamcredit = "<a href=\"http://www.famfamfam.com/lab/icons/silk/\">Silk</a> icons by <a href=\"http://www.famfamfam.com/\">Mark James</a> licensed under <a href=\"http://creativecommons.org/licenses/by/2.5/\">CC BY 2.5</a> / used with minor changes.";
+		 String policy = "GURPS is a trademark of Steve Jackson Games, and its rules and art are copyrighted by Steve Jackson Games. All rights are reserved by Steve Jackson Games. This game aid is the original creation of Damian Small and is released for free distribution, and not for resale, under the permissions granted in the <a href=\"http://www.sjgames.com/general/online_policy.html\">Steve Jackson Games Online Policy</a>.";
+		 // for copying style
+		 JLabel label = new JLabel();
+		 Font font = label.getFont();
+
+		 // create some css from the label's font
+		 StringBuffer style = new StringBuffer("font-family:" + font.getFamily() + ";");
+		 style.append("font-weight:" + (font.isBold() ? "bold" : "normal") + ";");
+		 style.append("font-size:" + font.getSize() + "pt;");
+
+		 JEditorPane ep = new JEditorPane("text/html","<html><body style=\"" + style + "\"><b>GURPS Initiative Tool</b><br>Version: " + version + "<br><p style='width: 300px;'>" + policy + "</p><p style='width: 300px;'>" + famfamcredit + "</p><br></body></html>");
+		 ep.addHyperlinkListener(new HyperlinkListener() {       						
+			 @Override
+			 public void hyperlinkUpdate(HyperlinkEvent e) {
+				 if (e.getEventType().equals(HyperlinkEvent.EventType.ACTIVATED))
+					 try {
+						 Desktop.getDesktop().browse(e.getURL().toURI());
+					 } catch (IOException e1) {
+						 e1.printStackTrace();
+					 } catch (URISyntaxException e1) {
+						 e1.printStackTrace();
+					 }
+			 }
+		 });
+		 ep.setEditable(false);ep.setBackground(new JLabel().getBackground());
+		 JOptionPane.showMessageDialog(this, ep, "About GURPS Initiative Tool", JOptionPane.INFORMATION_MESSAGE);
 	 }
 	 
 //	 /**

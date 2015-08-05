@@ -122,12 +122,14 @@ public class TraitTableModel extends AbstractTableModel {
 		currentActor = actor;
 		// Build displayedTraits list
 		displayedTraitKeys.clear();
-		if (isTemp) {
-			displayedTraitKeys.addAll(actor.getAllTempNames());
-		} else {
-			for (String traitName : actor.getAllTraitNames()) {
-				if (Actor.isBasicTrait(traitName)) continue;
-				displayedTraitKeys.add(traitName);
+		if (currentActor != null) {
+			if (isTemp) {
+				displayedTraitKeys.addAll(actor.getAllTempNames());
+			} else {
+				for (String traitName : actor.getAllTraitNames()) {
+					if (Actor.isBasicTrait(traitName)) continue;
+					displayedTraitKeys.add(traitName);
+				}
 			}
 		}
 		fireTableDataChanged();

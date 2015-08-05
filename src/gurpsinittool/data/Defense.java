@@ -1,6 +1,6 @@
 package gurpsinittool.data;
 
-import gurpsinittool.data.Actor.BasicTrait;
+import gurpsinittool.data.ActorBase.BasicTrait;
 import gurpsinittool.data.HitLocations.HitLocation;
 import gurpsinittool.util.DieRoller;
 
@@ -17,7 +17,7 @@ public class Defense {
 	public boolean side = false;
 	public boolean stunned = false;
 	public boolean shield = false;
-	public String position = ""; // TODO: should probably not be string!
+	public String position = ""; // TODO: should probably not be string, but ENUM!
 	public int otherMod = 0;
 	
 	// Key Inputs

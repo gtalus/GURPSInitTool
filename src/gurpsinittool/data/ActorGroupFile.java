@@ -17,9 +17,9 @@ import javax.swing.tree.DefaultTreeModel;
 
 import gurpsinittool.app.GroupTree;
 import gurpsinittool.app.GroupTreeNode;
-import gurpsinittool.data.Actor.ActorStatus;
-import gurpsinittool.data.Actor.ActorType;
-import gurpsinittool.data.Actor.BasicTrait;
+import gurpsinittool.data.ActorBase.ActorStatus;
+import gurpsinittool.data.ActorBase.ActorType;
+import gurpsinittool.data.ActorBase.BasicTrait;
 
 /**
  * This class encapsulates all file IO for saving/loading actor groups & lists
@@ -272,7 +272,9 @@ public class ActorGroupFile {
 					currentNode = newNode;
 				}
 				else if ((matcher = startActor.matcher(line)).matches()) {
-					Actor currentActor = new Actor(matcher.group(1), ActorType.valueOf(matcher.group(4)));
+					Actor currentActor = new Actor();
+					currentActor.setType(ActorType.valueOf(matcher.group(4)));
+					currentActor.setTrait(BasicTrait.Name, matcher.group(1));
 					currentActor.setAllStatuses(parseState(matcher.group(3)));
 					currentActor.setDefaultAttack(Integer.parseInt(matcher.group(2)));
 					String aName = currentActor.getTraitValue(BasicTrait.Name);
@@ -786,7 +788,9 @@ public class ActorGroupFile {
 	 */
 	public static Actor createLegacyActor(String name, HashSet<ActorStatus> status, ActorType type, int ht, int hp, int damage, int fp, int fatigue, 
 			int move, int parry, int block, int dodge, int dr, int db, int shield_dr, int shield_hp, int default_attack) {
-		Actor a = new Actor(name, type);
+		Actor a = new Actor();
+		a.setType(type);
+		a.setTrait(BasicTrait.Name, name);
 		a.setAllStatuses(status);
 		a.setDefaultAttack(default_attack);
 		

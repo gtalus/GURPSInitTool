@@ -10,7 +10,7 @@ import javax.swing.JComponent;
 import javax.swing.JTable;
 import javax.swing.TransferHandler;
 import gurpsinittool.data.Actor;
-import gurpsinittool.data.Actor.BasicTrait;
+import gurpsinittool.data.ActorBase.BasicTrait;
 
 public class InitTableTransferHandler extends TransferHandler {
 

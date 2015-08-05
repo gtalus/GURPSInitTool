@@ -65,6 +65,7 @@ public class CriticalTablesDialog extends javax.swing.JDialog {
         jScrollPane6 = new javax.swing.JScrollPane();
         locationTable = new javax.swing.JTable();
 
+        setTitle("Tables");
         setName("CriticalTableDialog"); // NOI18N
         setType(java.awt.Window.Type.UTILITY);
 

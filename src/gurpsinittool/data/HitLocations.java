@@ -172,7 +172,7 @@ public class HitLocations {
 		public int knockdownPenalty;
 		public boolean headWound;
 		
-		// TODO: add crippling threshold (also knockdown/stunning threshold)
+		// If non-0, the crippling threshold is used instead of the base major wound threshold for knockdown/stunning
 		public double cripplingThreshold = 0;
 		
 		HitLocation(String description, int penalty, String notes) {

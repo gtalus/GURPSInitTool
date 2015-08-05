@@ -11,9 +11,9 @@ import java.util.regex.Pattern;
 import javax.swing.table.AbstractTableModel;
 
 import gurpsinittool.data.*;
-import gurpsinittool.data.Actor.ActorStatus;
-import gurpsinittool.data.Actor.ActorType;
-import gurpsinittool.data.Actor.BasicTrait;
+import gurpsinittool.data.ActorBase.ActorStatus;
+import gurpsinittool.data.ActorBase.ActorType;
+import gurpsinittool.data.ActorBase.BasicTrait;
 import gurpsinittool.util.CleanFileChangeEventSource;
 import gurpsinittool.util.EncounterLogEvent;
 import gurpsinittool.util.EncounterLogEventListener;
@@ -29,12 +29,14 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 
 	private static final boolean DEBUG = true;
 
-	private String[] columnNames = {"Act", "Name", "Move", "Dodge", "HT", "HP", "Damage", "FP", "Fatigue", "Status", "Type"};
-	private Class<?>[] columnClasses = {String.class, String.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, String.class, String.class};
-	public enum columns {Act, Name, Move, Dodge, HT, HP, Damage, FP, Fatigue, Status, Type};
-	private static int numColumns = 11;
+	// Removed: Dodge, type
+	// TODO: consolidate HP/Damage, FP/Fatigue
+	private String[] columnNames = {"Act", "Name", "Speed", "Move", "HT", "HP", "Damage", "FP", "Fatigue", "Status"};
+	private Class<?>[] columnClasses = {String.class, String.class, Float.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, String.class};
+	public enum columns {Act, Name, Speed, Move, HT, HP, Damage, FP, Fatigue, Status};
+	private static int numColumns = 10;
 	
-	Actor newActor = new Actor("", ActorType.Enemy);
+	Actor newActor = new Actor();
 	private ArrayList<Actor> actorList = new ArrayList<Actor>();	
 	private int activeActor = -1;
 	
@@ -174,10 +176,12 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 		switch (columns.values()[columnIndex]) {
 		case Name:
 			return actor.getTraitValue(BasicTrait.Name);
+		case Speed:
+			return Float.parseFloat(actor.getTraitValue(BasicTrait.Speed));
 		case Move:
 			return actor.getTraitValueInt(BasicTrait.Move);
-		case Dodge:
-			return actor.getTraitValueInt(BasicTrait.Dodge);
+		//case Dodge:
+		//	return actor.getTraitValueInt(BasicTrait.Dodge);
 		case HT:
 			return actor.getTraitValueInt(BasicTrait.HT);
 		case HP:
@@ -190,8 +194,8 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 			return actor.getTraitValueInt(BasicTrait.Fatigue);
 		case Status:
 			return actor.getAllStatuses();
-		case Type:
-			return actor.getType();
+		//case Type:
+		//	return actor.getType();
 		default:
 			return null;
 		}
@@ -215,8 +219,8 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
         
         // Convert to actual enums to allow comparison with previous value
         switch (columns.values()[col]) {
-        case Type:
-        	value = ActorType.valueOf(value.toString());
+        //case Type:
+        // 	value = ActorType.valueOf(value.toString());
         default:
         }
         
@@ -235,12 +239,15 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 		case Name:
 			a.setTrait(BasicTrait.Name, (String) value);
 			break;
+		case Speed:
+			a.setTrait(BasicTrait.Speed, String.valueOf((Float) value));
+			break;
 		case Move:
 			a.setTrait(BasicTrait.Move, String.valueOf((Integer) value));
 			break;
-		case Dodge:
-			a.setTrait(BasicTrait.Dodge, String.valueOf((Integer) value));
-			break;
+		//case Dodge:
+		//	a.setTrait(BasicTrait.Dodge, String.valueOf((Integer) value));
+		//	break;
 		case HT:
 			a.setTrait(BasicTrait.HT, String.valueOf((Integer) value));
 			break;
@@ -259,8 +266,9 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 		case Status:
 			a.setAllStatuses((HashSet<ActorStatus>) value);
 			break;
-		case Type:
-			a.setType((ActorType) value);
+		//case Type:
+		//	a.setType((ActorType) value);
+		//	break;
 		default:
 		}
 //		// Update the entire row, since changing state or type may affect formatting for all cells in the row.
@@ -322,18 +330,20 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 	 * @return Whether the round has ended
 	 */
 	protected boolean nextActorInternal() {
+		Actor currentActor;
 		do {
 			activeActor++;
 			if (activeActor >= actorList.size() - 1) { // Remember that the last entry is 'new...'
 				activeActor = -1;
 				return true;
 			}
-			Actor currentActor = getActiveActor();
+			currentActor = getActiveActor();
 			currentActor.NextTurn();
-		// Skip over disabled/unconscious/dead actors
-		} while (getActiveActor().hasStatus(ActorStatus.Disabled)
-				|| getActiveActor().hasStatus(ActorStatus.Unconscious)
-				|| getActiveActor().hasStatus(ActorStatus.Dead));
+		// Skip over disabled/unconscious/dead/waiting actors
+		} while (currentActor.hasStatus(ActorStatus.Disabled)
+				|| currentActor.hasStatus(ActorStatus.Unconscious)
+				|| currentActor.hasStatus(ActorStatus.Dead)
+				|| currentActor.hasStatus(ActorStatus.Waiting));
 		return false;
 	}
 
@@ -390,7 +400,7 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 		
 		if (actorList == null) {
 			this.actorList = new ArrayList<Actor>();
-			addNewActor();
+			//addNewActor(); This is an empty table, so it has NO ACTORS! EMPTY!
 		} else { 
 			this.actorList = actorList;
 			for(Actor a: this.actorList)
@@ -424,7 +434,7 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
     	// Now go thorough and add tags to non-unconscious/dead enemy actors
     	for (int i = 0; i < actorList.size()-1; ++i) {
     		Actor a = actorList.get(i);
-    		if (a.getType() == ActorType.Enemy && !(a.hasStatus(ActorStatus.Unconscious)
+    		if (a.isTypeAutomated() && !(a.hasStatus(ActorStatus.Unconscious)
     											|| a.hasStatus(ActorStatus.Disabled)
      											|| a.hasStatus(ActorStatus.Dead)
     											|| a.hasStatus(ActorStatus.Waiting))) {
@@ -489,7 +499,7 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
     			String name = matcher.group(1);
     			String tag = matcher.group(2);
     			// Check if tag should be cleared
-    			if (clean && a.getType() == ActorType.Enemy && (a.hasStatus(ActorStatus.Unconscious)
+    			if (clean && a.isTypeAutomated() && (a.hasStatus(ActorStatus.Unconscious)
     														|| a.hasStatus(ActorStatus.Disabled)
     														|| a.hasStatus(ActorStatus.Dead))) {
     				System.out.println("catalogTags: cleaning tag: " + tag);

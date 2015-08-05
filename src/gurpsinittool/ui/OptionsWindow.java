@@ -119,24 +119,19 @@ public class OptionsWindow extends javax.swing.JFrame {
         combatAutomationPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Enemy Automation"));
 
         auto_attack.setText("Attack");
-        auto_attack.setToolTipText("Enemy creatures with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
+        auto_attack.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
 
         auto_unconsciousness.setText("Unconsciousness Checks");
-        auto_unconsciousness.setToolTipText("Enemy creatures check for unconsciousness at the start of each of their turns.");
+        auto_unconsciousness.setToolTipText("NPCs check for unconsciousness at the start of each of their turns.");
 
         auto_knockdown.setText("Knockdown and Stunning");
-        auto_knockdown.setToolTipText("Enemy Creatures check for knockdown and stunning when taking sufficient damage.");
+        auto_knockdown.setToolTipText("NPCs check for knockdown and stunning when taking sufficient damage.");
 
         auto_stunrecovery.setText("Stun Recovery");
-        auto_stunrecovery.setToolTipText("Stunned Enemy Creatures check for stun recovery at the start of their turns.");
+        auto_stunrecovery.setToolTipText("Stunned NPCs check for stun recovery at the start of their turns.");
 
         auto_shock.setText("Shock");
-        auto_shock.setToolTipText("Track and apply shock to Enemy attack rolls");
-        auto_shock.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                auto_shockActionPerformed(evt);
-            }
-        });
+        auto_shock.setToolTipText("Track and apply shock to all attack rolls");
 
         javax.swing.GroupLayout combatAutomationPanelLayout = new javax.swing.GroupLayout(combatAutomationPanel);
         combatAutomationPanel.setLayout(combatAutomationPanelLayout);
@@ -189,13 +184,8 @@ public class OptionsWindow extends javax.swing.JFrame {
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Logging"));
 
-        log_statuschanges.setText("Status Changes");
-        log_statuschanges.setToolTipText("Log all status changes in the encounter log");
-        log_statuschanges.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                log_statuschangesActionPerformed(evt);
-            }
-        });
+        log_statuschanges.setText("Verbose Status Changes");
+        log_statuschanges.setToolTipText("Log all status changes");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -254,14 +244,6 @@ public class OptionsWindow extends javax.swing.JFrame {
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
         setVisible(false);
     }//GEN-LAST:event_cancelButtonActionPerformed
-
-    private void auto_shockActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_auto_shockActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_auto_shockActionPerformed
-
-    private void log_statuschangesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_log_statuschangesActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_log_statuschangesActionPerformed
 
     private void copySettingsToComponents() {
     	auto_attack.setSelected(currentSettings.AUTO_ATTACK);

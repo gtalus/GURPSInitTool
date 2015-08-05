@@ -25,7 +25,7 @@ import gurpsinittool.data.Defense;
 import gurpsinittool.data.Defense.DefenseResult;
 import gurpsinittool.data.Defense.DefenseType;
 import gurpsinittool.data.HitLocations;
-import gurpsinittool.data.Actor.BasicTrait;
+import gurpsinittool.data.ActorBase.BasicTrait;
 import gurpsinittool.util.DieRoller;
 
 /**
@@ -684,7 +684,7 @@ public class DefenseDialog extends javax.swing.JDialog {
     	if (defense.position.equals("Prone"))
     		positionCombo.setSelectedIndex(2);
     	
-    	// TODO: otherMod?
+    	// TODO: otherMod? what would this be set to? some temp var?
     	
     	rollDefense();
     	updateDefenseResults();
