@@ -56,7 +56,7 @@ public class Defense {
     	}
     	
     	// Set default options
-    	shield = (ShieldDB > 0 && actor.getTempInt("ShieldDamage") < ShieldHP);
+    	shield = (ShieldDB > 0 && actor.getTempInt("shieldDamage") < ShieldHP);
     	if (actor.isStunned())
     		stunned = true;
     	// Set position

@@ -231,9 +231,6 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 //        	addNewActor();
         
         Actor a = (Actor) actorList.get(row);
-        String aName = a.getTraitValue(BasicTrait.Name);
-        int newValue;
-        int diff;
 		switch (columns.values()[col]) {
 		case Name:
 			a.setTrait(BasicTrait.Name, (String) value);
@@ -251,39 +248,19 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 			a.setTrait(BasicTrait.HP, String.valueOf((Integer) value));
 			break;
 		case Damage:
-			newValue = (Integer) value;
-			int HP = a.getTraitValueInt(BasicTrait.HP);
-			diff = a.getTraitValueInt(BasicTrait.Injury) - newValue;
-			if (diff < 0) {
-				encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + aName + "</b> took <b><font color=red>" + (-1*diff) + "</font></b> damage (now " + (HP - newValue) + " HP)."));
-			} else {
-				encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + aName + "</b> healed <b><font color=blue>" + diff + "</font></b> (now " + (HP - newValue) + " HP)."));		
-			}
-			a.setTrait(BasicTrait.Injury, String.valueOf(newValue));
+			a.setTrait(BasicTrait.Injury, String.valueOf((Integer) value));
 			break;
 		case FP:
 			a.setTrait(BasicTrait.FP, String.valueOf((Integer) value));
 			break;
 		case Fatigue:
-			newValue = (Integer) value;
-			int FP = a.getTraitValueInt(BasicTrait.FP);
-			diff = a.getTraitValueInt(BasicTrait.Fatigue) - newValue;
-			if (diff < 0) {
-				encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + aName + "</b> lost <b>" + (-1*diff) + "</b> fatigue (now " + (FP - newValue) + " FP)."));
-			} else {
-				encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + aName + "</b> recoverd <b>" + diff + "</b> fatigue (now " + (FP - newValue) + " FP)."));		
-			}
-			a.setTrait(BasicTrait.Fatigue, String.valueOf(newValue));
+			a.setTrait(BasicTrait.Fatigue, String.valueOf((Integer) value));
 			break;
 		case Status:
-			// TODO: test this code!
 			a.setAllStatuses((HashSet<ActorStatus>) value);
-			encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + aName + "</b> status changed to <b>[" + a.getStatusesString() + "]</b>"));
 			break;
 		case Type:
-			ActorType newType = (ActorType) value;
-			encounterLogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, "<b>" + aName + "</b> type changed to <b>" + newType + "</b>"));
-			a.setType(newType);
+			a.setType((ActorType) value);
 		default:
 		}
 //		// Update the entire row, since changing state or type may affect formatting for all cells in the row.

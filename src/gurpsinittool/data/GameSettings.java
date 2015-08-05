@@ -7,5 +7,8 @@ public class GameSettings  {
 	public boolean AUTO_UNCONSCIOUS = true; //Check for unconsciousness at the start of each enemy turn
 	public boolean AUTO_KNOCKDOWNSTUN = true; // Apply stun results when taking damage
 	public boolean AUTO_STUNRECOVERY = true; // Automatically check for stun recovery for each enemy
-
+	public boolean AUTO_SHOCK = true; // Track shock and apply as penalty to attack skill
+	
+	// Interface / Logging
+	public boolean LOG_STATUSCHANGES = false; // Log all status changes
 }

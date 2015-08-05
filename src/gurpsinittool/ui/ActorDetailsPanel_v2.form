@@ -23,7 +23,7 @@
           <Component id="traits" alignment="0" max="32767" attributes="0"/>
           <Group type="102" attributes="0">
               <Component id="showTempCheckBox" min="-2" max="-2" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
+              <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
               <Component id="tempPanel" max="32767" attributes="0"/>
           </Group>
           <Group type="102" attributes="0">
@@ -1093,16 +1093,16 @@
     </Component>
     <Component class="javax.swing.JCheckBox" name="showTempCheckBox">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Temp / Debug"/>
+        <Property name="selected" type="boolean" value="true"/>
         <Property name="toolTipText" type="java.lang.String" value=""/>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/src/resources/images/bullet_toggle_plus.png"/>
+          <Image iconType="3" name="/resources/images/bullet_toggle_plus.png"/>
         </Property>
         <Property name="margin" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">
           <Insets value="[0, 0, 0, 0]"/>
         </Property>
         <Property name="selectedIcon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/src/resources/images/bullet_toggle_minus.png"/>
+          <Image iconType="3" name="/resources/images/bullet_toggle_minus.png"/>
         </Property>
       </Properties>
       <Events>
@@ -1150,7 +1150,7 @@
               <Properties>
                 <Property name="autoCreateRowSorter" type="boolean" value="true"/>
                 <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                  <Connection code="traitTableModel" type="code"/>
+                  <Connection code="tempTableModel" type="code"/>
                 </Property>
               </Properties>
             </Component>
@@ -1167,10 +1167,10 @@
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBoxLayout"/>
           <SubComponents>
-            <Component class="javax.swing.JButton" name="resizeTempTable1">
+            <Component class="javax.swing.JButton" name="refreshTempTable">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/src/resources/images/arrow_refresh_small.png"/>
+                  <Image iconType="3" name="/resources/images/arrow_refresh_small.png"/>
                 </Property>
                 <Property name="focusable" type="boolean" value="false"/>
                 <Property name="horizontalTextPosition" type="int" value="0"/>
@@ -1178,20 +1178,6 @@
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="refresh_tempActionPerformed"/>
-              </Events>
-            </Component>
-            <Component class="javax.swing.JButton" name="add_temp">
-              <Properties>
-                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/resources/images/add.png"/>
-                </Property>
-                <Property name="focusable" type="boolean" value="false"/>
-                <Property name="horizontalTextPosition" type="int" value="0"/>
-                <Property name="iconTextGap" type="int" value="1"/>
-                <Property name="verticalTextPosition" type="int" value="3"/>
-              </Properties>
-              <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="add_tempActionPerformed"/>
               </Events>
             </Component>
             <Component class="javax.swing.JToolBar$Separator" name="jSeparator6">

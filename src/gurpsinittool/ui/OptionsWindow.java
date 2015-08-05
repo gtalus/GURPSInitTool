@@ -54,7 +54,10 @@ public class OptionsWindow extends javax.swing.JFrame {
 			 currentSettings.AUTO_STUNRECOVERY = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_STUNRECOVERY")); }
 		 if (propertyBag.containsKey("Options.game.AUTO_UNCONSCIOUS")) {
 			 currentSettings.AUTO_UNCONSCIOUS = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_UNCONSCIOUS")); }
-
+		 if (propertyBag.containsKey("Options.game.AUTO_SHOCK")) {
+			 currentSettings.AUTO_SHOCK = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_SHOCK")); }
+		 if (propertyBag.containsKey("Options.game.LOG_STATUSCHANGES")) {
+			 currentSettings.LOG_STATUSCHANGES = Boolean.valueOf(propertyBag.getProperty("Options.game.LOG_STATUSCHANGES")); }
     }
 
     /**
@@ -84,6 +87,8 @@ public class OptionsWindow extends javax.swing.JFrame {
 		 propertyBag.setProperty("Options.game.AUTO_KNOCKDOWNSTUN", String.valueOf(currentSettings.AUTO_KNOCKDOWNSTUN));
 		 propertyBag.setProperty("Options.game.AUTO_STUNRECOVERY", String.valueOf(currentSettings.AUTO_STUNRECOVERY));
 		 propertyBag.setProperty("Options.game.AUTO_UNCONSCIOUS", String.valueOf(currentSettings.AUTO_UNCONSCIOUS));
+		 propertyBag.setProperty("Options.game.AUTO_SHOCK", String.valueOf(currentSettings.AUTO_SHOCK));
+		 propertyBag.setProperty("Options.game.LOG_STATUSCHANGES", String.valueOf(currentSettings.LOG_STATUSCHANGES));
 	 }
 	 
     /**
@@ -101,9 +106,12 @@ public class OptionsWindow extends javax.swing.JFrame {
         auto_unconsciousness = new javax.swing.JCheckBox();
         auto_knockdown = new javax.swing.JCheckBox();
         auto_stunrecovery = new javax.swing.JCheckBox();
+        auto_shock = new javax.swing.JCheckBox();
         okButton = new javax.swing.JButton();
         applyButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
+        jPanel1 = new javax.swing.JPanel();
+        log_statuschanges = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("InitTool Settings");
@@ -122,6 +130,14 @@ public class OptionsWindow extends javax.swing.JFrame {
         auto_stunrecovery.setText("Stun Recovery");
         auto_stunrecovery.setToolTipText("Stunned Enemy Creatures check for stun recovery at the start of their turns.");
 
+        auto_shock.setText("Shock");
+        auto_shock.setToolTipText("Track and apply shock to Enemy attack rolls");
+        auto_shock.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                auto_shockActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout combatAutomationPanelLayout = new javax.swing.GroupLayout(combatAutomationPanel);
         combatAutomationPanel.setLayout(combatAutomationPanelLayout);
         combatAutomationPanelLayout.setHorizontalGroup(
@@ -131,7 +147,8 @@ public class OptionsWindow extends javax.swing.JFrame {
                     .addComponent(auto_attack)
                     .addComponent(auto_unconsciousness)
                     .addComponent(auto_knockdown)
-                    .addComponent(auto_stunrecovery))
+                    .addComponent(auto_stunrecovery)
+                    .addComponent(auto_shock))
                 .addGap(0, 0, Short.MAX_VALUE))
         );
         combatAutomationPanelLayout.setVerticalGroup(
@@ -144,6 +161,8 @@ public class OptionsWindow extends javax.swing.JFrame {
                 .addComponent(auto_knockdown)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 1, Short.MAX_VALUE)
                 .addComponent(auto_stunrecovery)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(auto_shock)
                 .addContainerGap())
         );
 
@@ -168,23 +187,49 @@ public class OptionsWindow extends javax.swing.JFrame {
             }
         });
 
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Logging"));
+
+        log_statuschanges.setText("Status Changes");
+        log_statuschanges.setToolTipText("Log all status changes in the encounter log");
+        log_statuschanges.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                log_statuschangesActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addComponent(log_statuschanges)
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(log_statuschanges)
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(combatAutomationPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(0, 145, Short.MAX_VALUE)
+                .addGap(0, 89, Short.MAX_VALUE)
                 .addComponent(okButton, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(applyButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(cancelButton))
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(combatAutomationPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cancelButton)
@@ -210,18 +255,30 @@ public class OptionsWindow extends javax.swing.JFrame {
         setVisible(false);
     }//GEN-LAST:event_cancelButtonActionPerformed
 
+    private void auto_shockActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_auto_shockActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_auto_shockActionPerformed
+
+    private void log_statuschangesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_log_statuschangesActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_log_statuschangesActionPerformed
+
     private void copySettingsToComponents() {
     	auto_attack.setSelected(currentSettings.AUTO_ATTACK);
     	auto_knockdown.setSelected(currentSettings.AUTO_KNOCKDOWNSTUN);
     	auto_stunrecovery.setSelected(currentSettings.AUTO_STUNRECOVERY);
-    	auto_unconsciousness.setSelected(currentSettings.AUTO_UNCONSCIOUS);    	
+    	auto_unconsciousness.setSelected(currentSettings.AUTO_UNCONSCIOUS);
+        auto_shock.setSelected(currentSettings.AUTO_SHOCK);
+        log_statuschanges.setSelected(currentSettings.LOG_STATUSCHANGES);
     }
     
     public void copyComponentsToSettings() {
     	currentSettings.AUTO_ATTACK = auto_attack.isSelected();
     	currentSettings.AUTO_KNOCKDOWNSTUN = auto_knockdown.isSelected();
     	currentSettings.AUTO_STUNRECOVERY = auto_stunrecovery.isSelected();
-    	currentSettings.AUTO_UNCONSCIOUS = auto_unconsciousness.isSelected();    	
+    	currentSettings.AUTO_UNCONSCIOUS = auto_unconsciousness.isSelected();   
+    	currentSettings.AUTO_SHOCK = auto_shock.isSelected();
+    	currentSettings.LOG_STATUSCHANGES = log_statuschanges.isSelected();
     }
     /**
      * @param args the command line arguments
@@ -262,11 +319,14 @@ public class OptionsWindow extends javax.swing.JFrame {
     private javax.swing.JButton applyButton;
     private javax.swing.JCheckBox auto_attack;
     private javax.swing.JCheckBox auto_knockdown;
+    private javax.swing.JCheckBox auto_shock;
     private javax.swing.JCheckBox auto_stunrecovery;
     private javax.swing.JCheckBox auto_unconsciousness;
     private javax.swing.JButton cancelButton;
     private javax.swing.JPanel combatAutomationPanel;
+    private javax.swing.JPanel jPanel1;
     private gurpsinittool.data.GameSettings localSettings;
+    private javax.swing.JCheckBox log_statuschanges;
     private javax.swing.JButton okButton;
     // End of variables declaration//GEN-END:variables
 }

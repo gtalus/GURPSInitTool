@@ -674,7 +674,7 @@ public class DefenseDialog extends javax.swing.JDialog {
     	int DR = actor.getTraitValueInt(BasicTrait.DR);
     	db.setText("DB: " + ShieldDB);
     	shield_dr.setText("DR: " + ShieldDR);
-    	shield_hp.setText("HP: " + (ShieldHP-actor.getTempInt("ShieldDamage")) + "/" + ShieldHP);
+    	shield_hp.setText("HP: " + (ShieldHP-actor.getTempInt("shieldDamage")) + "/" + ShieldHP);
     	drTextField.setText("" + DR);
     	
     	// Set position

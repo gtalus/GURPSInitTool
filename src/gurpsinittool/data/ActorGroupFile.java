@@ -172,8 +172,8 @@ public class ActorGroupFile {
 				+ ">\n");
 		
 		// Serialize traits
-		for (Object value : actor.traits.values()) {
-			stringWriter.append(SerializeTrait((Actor.Trait) value));
+		for (String traitName : actor.getAllTraitNames()) {
+			stringWriter.append(SerializeTrait(traitName, actor.getTraitValue(traitName)));
 		}
 				
 		for (int i=0; i < actor.getNumAttacks(); ++i) {
@@ -184,8 +184,8 @@ public class ActorGroupFile {
 		return stringWriter.toString();
 	}
 	
-	public static String SerializeTrait(Actor.Trait trait) {
-		return "<" + trait.name + ">" + trait.value + "</" + trait.name + ">\n";
+	public static String SerializeTrait(String traitName, String value) {
+		return "<" + traitName + ">" + value + "</" + traitName + ">\n";
 	}
 	
 	public static String SerializeAttack(Attack attack) {
@@ -289,7 +289,10 @@ public class ActorGroupFile {
 						}
 						else if ((matcher = trait.matcher(line)).matches()) {
 							if (matcher.group(1).equals(matcher.group(3))) {
-								currentActor.setTrait(matcher.group(1), matcher.group(2));
+								if (!currentActor.hasTrait(matcher.group(1)))
+									currentActor.addTrait(matcher.group(1), matcher.group(2));
+								else 
+									currentActor.setTrait(matcher.group(1), matcher.group(2));
 								if (DEBUG) { System.out.println("ActorGroupFile: Found trait for actor. Actor: " + aName + ", Trait: " + matcher.group(1) + ", Value: " + matcher.group(2)); }
 							} else {
 								System.err.println("ActorGroupFile: start/end tags do not match! " + line);
@@ -305,7 +308,10 @@ public class ActorGroupFile {
 									if (!traitName.equals(matcher.group(2))) {
 										System.err.println("ActorGroupFile: multiline start/end tags do not match! Start: " + traitName + ", End: " + matcher.group(2));
 									}
-									currentActor.setTrait(traitName, traitValue.toString());
+									if (!currentActor.hasTrait(traitName))
+										currentActor.addTrait(traitName, traitValue.toString());
+									else
+										currentActor.setTrait(traitName, traitValue.toString());
 									if (DEBUG) { System.out.println("ActorGroupFile: Found multiline trait for actor. Actor: " + aName + ", Trait: " + traitName + ", Value: " + traitValue); }   	
 									break;
 								}	

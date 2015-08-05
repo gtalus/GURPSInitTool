@@ -1,5 +1,6 @@
 package gurpsinittool.data;
 
+import gurpsinittool.data.Actor.BasicTrait;
 import gurpsinittool.data.Defense.DefenseResult;
 import gurpsinittool.data.Defense.DefenseType;
 import gurpsinittool.util.DieRoller;
@@ -41,8 +42,8 @@ public class Actor
 	// All actors must have these traits defined:
 	public enum BasicTrait {Name, ST, HP, Speed, DX, Will, Move, IQ, Per, HT, FP, SM, Fatigue, Injury, Dodge, Parry, Block, DR, Shield_DB, Shield_DR, Shield_HP, Notes}
 	
-	// TODO: implement change tracking? Only way to actually track changes all the way down
-	public class Trait implements Serializable {
+	// TODO: implement change tracking in the trait? If we want to allow other classes to hold a Trait object
+	private class Trait implements Serializable {
 		// Default SVUID
 		private static final long serialVersionUID = 1L;
 
@@ -54,14 +55,14 @@ public class Actor
 		public String name;
 		public String value;
 		
-		public Trait() { name = ""; value = ""; }
+		//public Trait() { name = ""; value = ""; }
 		public Trait(String name, String value) {this.name = name; this.value = value; }
-		public Trait(Trait aTrait) {name = aTrait.name; value = aTrait.value; }
+		//public Trait(Trait aTrait) {name = aTrait.name; value = aTrait.value; }
 		
-		public int valueAsInt() {
-			// do the parsing/conversion here
-			return 0;
-		}
+		//public int valueAsInt() {
+		//	// do the parsing/conversion here
+		//	return 0;
+		//}
 	}
 	protected HashMap<String, Trait> traits = new HashMap<String, Trait>();
 	
@@ -71,14 +72,6 @@ public class Actor
 
 	// Volatile (not currently stored or changes reported)
 	protected HashMap<String, Trait> temps = new HashMap<String, Trait>();
-	// TODO: FIX!!!
-	// public int Shock = 0;
-	//public String tag;
-	//public int ShieldDamage = 0;
-	//public int numParry = 0;
-	//public int numBlock = 0;
-
-	 
 	 
     //================================================================================
     // Constructors
@@ -126,11 +119,13 @@ public class Actor
 		for (int i=0; i<traitNames.length; i++) {
 			String traitValue = defaultBasicTraitValues[i];
 			String traitName = traitNames[i].toString();
-			setTrait(traitName, traitValue);			
+			addTrait(traitName, traitValue);			
 		}
 		setTemp("numParry", 0);
 		setTemp("numBlock", 0);
-		setTemp("ShieldDamage", 0);
+		setTemp("shieldDamage", 0);
+		setTemp("shock", 0);
+		setTemp("shock.next", 0);
 	}
 	
 	// post- de-serialize/serialize helper
@@ -153,6 +148,7 @@ public class Actor
 	public void addStatus(ActorStatus status) {
 		if (!statuses.contains(status)) {
 			statuses.add(status);
+			if (settings.LOG_STATUSCHANGES) logEvent("<b>" + getTraitValue(BasicTrait.Name) + "</b> added status <b>" + status + "</b>, now has [" + getStatusesString() + "]");
 			mPcs.firePropertyChange("Status", null, status);
 		}
 	}
@@ -164,12 +160,14 @@ public class Actor
 			String oldStatuses = getStatusesString();
 			statuses.clear();
 			statuses.addAll(newStatuses);
+			if (settings.LOG_STATUSCHANGES) logEvent("<b>" + getTraitValue(BasicTrait.Name) + "</b> status set to <b>[" + getStatusesString() + "]</b>");
 			mPcs.firePropertyChange("Statuses", oldStatuses, getStatusesString());
 		}
 	}
 	public void removeStatus(ActorStatus status) {
 		if (statuses.contains(status)) {
 			statuses.remove(status);
+			if (settings.LOG_STATUSCHANGES) logEvent("<b>" + getTraitValue(BasicTrait.Name) + "</b> removed status <b>" + status + "</b>, now has [" + getStatusesString() + "]");
 			mPcs.firePropertyChange("Status", status, null);
 		}
 	}
@@ -203,6 +201,7 @@ public class Actor
 	public void setType(ActorType type) {
 		if (this.type != type) {
 			ActorType oldType = this.type;
+			logEvent("<b>" + getTraitValue(BasicTrait.Name) + "</b> type changed to <b>" + type + "</b>");
 			this.type = type;
 			mPcs.firePropertyChange("Type", oldType, type);	
 		}
@@ -244,30 +243,14 @@ public class Actor
 	public boolean hasTrait(String name) {
 		return traits.containsKey(name);
 	}
-	
-	private Trait getTrait(BasicTrait trait) {
-		if (!traits.containsKey(trait.toString())) { // This is a serious error
-			System.err.println("ERROR in Actor:getTrait unable to find basic trait " + trait);
-			return null; // Consider returning a new trait with no value?
-		} else {
-			return traits.get(trait.toString());
+	public static boolean isBasicTrait(String name) {
+		for (BasicTrait b: BasicTrait.values()) {
+			if (b.name().equals(name)) return true;
 		}
+		return false;
 	}
 	
-	public String getTraitValue(BasicTrait trait) {
-		return getTrait(trait).value;
-	}
-	
-	public int getTraitValueInt(BasicTrait trait) {
-		try {
-			return Integer.parseInt(getTrait(trait).value);
-		} catch (NumberFormatException e) {
-			System.out.println("Actor: getValueInt: Error parsing value: " + getTrait(trait).value);
-			e.printStackTrace();
-			return 0;
-		}
-	}
-	
+	// Get functions
 	private Trait getTrait(String name) {
 		if (!traits.containsKey(name)) { // This is not a serious error?
 			System.out.println("-E- Actor:GetTrait: requested trait that does not exist: " + name);
@@ -276,50 +259,85 @@ public class Actor
 			return traits.get(name);
 		}
 	}
-	
+	private Trait getTrait(BasicTrait trait) {
+		return traits.get(trait.toString());
+	}
 	public String getTraitValue(String name) {
 		return getTrait(name).value;
 	}
-	
-	public Trait setTrait(BasicTrait trait, String value) {
-		Trait theTrait = getTrait(trait);
-		if (theTrait.value != value) {
-			String oldValue = theTrait.value;
-			theTrait.value = value;
-			mPcs.firePropertyChange("trait." + theTrait.name, oldValue, value);
+	public String getTraitValue(BasicTrait trait) {
+		return getTrait(trait).value;
+	}
+	public int getTraitValueInt(BasicTrait trait) {
+		try {
+			return Integer.parseInt(getTrait(trait).value);
+		} catch (NumberFormatException e) {
+			System.err.println("Actor: getValueInt: Error parsing value: " + getTrait(trait).value);
+			return 0;
 		}
-		return theTrait;
+	}
+	public Collection<String> getAllTraitNames() {
+		return traits.keySet();
 	}
 	
-	public Trait setTrait(BasicTrait trait, int value) {
-		return setTrait(trait, String.valueOf(value));
-	}
-	
+	// SetTrait functions
 	/**
 	 * Set the value of a trait, adding if that trait does not exist
 	 * @param name - the name of the trait
 	 * @param value - the value of the trait
-	 * @return the trait object created or modified
 	 */
-	public Trait setTrait(String name, String value) {
-		if (hasTrait(name)) {
-			Trait theTrait = getTrait(name);
-			if (theTrait.value != value) {
-				String oldValue = theTrait.value;
-				theTrait.value = value;
-				mPcs.firePropertyChange("trait." + theTrait.name, oldValue, value);
+	public void setTrait(String name, String value) {
+		if (!hasTrait(name)) { System.err.println("Actor.setTrait: trait does not exist: " + name); return; }
+		Trait trait = getTrait(name);
+		if (!trait.value.equals(value)) {
+			String oldValue = trait.value;
+			// And here is all the magic reporting!
+			if (name == "Injury") {
+				int newValue = Integer.valueOf(value);
+				int HP = getTraitValueInt(BasicTrait.HP);
+				int diff = getTraitValueInt(BasicTrait.Injury) - newValue;
+				if (diff < 0) {
+					setTemp("shock.next", getTempInt("shock.next") - diff);
+					logEvent("<b>" + getTraitValue(BasicTrait.Name) + "</b> took <b><font color=red>" + (-1*diff) + "</font></b> damage (now " + (HP - newValue) + " HP).");
+				} else {
+					logEvent("<b>" + getTraitValue(BasicTrait.Name) + "</b> healed <b><font color=blue>" + diff + "</font></b> (now " + (HP - newValue) + " HP).");		
+				}
+				
+			} else if (name == "Fatigue") {
+				int newValue = Integer.valueOf(value);
+				int FP = getTraitValueInt(BasicTrait.FP);
+				int diff = getTraitValueInt(BasicTrait.Fatigue) - newValue;
+				if (diff < 0) {
+					logEvent("<b>" + getTraitValue(BasicTrait.Name) + "</b> lost <b>" + (-1*diff) + "</b> fatigue (now " + (FP - newValue) + " FP).");
+				} else {
+					logEvent("<b>" + getTraitValue(BasicTrait.Name) + "</b> recoverd <b>" + diff + "</b> fatigue (now " + (FP - newValue) + " FP).");		
+				}
 			}
-			return theTrait;
-		} else {
-			Trait newTrait = new Trait(name, value);
-			traits.put(name, newTrait);
-			mPcs.firePropertyChange("trait." + name, null, value);
-			return newTrait;
+			
+			trait.value = value;
+			mPcs.firePropertyChange("trait." + name, oldValue, value);
 		}
 	}
+	public void setTrait(BasicTrait trait, String value) {
+		setTrait(trait.toString(), value);
+	}
+	public void setTrait(BasicTrait trait, int value) {
+		setTrait(trait, String.valueOf(value));
+	}
+	public void setTrait(String name, int value) {
+		setTrait(name, String.valueOf(value));
+	}
 	
-	public Trait setTrait(String name, int value) {
-		return setTrait(name, String.valueOf(value));
+	// Add
+	public boolean addTrait(String name, String value) {
+		if (hasTrait(name)) { 
+			System.err.println("Actor.addTrait: trait already exists! " + name); 
+			return false;
+		}
+		Trait newTrait = new Trait(name, value);
+		traits.put(name, newTrait);
+		mPcs.firePropertyChange("trait." + name, null, value);
+		return true;
 	}
 	
 	/**
@@ -340,28 +358,6 @@ public class Actor
 			mPcs.firePropertyChange("trait." + name, oldValue, null);
 			return true;
 		}
-	}
-	
-	// Temps
-	public boolean hasTemp(String name) {
-		return temps.containsKey(name);
-	}
-	public Trait getTemp(String name) {
-		return temps.get(name);
-	}
-	public int getTempInt(String name) {
-		return Integer.parseInt(getTemp(name).value);
-	}
-	public void setTemp(String name, String value) {
-		if (hasTemp(name)) {
-			getTemp(name).value = value;
-		} else {
-			Trait newTrait = new Trait(name, value);
-			temps.put(name, newTrait);
-		}
-	}
-	public void setTemp(String name, int value) {
-		setTemp(name, String.valueOf(value));
 	}
 	
 	/**
@@ -391,22 +387,39 @@ public class Actor
 			return true;
 		}
 	}
-	
-	public Collection<Trait> getAllTraits() {
-		return traits.values();
-	}
-	
-	public static boolean isBasicTrait(String name) {
-		for (BasicTrait b: BasicTrait.values()) {
-			if (b.name().equals(name)) return true;
-		}
-		return false;
-	}
 
+	// Temps
+	public boolean hasTemp(String name) {
+		return temps.containsKey(name);
+	}
+	private Trait getTemp(String name) {
+		return temps.get(name);
+	}
+	public String getTempValue(String name) {
+		return temps.get(name).value;
+	}
+	public int getTempInt(String name) {
+		return Integer.parseInt(getTemp(name).value);
+	}
+	public void setTemp(String name, String value) {
+		if (hasTemp(name)) {
+			getTemp(name).value = value;
+		} else {
+			Trait newTrait = new Trait(name, value);
+			temps.put(name, newTrait);
+		}
+	}
+	public void setTemp(String name, int value) {
+		setTemp(name, String.valueOf(value));
+	}
+	public Collection<String> getAllTempNames() {
+		return temps.keySet();
+	}
+	
+	// Change Support
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
         mPcs.addPropertyChangeListener(listener);
     }
-    
     public void removePropertyChangeListener(PropertyChangeListener listener) {
         mPcs.removePropertyChangeListener(listener);
     }
@@ -418,6 +431,13 @@ public class Actor
 		setTemp("numParry", 0);
 		setTemp("numBlock", 0);
 		// Shock
+		if (settings.AUTO_SHOCK) {
+			int injury =  getTempInt("shock.next");
+			int injury_per_shock = (int) getTraitValueInt(BasicTrait.HP) / 10;
+			int LHPT = hasTrait("HPT")?0:(hasTrait("LPT")?2:1);
+			setTemp("shock", LHPT * Math.min((int)injury/injury_per_shock,4));
+		}
+		setTemp("shock.next", 0);
 		String Name = getTraitValue(BasicTrait.Name);
 		int Injury = getTraitValueInt(BasicTrait.Injury);
 		int HP = getTraitValueInt(BasicTrait.HP);
@@ -475,15 +495,18 @@ public class Actor
 	}
 	
 	/**
-	 * Reset actor state- Active, 0 Injury, 0 fatigue, numParry/numBlock/ShieldDamage = 0
+	 * Reset actor state- Active, 0 Injury, 0 fatigue, numParry/numBlock/shieldDamage = 0
 	 */
 	public void Reset() {
 		clearStatuses();
 		setTrait(BasicTrait.Injury, "0");
 		setTrait(BasicTrait.Fatigue, "0");
+		// TODO: reset all temp vars?
 		setTemp("numParry", 0);
 		setTemp("numBlock", 0);
-		setTemp("ShieldDamage", 0);
+		setTemp("shieldDamage", 0);
+		setTemp("shock", 0);
+		setTemp("shock.next", 0);
 	}
 	
 	private void logEvent(String text) {
@@ -513,24 +536,28 @@ public class Actor
 			return;
 		}
 		Attack attack = attacks.get(defaultAttack);
+		int eff_skill = attack.Skill;
+		if(settings.AUTO_SHOCK)
+			eff_skill -= getTempInt("shock");
 		int roll = DieRoller.roll3d6();
-		int margin = attack.Skill - roll;
+		int margin = eff_skill - roll;
 		String hit_miss;
 		String crit_string = "";
-		if (DieRoller.isCritFailure(roll, attack.Skill)) {
+		if (DieRoller.isCritFailure(roll, eff_skill)) {
 			hit_miss = "<b><font color=red>Critical miss</font></b>";
 			CriticalTables.Entry crit_result = CriticalTables.getRandomEntry(CriticalTables.critical_miss);
 			crit_string = "<br/> <i><font color=gray><b>Critical Miss Table Result:</b>" + crit_result.notes + "</font></i>";
 		}
-		else if (DieRoller.isCritSuccess(roll, attack.Skill)) {
+		else if (DieRoller.isCritSuccess(roll, eff_skill)) {
 			hit_miss = "<b><font color=blue>Critical hit</font></b>";
 			CriticalTables.Entry crit_result = CriticalTables.getRandomEntry(CriticalTables.critical_hit);
 			crit_string = "<br/> <i><font color=gray><b>Critical Hit Table Result:</b>" + crit_result.notes + "</font></i>";
 		}
-		else if (DieRoller.isSuccess(roll, attack.Skill))
+		else if (DieRoller.isSuccess(roll, eff_skill))
 			hit_miss = "<b>hit</b>";
 		else 
 			hit_miss = "miss";
+		boolean isHit = DieRoller.isSuccess(roll, eff_skill);
 		Damage damage = Damage.ParseDamage(attack.Damage);
 		if (attack.Unbalanced) {
 			setTemp("numParry", getTempInt("numParry")+1);
@@ -542,7 +569,7 @@ public class Actor
 			else
 				armorDivStr = "(" + String.format("%s", damage.ArmorDivisor) + ")";
 		}			
-		logEvent("<b> " + Name + "</b> attacks with " + attack.Name + ": " + hit_miss +  " (" + roll + "/" + attack.Skill + "=" + margin + ") for damage <font color=red><b>" + damage.BasicDamage + armorDivStr + " " + damage.Type + "</b></font> (" + attack.Damage + ")" + crit_string);
+		logEvent("<b> " + Name + "</b> attacks with " + attack.Name + ": " + hit_miss +  " (" + roll + "/" + eff_skill + "=" + margin + ") for damage " + (isHit?"<font color=red><b>":"") + damage.BasicDamage + armorDivStr + " " + damage.Type + (isHit?"</b></font>":"") + " (" + attack.Damage + ")" + crit_string);
 	}
 	
     //================================================================================
@@ -560,7 +587,7 @@ public class Actor
 		int Fatigue = getTraitValueInt(BasicTrait.Fatigue);
 		int Injury = getTraitValueInt(BasicTrait.Injury);
 		// Process shield damage/injury/fatigue
-		setTemp("ShieldDamage", getTempInt("ShieldDamage") + defense.shieldDamage);
+		setTemp("shieldDamage", getTempInt("shieldDamage") + defense.shieldDamage);
 		setTrait(BasicTrait.Injury, String.valueOf(Injury+defense.injury));
 		setTrait(BasicTrait.Fatigue, String.valueOf(Fatigue+defense.fatigue));
 		switch (defense.type) { // Record defense attempts

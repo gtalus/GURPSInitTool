@@ -58,10 +58,10 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	private Actor actor;
 	private AttackTableModel attackTableModel;
 	private TraitTableModel traitTableModel;
+	private TraitTableModel tempTableModel;
 	
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton add_attack;
-    private javax.swing.JButton add_temp;
     private javax.swing.JButton add_trait;
     private javax.swing.JPanel attacks;
     private javax.swing.JTable attacksTable;
@@ -116,11 +116,11 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     private javax.swing.JTextArea notes;
     private javax.swing.JFormattedTextField parry;
     private javax.swing.JFormattedTextField per;
+    private javax.swing.JButton refreshTempTable;
     private javax.swing.JButton remove_attack;
     private javax.swing.JButton remove_trait;
     private javax.swing.JButton resizeAttackTable;
     private javax.swing.JButton resizeTempTable;
-    private javax.swing.JButton resizeTempTable1;
     private javax.swing.JButton resizeTraitTable;
     private javax.swing.JPanel shieldPanel;
     private javax.swing.JFormattedTextField shield_dr;
@@ -142,7 +142,8 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     /** Creates new form ActorDetailsPanel */
     public ActorDetailsPanel_v2() {
     	attackTableModel = new AttackTableModel();
-    	traitTableModel = new TraitTableModel();
+    	traitTableModel = new TraitTableModel(false);
+    	tempTableModel = new TraitTableModel(true);
     	
         initComponents();
         attacksTable.setDefaultRenderer(String.class, attackTableModel.new AttackTableCellRenderer());
@@ -232,8 +233,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jScrollPane6 = new javax.swing.JScrollPane();
         tempTable = new javax.swing.JTable();
         jToolBar5 = new javax.swing.JToolBar();
-        resizeTempTable1 = new javax.swing.JButton();
-        add_temp = new javax.swing.JButton();
+        refreshTempTable = new javax.swing.JButton();
         jSeparator6 = new javax.swing.JToolBar.Separator();
         resizeTempTable = new javax.swing.JButton();
 
@@ -800,11 +800,11 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 
         status_label.setText("status_label");
 
-        showTempCheckBox.setText("Temp / Debug");
+        showTempCheckBox.setSelected(true);
         showTempCheckBox.setToolTipText("");
-        showTempCheckBox.setIcon(new javax.swing.ImageIcon(getClass().getResource("/src/resources/images/bullet_toggle_plus.png"))); // NOI18N
+        showTempCheckBox.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/bullet_toggle_plus.png"))); // NOI18N
         showTempCheckBox.setMargin(new java.awt.Insets(0, 0, 0, 0));
-        showTempCheckBox.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/src/resources/images/bullet_toggle_minus.png"))); // NOI18N
+        showTempCheckBox.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/bullet_toggle_minus.png"))); // NOI18N
         showTempCheckBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 showTempCheckBoxActionPerformed(evt);
@@ -815,35 +815,23 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         tempPanel.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
 
         tempTable.setAutoCreateRowSorter(true);
-        tempTable.setModel(traitTableModel);
+        tempTable.setModel(tempTableModel);
         jScrollPane6.setViewportView(tempTable);
 
         jToolBar5.setBorder(null);
         jToolBar5.setFloatable(false);
         jToolBar5.setRollover(true);
 
-        resizeTempTable1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/src/resources/images/arrow_refresh_small.png"))); // NOI18N
-        resizeTempTable1.setFocusable(false);
-        resizeTempTable1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        resizeTempTable1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        resizeTempTable1.addActionListener(new java.awt.event.ActionListener() {
+        refreshTempTable.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/arrow_refresh_small.png"))); // NOI18N
+        refreshTempTable.setFocusable(false);
+        refreshTempTable.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        refreshTempTable.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        refreshTempTable.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 refresh_tempActionPerformed(evt);
             }
         });
-        jToolBar5.add(resizeTempTable1);
-
-        add_temp.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/add.png"))); // NOI18N
-        add_temp.setFocusable(false);
-        add_temp.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        add_temp.setIconTextGap(1);
-        add_temp.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        add_temp.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                add_tempActionPerformed(evt);
-            }
-        });
-        jToolBar5.add(add_temp);
+        jToolBar5.add(refreshTempTable);
         jToolBar5.add(jSeparator6);
 
         resizeTempTable.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/script_code.png"))); // NOI18N
@@ -883,7 +871,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
             .addComponent(traits, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(showTempCheckBox)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(0, 0, 0)
                 .addComponent(tempPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
@@ -1178,20 +1166,23 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         resizeTableInPanel(attacks, attacksTable, attackTableModel);
     }//GEN-LAST:event_add_attackActionPerformed
 
-    private void add_tempActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_add_tempActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_add_tempActionPerformed
-
     private void resizeTempTableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resizeTempTableActionPerformed
-        // TODO add your handling code here:
+        resizeTableInPanel(tempPanel, tempTable, tempTableModel);
     }//GEN-LAST:event_resizeTempTableActionPerformed
 
     private void refresh_tempActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refresh_tempActionPerformed
-        // TODO add your handling code here:
+        tempTableModel.setActor(actor);
     }//GEN-LAST:event_refresh_tempActionPerformed
 
     private void showTempCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showTempCheckBoxActionPerformed
-        // TODO add your handling code here:
+       	tempPanel.setVisible(showTempCheckBox.isSelected());
+       	if (showTempCheckBox.isSelected()) {
+       		showTempCheckBox.setText("");
+       	} else {
+       		showTempCheckBox.setText("show Temp / Debug");
+       	}
+        tempPanel.doLayout();
+        this.doLayout();
     }//GEN-LAST:event_showTempCheckBoxActionPerformed
 
 
@@ -1255,14 +1246,12 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
       	default_attack.setEnabled(false);
       	resizeAttackTable.setEnabled(false);
       	attackTableModel.setActor(null);
+      	resizeTempTable.setEnabled(false);
+      	refreshTempTable.setEnabled(false);
       	//resizeAttacksTable(); ??needed??
-  	//add_timer.setEnabled(false);
+      	//add_timer.setEnabled(false);
     	notes.setText("");
     	notes.setEnabled(false);
-    	
-    	shieldDamageLabel.setText("");
-	    numParryLabel.setText("");
-	    numBlockLabel.setText("");
     }
 
     /**
@@ -1299,6 +1288,8 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
       	add_trait.setEnabled(true);
        	remove_trait.setEnabled(true);
       	resizeTraitTable.setEnabled(true);
+      	resizeTempTable.setEnabled(true);
+      	refreshTempTable.setEnabled(true);
     	//add_timer.setEnabled(true);
     	notes.setEnabled(true);
     }
@@ -1457,8 +1448,10 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 			enablePanel();
 		    attackTableModel.setActor(actor);
 		    traitTableModel.setActor(actor);
+		    tempTableModel.setActor(actor);
 		    resizeTableInPanel(attacks, attacksTable, attackTableModel);
-		    resizeTableInPanel(traits, traitsTable, traitTableModel);		  
+		    resizeTableInPanel(traits, traitsTable, traitTableModel);
+		    resizeTableInPanel(tempPanel, tempTable, tempTableModel);
 			refreshActor();
 		} else {
 			actorLoaded = false;
