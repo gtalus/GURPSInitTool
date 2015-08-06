@@ -795,7 +795,8 @@ public class GITApp extends JFrame
 			groupManager.updateProperties();
 			optionsWindow.updateProperties();
 			// Check to make sure everything is clean
-			if(groupManager.querySaveChanges() && saveProperties()) {
+			if(groupManager.querySaveChanges()) {
+				saveProperties();
 				System.exit(0);
 			}
 		}

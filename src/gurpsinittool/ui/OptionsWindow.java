@@ -116,7 +116,7 @@ public class OptionsWindow extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("InitTool Settings");
 
-        combatAutomationPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Enemy Automation"));
+        combatAutomationPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("NPC Automation"));
 
         auto_attack.setText("Attack");
         auto_attack.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");

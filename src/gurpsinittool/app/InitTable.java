@@ -300,7 +300,7 @@ public class InitTable extends JTable
         }
         getColumnModel().getColumn(InitTableModel.columns.Status.ordinal()).setCellEditor(new InitTableStatusListCellEditor());
         //getColumnModel().getColumn(InitTableModel.columns.Type.ordinal()).setCellEditor(new InitTableTypeListCellEditor());
-        getColumnModel().getColumn(InitTableModel.columns.Damage.ordinal()).setCellEditor(new InitTableDamageCellEditor());
+        getColumnModel().getColumn(InitTableModel.columns.Injury.ordinal()).setCellEditor(new InitTableDamageCellEditor());
         getColumnModel().getColumn(InitTableModel.columns.Fatigue.ordinal()).setCellEditor(new InitTableDamageCellEditor());
 
 		// Table popup menu
@@ -565,7 +565,7 @@ public class InitTable extends JTable
 	private static void formatComponentColor(JComponent c, Actor a, boolean isSelected, InitTableModel.columns col) {
 		
 		// Red foreground for these columns:
-		if (col == columns.Damage || col == columns.Fatigue)
+		if (col == columns.Injury || col == columns.Fatigue)
 			c.setForeground(new Color(220,0,0));
 		else
 			c.setForeground(new Color(0,0,0));

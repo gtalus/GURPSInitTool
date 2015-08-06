@@ -197,8 +197,8 @@ public class Actor extends ActorBase {
  			if (hasTrait("LPT")) effHT -= 4;
  			int roll = DieRoller.roll3d6();
  			boolean success = DieRoller.isSuccess(roll, effHT);
- 			logEventTypeName("Knockdown/Stunning check: rolled " + roll + " against " + effHT + " => " + (!success?"<b>failed</b>":"succeeded") + (settings.AUTO_KNOCKDOWNSTUN?"":" (not applied)"));
- 			if (settings.AUTO_KNOCKDOWNSTUN) {
+ 			logEventTypeName("Knockdown/Stunning check: rolled " + roll + " against " + effHT + " => " + (!success?"<b>failed</b>":"succeeded"));
+ 			if (isTypeAutomated() && settings.AUTO_KNOCKDOWNSTUN) {
  				if (!success) {
  					addStatus(ActorStatus.StunPhys); // Check for mental stun and don't add this in that case?
  					removeStatus(ActorStatus.StunRecovr);

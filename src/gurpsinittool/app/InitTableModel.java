@@ -31,9 +31,9 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 
 	// Removed: Dodge, type
 	// TODO: consolidate HP/Damage, FP/Fatigue
-	private String[] columnNames = {"Act", "Name", "Speed", "Move", "HT", "HP", "Damage", "FP", "Fatigue", "Status"};
+	private String[] columnNames = {"Act", "Name", "Speed", "Move", "HT", "HP", "Injury", "FP", "Fatigue", "Status"};
 	private Class<?>[] columnClasses = {String.class, String.class, Float.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, String.class};
-	public enum columns {Act, Name, Speed, Move, HT, HP, Damage, FP, Fatigue, Status};
+	public enum columns {Act, Name, Speed, Move, HT, HP, Injury, FP, Fatigue, Status};
 	private static int numColumns = 10;
 	
 	Actor newActor = new Actor();
@@ -186,7 +186,7 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 			return actor.getTraitValueInt(BasicTrait.HT);
 		case HP:
 			return actor.getTraitValueInt(BasicTrait.HP);
-		case Damage:
+		case Injury:
 			return actor.getTraitValueInt(BasicTrait.Injury);
 		case FP:
 			return actor.getTraitValueInt(BasicTrait.FP);
@@ -254,7 +254,7 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 		case HP:
 			a.setTrait(BasicTrait.HP, String.valueOf((Integer) value));
 			break;
-		case Damage:
+		case Injury:
 			a.setTrait(BasicTrait.Injury, String.valueOf((Integer) value));
 			break;
 		case FP:
@@ -378,10 +378,10 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 	 */
 	public void resetEncounter() {
 		setDirty();
-		// Reset each actor
-		for (int i = 0; i < actorList.size()-1; ++i) {
-    		actorList.get(i).Reset();
-    	}
+		//Don't Reset each actor
+		//for (int i = 0; i < actorList.size()-1; ++i) {
+    	//	actorList.get(i).Reset();
+    	//}
 		if (activeActor != -1) {
 			fireTableCellUpdated(activeActor, 0);	
 			activeActor = -1;
