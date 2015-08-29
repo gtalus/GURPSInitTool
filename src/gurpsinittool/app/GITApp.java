@@ -46,7 +46,7 @@ public class GITApp extends JFrame
 	// Default SVUID
 	private static final long serialVersionUID = 1L;
 	
-	public static final String version = "1.2.0";
+	public static final String version = "1.2.1";
 	private static final boolean DEBUG = false;
 	
 	private InitTable initTable;
@@ -586,14 +586,17 @@ public class GITApp extends JFrame
     	// Property file should be the same name as the app
     	try {
     		File propertyFile = new File("GitApp.props");
-			if (DEBUG) { System.out.println("GITApp: loadProperties: Loading properties from file " + propertyFile.getAbsolutePath()); }
-			InputStream propIn = new FileInputStream(propertyFile);
-			propertyBag.load(propIn);
+    		if (!propertyFile.exists()) {
+    			if (DEBUG) { System.out.println("GITApp: loadProperties: properties file does not exist " + propertyFile.getAbsolutePath()); }
+    		} else {
+    			if (DEBUG) { System.out.println("GITApp: loadProperties: Loading properties from file " + propertyFile.getAbsolutePath()); }
+    			InputStream propIn = new FileInputStream(propertyFile);
+    			propertyBag.load(propIn);
+    		}
 		} catch (FileNotFoundException e) {
-			System.out.println("GITApp: loadProperties: File not found: " + e.toString());
-
+			System.out.println("GITApp: loadProperties: Caught exception: File not found: " + e.toString());
 		} catch (IOException e) {
-			System.out.println("GITApp: loadProperties: Error reading file! " + e.toString());
+			System.out.println("GITApp: loadProperties: Caught exception: Error reading file! " + e.toString());
 			e.printStackTrace();
 		}
     }
