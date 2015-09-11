@@ -46,7 +46,7 @@ public class GITApp extends JFrame
 	// Default SVUID
 	private static final long serialVersionUID = 1L;
 	
-	public static final String version = "1.2.1";
+	public static final String version = "1.3.0";
 	private static final boolean DEBUG = false;
 	
 	private InitTable initTable;

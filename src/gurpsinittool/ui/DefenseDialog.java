@@ -26,6 +26,7 @@ import gurpsinittool.data.Defense.DefenseResult;
 import gurpsinittool.data.Defense.DefenseType;
 import gurpsinittool.data.HitLocations;
 import gurpsinittool.data.ActorBase.BasicTrait;
+import gurpsinittool.data.DR;
 import gurpsinittool.util.DieRoller;
 
 /**
@@ -152,7 +153,6 @@ public class DefenseDialog extends javax.swing.JDialog {
         shield_hp = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
         rollTextField = new javax.swing.JFormattedTextField();
-        drTextField = new javax.swing.JFormattedTextField();
         damageTextField = new javax.swing.JTextField();
         otherSpinner = new javax.swing.JSpinner();
         locationCombo = new javax.swing.JComboBox();
@@ -162,6 +162,7 @@ public class DefenseDialog extends javax.swing.JDialog {
         stunnedCheck = new javax.swing.JCheckBox();
         positionCombo = new javax.swing.JComboBox();
         jLabel10 = new javax.swing.JLabel();
+        drTextField = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setResizable(false);
@@ -293,8 +294,6 @@ public class DefenseDialog extends javax.swing.JDialog {
         rollTextField.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
         rollTextField.setText("98");
 
-        drTextField.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
-
         otherSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 otherSpinnerStateChanged(evt);
@@ -415,10 +414,13 @@ public class DefenseDialog extends javax.swing.JDialog {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(drTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(damageTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(18, 18, 18)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(damageTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(18, 18, 18))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(drTextField)
+                                        .addGap(46, 46, 46)))
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel9)
                                     .addComponent(locationCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -479,8 +481,8 @@ public class DefenseDialog extends javax.swing.JDialog {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel8)
-                    .addComponent(drTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel9))
+                    .addComponent(jLabel9)
+                    .addComponent(drTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
@@ -580,7 +582,7 @@ public class DefenseDialog extends javax.swing.JDialog {
     private javax.swing.JLabel db;
     private javax.swing.JRadioButton dodgeButton;
     private javax.swing.JLabel dodgeNote;
-    private javax.swing.JFormattedTextField drTextField;
+    private javax.swing.JTextField drTextField;
     private javax.swing.JCheckBox eeCheck;
     private javax.swing.JLabel effectiveDefense;
     private javax.swing.JLabel jLabel1;
@@ -671,11 +673,11 @@ public class DefenseDialog extends javax.swing.JDialog {
        	int ShieldDB = actor.getTraitValueInt(BasicTrait.Shield_DB);
         int ShieldDR = actor.getTraitValueInt(BasicTrait.Shield_DR);
     	int ShieldHP = actor.getTraitValueInt(BasicTrait.Shield_HP);
-    	int DR = actor.getTraitValueInt(BasicTrait.DR);
+    	String DR = actor.getTraitValue(BasicTrait.DR);
     	db.setText("DB: " + ShieldDB);
     	shield_dr.setText("DR: " + ShieldDR);
     	shield_hp.setText("HP: " + (ShieldHP-actor.getTempInt("shieldDamage")) + "/" + ShieldHP);
-    	drTextField.setText("" + DR);
+    	drTextField.setText(DR);
     	
     	// Set position
     	// TODO: make this more flexible (perhaps based off of an ENUM???!!!)
@@ -772,7 +774,7 @@ public class DefenseDialog extends javax.swing.JDialog {
     		parseSuccess = false;
     	}    
     	try { // Get dr- set text to red and print error message if fails
-    		defense.override_dr = Integer.parseInt(drTextField.getText());
+    		defense.override_dr = DR.ParseDR(drTextField.getText());
     		drTextField.setForeground(Color.BLACK);
     	} catch (Exception e) {
     		drTextField.setForeground(Color.RED);

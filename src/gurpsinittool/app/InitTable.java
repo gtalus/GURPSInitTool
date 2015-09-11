@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -42,6 +43,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -633,6 +635,24 @@ public class InitTable extends JTable
 		c.setBorder(new LineBorder(new Color(255,255,255)));
 	}
 
+	private static void setBold(JLabel c) {
+		Font oldFont = c.getFont();
+		Font newFont = new Font(oldFont.getName(), Font.BOLD, oldFont.getSize());
+		c.setFont(newFont);
+	}
+	
+	/**
+	 * Override this method to fix a bug in the JVM which causes the table to
+	 * start editing when a mnemonic key or function key is pressed.
+	 */
+	protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
+		if (getInputMap(condition).get(ks) != null) {  } // Allow any key that is part of the input map
+		else if (e.isControlDown() || e.isAltDown() || e.isMetaDown()) { // ignore potential accelerators and mnemonics
+			return false;
+		}
+		return super.processKeyBinding(ks, e, condition, pressed);
+	}
+	
 	/**
 	 * Renderer to deal with all the customizations based on Actor state/type/etc.
 	 * Assumes that the table model being used is an ActorTableModel.
@@ -676,19 +696,25 @@ public class InitTable extends JTable
 			else if ((col == columns.Move /*|| col == columns.Dodge*/) && (Injury > 2*HP/3 && Fatigue > 2*FP/3)) {
 				int currentValue = Integer.parseInt(c.getText());
 				int newValue = (int) Math.ceil((double)currentValue/4);
-				c.setText("<html>" + c.getText() + " <strong>(" + newValue + ")</strong></html>");
+				//c.setText("<html>" + c.getText() + " <strong>(" + newValue + ")</strong></html>");
+				setBold(c);
+				c.setText(newValue + " (" + c.getText() + ")");
 				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/exclamation.png"), "Greatly reduced state"));
 			}
 			else if ((col == columns.Move /*|| col == columns.Dodge*/) && (Injury > 2*HP/3 || Fatigue > 2*FP/3)) {
 				int currentValue = Integer.parseInt(c.getText());
 				int newValue = (int) Math.ceil((double)currentValue/2);
-				c.setText("<html>" + c.getText() + " <strong>(" + newValue + ")</strong></html>");
+				//c.setText("<html>" + c.getText() + " <strong>(" + newValue + ")</strong></html>");
+				setBold(c);
+				c.setText(newValue + " (" + c.getText() + ")");
 				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png"), "Reduced state"));
 			}
 			else if (col == columns.HT && Injury >= HP) {
 				int penalty = (int) (-1*(Math.floor((double)Injury/HP)-1));
 				if (penalty < 0) {
-					c.setText("<html>" + c.getText() + " <strong>(" + penalty + ")</strong></html>");
+					//c.setText("<html>" + c.getText() + " <strong>(" + penalty + ")</strong></html>");
+					setBold(c);
+					c.setText(c.getText() + " [" + penalty + "]");
 				}
 				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png"), "Must check to stay conscious"));
 			}
@@ -720,7 +746,8 @@ public class InitTable extends JTable
 		
 		// The original actor name that the editor started with
 		private String actorName;
-
+		Actor actor;
+		
 		/**
 		 * Super does not define default constructor, so must define one.
 		 * @param comboBox
@@ -734,8 +761,8 @@ public class InitTable extends JTable
 		@Override
 		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
 			JTextField c = (JTextField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
-			Actor a = ((InitTableModel)table.getModel()).getActor(row);
-			actorName = a.getTraitValue(BasicTrait.Name);
+			actor = ((InitTableModel)table.getModel()).getActor(row);
+			actorName = actor.getTraitValue(BasicTrait.Name);
 			formatEditField(c, isSelected, row, column);
 			return c;
 		}
@@ -746,7 +773,7 @@ public class InitTable extends JTable
 	    	// check for modifications in the base Actor
 	    	// This hack is only needed if setClickCountToStart = 1, since in that 
 	    	// case the table is not updated in time when there is a modification on focus lost
-	    	String selctedActorName = getSelectedActor().getTraitValue(BasicTrait.Name);
+	    	String selctedActorName = actor.getTraitValue(BasicTrait.Name);
 	    	if (!selctedActorName.equals(actorName)) {
 	    		JTextField t = (JTextField) evt.getComponent();
 	    		actorName = selctedActorName;

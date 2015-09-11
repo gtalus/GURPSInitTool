@@ -191,13 +191,30 @@ public class Actor extends ActorBase {
 	    
     private void KnockdownStunningCheck(Defense defense) {
     	int HT = getTraitValueInt(BasicTrait.HT);
- 		if (defense.cripplingInjury || defense.majorWound) {
- 			int effHT = HT + defense.location.knockdownPenalty;
+    	int HP = getTraitValueInt(BasicTrait.HP);
+    	//Whenever you suffer a major wound, and whenever you are struck in the head (skull, face, or eye) 
+    	// or vitals for enough injury to cause a shock penalty, you must make an immediate HT roll to avoid 
+    	// knockdown and stunning.
+    	// (Also including groin here, based on common house-rule)
+ 		if (defense.cripplingInjury || 
+ 				defense.majorWound ||
+ 				(defense.injury >= HP/10.0 && (defense.location.headWound || defense.location.knockdownPenalty < 0))) {
+ 
+ 			int effHT = HT;
+ 			String knockdownDescription = "";
+ 			if (defense.cripplingInjury) {
+ 				effHT += defense.location.knockdownPenalty;
+ 				knockdownDescription = " for crippling injury";
+ 			} else if (defense.majorWound) {
+ 				effHT += defense.location.knockdownPenalty;
+ 				knockdownDescription = " for major wound";
+ 			}
+				
  			if (hasTrait("HPT")) effHT += 3;
  			if (hasTrait("LPT")) effHT -= 4;
  			int roll = DieRoller.roll3d6();
  			boolean success = DieRoller.isSuccess(roll, effHT);
- 			logEventTypeName("Knockdown/Stunning check: rolled " + roll + " against " + effHT + " => " + (!success?"<b>failed</b>":"succeeded"));
+ 			logEventTypeName("Knockdown/Stunning check" + knockdownDescription + ": rolled " + roll + " against " + effHT + " => " + (!success?"<b>failed</b>":"succeeded"));
  			if (isTypeAutomated() && settings.AUTO_KNOCKDOWNSTUN) {
  				if (!success) {
  					addStatus(ActorStatus.StunPhys); // Check for mental stun and don't add this in that case?

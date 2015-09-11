@@ -1,5 +1,6 @@
 package gurpsinittool.app;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,6 +16,8 @@ import gurpsinittool.util.FileChangeEvent;
 import gurpsinittool.util.FileChangeEventListener;
 
 import javax.swing.GroupLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -24,6 +27,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -52,6 +56,7 @@ public class GroupManager extends JFrame
 	private JMenuBar jMenuBar;
 	private JMenu jMenu;
 	private GroupTree groupTree;
+	private JToolBar toolbar;
 	
 	private JFileChooser fileChooser;
 	private File saveAsFile;
@@ -114,6 +119,17 @@ public class GroupManager extends JFrame
 
         setJMenuBar(jMenuBar);
         
+        // The top tool bar (search)
+        toolbar = new JToolBar("Search Toolbar");
+        // Next Actor (first button)
+        JButton button = new JButton();
+        java.net.URL imageURL = GITApp.class.getResource("/resources/images/control_play_blue.png");
+        if (imageURL != null) {
+        	button.setIcon(new ImageIcon(imageURL, "Next Actor")); 
+        }
+        toolbar.add(button);
+		//getContentPane().add(toolbar, BorderLayout.PAGE_START);
+
         groupTable = new InitTable(propertyBag, false);
         groupTable.setVisible(false);
         groupTable.getSelectionModel().addListSelectionListener(this);
@@ -308,35 +324,19 @@ public class GroupManager extends JFrame
 	  * Show/Hide the actor panel
 	  */
 	 private void layoutActorPanel() {
-		 if(Boolean.valueOf(propertyBag.getProperty("Manager.actorDetails.visible"))) {
+		 if(Boolean.valueOf(propertyBag.getProperty("Manager.actorDetails.visible"))) {			 
 	         getContentPane().remove(jSplitPaneVertical);
+	         // Refresh settings for left component & divider since they seem to be cleared when the jSplitPaneHorizontal is added to another container
 	         jSplitPaneHorizontal.setLeftComponent(jSplitPaneVertical);
-	         jSplitPaneHorizontal.setDividerLocation(Integer.valueOf(propertyBag.getProperty("Manager.splitHorizontal.dividerLocation")));
-	
-	         GroupLayout layout = new GroupLayout(getContentPane());
-	         getContentPane().setLayout(layout);
-	         layout.setHorizontalGroup(
-	         		layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-	         		.addComponent(jSplitPaneHorizontal, GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
-	         );
-	         layout.setVerticalGroup(
-	         	layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-	         	.addComponent(jSplitPaneHorizontal, GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
-	         );       
+	         jSplitPaneHorizontal.setDividerLocation(Integer.valueOf(propertyBag.getProperty("Manager.splitHorizontal.dividerLocation")));	     
+			 getContentPane().add(jSplitPaneHorizontal, BorderLayout.CENTER);
+			 validate();
 		 }
 		 else {
 			 propertyBag.setProperty("Manager.splitHorizontal.dividerLocation", String.valueOf(jSplitPaneHorizontal.getDividerLocation()));
 		 	 getContentPane().remove(jSplitPaneHorizontal);
-		     GroupLayout layout = new GroupLayout(getContentPane());
-		     getContentPane().setLayout(layout);
-		     layout.setHorizontalGroup(
-		     		layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-		     		.addComponent(jSplitPaneVertical, GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
-		     );
-		     layout.setVerticalGroup(
-		     	layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-		     	.addComponent(jSplitPaneVertical, GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
-		     );
+			 getContentPane().add(jSplitPaneVertical, BorderLayout.CENTER);
+			 validate();
 		 }
 	 }
 	 

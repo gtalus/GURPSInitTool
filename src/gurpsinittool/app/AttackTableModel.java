@@ -1,6 +1,8 @@
 package gurpsinittool.app;
 
 import java.awt.Component;
+import java.awt.Font;
+
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
@@ -173,7 +175,9 @@ public class AttackTableModel extends AbstractTableModel {
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 			JLabel c = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 			if (table.getRowSorter().convertRowIndexToModel(row) == currentActor.getDefaultAttack()) {
-				c.setText("<html><strong>" + c.getText() + "</strong></html>");
+				Font oldFont = c.getFont();
+				Font newFont = new Font(oldFont.getName(), Font.BOLD, oldFont.getSize());
+				c.setFont(newFont);
 			}
 			return c;
 		}

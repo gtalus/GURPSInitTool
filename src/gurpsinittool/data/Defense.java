@@ -22,7 +22,7 @@ public class Defense {
 	
 	// Key Inputs
 	public int roll; // The defense roll
-	public int override_dr; // Override the actor's base DR
+	public DR override_dr; // Override the actor's base DR
 	public Damage damage; // The amount of damage inflicted
 	public HitLocation location;
 	
@@ -159,7 +159,7 @@ public class Defense {
     		coverDR = (int) (Math.floor(ShieldDR/damage.ArmorDivisor) + Math.ceil(ShieldHP/4));
     	case Failure:
     		// Calculate actual basic damage to the target, including any cover DR
-			int totalDR = override_dr + location.extraDR;
+			int totalDR = override_dr.getDRforType(damage.Type) + location.extraDR;
     		int basicDamage = (int) (damage.BasicDamage - coverDR - Math.floor(totalDR/damage.ArmorDivisor));
 			basicDamage = Math.max(0, basicDamage);
 			// Calculate injury to the target

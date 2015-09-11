@@ -605,6 +605,7 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 				}
 				fireTableRowsUpdated(rows[i], rows[i]);
 			}
+			System.out.println("InitTableModel: propertyChange: done with actor " + actor.getTraitValue(BasicTrait.Name));
 		}		
 	}
 }
