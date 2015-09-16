@@ -9,15 +9,7 @@ import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.Properties;
-
-import gurpsinittool.data.ActorGroupFile;
-import gurpsinittool.ui.ActorDetailsPanel_v2;
-import gurpsinittool.util.FileChangeEvent;
-import gurpsinittool.util.FileChangeEventListener;
-
-import javax.swing.GroupLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
+import javax.swing.Box;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -37,6 +29,12 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.tree.DefaultTreeModel;
+import gurpsinittool.data.ActorGroupFile;
+import gurpsinittool.data.GameMaster;
+import gurpsinittool.ui.ActorDetailsPanel_v2;
+import gurpsinittool.util.FileChangeEvent;
+import gurpsinittool.util.FileChangeEventListener;
+import gurpsinittool.util.SearchSupport;
 
 public class GroupManager extends JFrame 
 	implements TreeSelectionListener, ActionListener, ItemListener, ListSelectionListener {
@@ -55,21 +53,35 @@ public class GroupManager extends JFrame
 	private ActorDetailsPanel_v2 actorDetailsPanel;
 	private JMenuBar jMenuBar;
 	private JMenu jMenu;
-	private GroupTree groupTree;
 	private JToolBar toolbar;
+	private GroupTree groupTree;
 	
 	private JFileChooser fileChooser;
 	private File saveAsFile;
 	private boolean tableIsClean = true;
 	private boolean treeIsClean = true;
 	private Properties propertyBag;
+	private GameMaster gameMaster;
+	
+	//Search support
+	SearchSupport searchSupport;
 	
 	public GroupManager(Properties propertyBag) {
 		super("Group Manager");
 		this.propertyBag = propertyBag;
 		setDefaultProperties();
 		
-        //Create and set up the window.	
+		// Create core components
+		gameMaster = new GameMaster();
+		actorDetailsPanel = new ActorDetailsPanel_v2();
+		groupTable = new InitTable(gameMaster, false);
+		groupTree = new GroupTree(groupTable);
+		searchSupport = new SearchSupport(groupTree, groupTable);
+		
+		// Initialize GameMaster
+		gameMaster.initTable = groupTable;
+		
+        // Create and set up the window.	
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         
         // The file chooser
@@ -120,23 +132,16 @@ public class GroupManager extends JFrame
         setJMenuBar(jMenuBar);
         
         // The top tool bar (search)
-        toolbar = new JToolBar("Search Toolbar");
-        // Next Actor (first button)
-        JButton button = new JButton();
-        java.net.URL imageURL = GITApp.class.getResource("/resources/images/control_play_blue.png");
-        if (imageURL != null) {
-        	button.setIcon(new ImageIcon(imageURL, "Next Actor")); 
-        }
-        toolbar.add(button);
-		//getContentPane().add(toolbar, BorderLayout.PAGE_START);
+        toolbar = searchSupport.getSearchToolBar();
+        toolbar.add(Box.createHorizontalGlue());
+		getContentPane().add(toolbar, BorderLayout.PAGE_START);
 
-        groupTable = new InitTable(propertyBag, false);
+        
         groupTable.setVisible(false);
         groupTable.getSelectionModel().addListSelectionListener(this);
         groupTable.getActorTableModel().addFileChangeEventListener(new GroupFileChangeEventListener());
         groupTable.getActorTableModel().addTableModelListener(new GroupInitTableModelListener());
-        actorDetailsPanel = new ActorDetailsPanel_v2();
-        groupTree = new GroupTree(groupTable);
+        
         groupTree.addTreeSelectionListener(this);
         groupTree.addFileChangeEventListener(new GroupFileChangeEventListener());
         jScrollPaneTable = new JScrollPane(groupTable);
@@ -457,6 +462,4 @@ public class GroupManager extends JFrame
 			actorDetailsPanel.setActor(groupTable.getSelectedActor());
 		}
 	}
-
-
 }

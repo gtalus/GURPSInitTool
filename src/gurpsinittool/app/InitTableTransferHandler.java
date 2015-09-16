@@ -11,6 +11,7 @@ import javax.swing.JTable;
 import javax.swing.TransferHandler;
 import gurpsinittool.data.Actor;
 import gurpsinittool.data.ActorBase.BasicTrait;
+import gurpsinittool.data.GameMaster;
 
 public class InitTableTransferHandler extends TransferHandler {
 
@@ -92,18 +93,21 @@ public class InitTableTransferHandler extends TransferHandler {
     	if (DEBUG) { System.out.println("InitTreeTransferHandler.importData:  Transferable data retrieved."); }
 
         InitTable table = (InitTable) support.getComponent();
-        InitTableModel tableModel = (InitTableModel) table.getModel();
+        GameMaster gameMaster = table.getGameMaster();
+        //InitTableModel tableModel = table.getActorTableModel();
         
-        // Don't try to put items after the 'new' row
+
         // needed to preserve actor order
         JTable.DropLocation dl = (JTable.DropLocation) support.getDropLocation();
         table.stopCellEditing(); // Don't allow the table to be in edit mode while we change the structure
         int row = dl.getRow(); 
-        if (row >= tableModel.getRowCount()) { row = tableModel.getRowCount() - 1; }
+        // Don't try to put items after the 'new' row
+        //if (row >= tableModel.getRowCount()) { row = tableModel.getRowCount() - 1; }
 
         for (int i = actorRows.length-1; i >= 0; i--) { // Actors added to same 'row', so go from bottom up to preserve order
         	if (DEBUG) { System.out.println("InitTreeTransferHandler.importData: Adding actor # " + i + " @ row: " + row); }
-            tableModel.addActor(actorRows[i], row);
+        	gameMaster.addActor(actorRows[i], row);
+            //tableModel.addActor(actorRows[i], row);
             table.getSelectionModel().addSelectionInterval(row, row);
         }
         
@@ -136,7 +140,7 @@ public class InitTableTransferHandler extends TransferHandler {
 			return null;
 		
 		java.util.Arrays.sort(rows);
-		InitTableModel tableModel = (InitTableModel) table.getModel();
+		InitTableModel tableModel = table.getActorTableModel();
 		Actor[] actorRows = tableModel.getActors(rows);
 		if (DEBUG) { System.out.println("InitTreeTransferHandler.createTransferable: creating new TransferableActor"); }
 		return new TransferableActor(actorRows, table.isInitTable());
@@ -145,7 +149,8 @@ public class InitTableTransferHandler extends TransferHandler {
 	@Override
 	protected void exportDone(JComponent source, Transferable data, int action) {
 		if (action == MOVE) {
-			JTable table = (JTable) source;
+			InitTable table = (InitTable) source;
+			GameMaster gameMaster = table.getGameMaster();
 			
 			Actor[] actors;
 	        try {
@@ -159,7 +164,8 @@ public class InitTableTransferHandler extends TransferHandler {
 	        }
 	        for (int i = 0; i < actors.length; i++) {
 	        	if (DEBUG) { System.out.println("InitTreeTransferHandler.exportDone: After move, deleting actor " + actors[i].getTraitValue(BasicTrait.Name) + "..."); }
-	        	((InitTableModel) table.getModel()).removeActor(actors[i]);
+	        	//table.getActorTableModel().removeActor(actors[i]);
+	        	gameMaster.removeActor(actors[i]);
 	        }
 		}
 		if (DEBUG) {

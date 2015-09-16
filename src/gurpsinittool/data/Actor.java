@@ -67,7 +67,8 @@ public class Actor extends ActorBase {
 					} else {
 						logEventTypeName("<b>failed</b> recovery roll for Mental Stun (rolled " + roll + " against " + recoverTarget + ")"); 
 					}
-				} else if (hasStatus(ActorStatus.StunPhys)) {
+				} 
+				if (hasStatus(ActorStatus.StunPhys)) {
 					int recoverTarget = getTraitValueInt(BasicTrait.HT);
 					int roll = DieRoller.roll3d6();
 					if (DieRoller.isSuccess(roll, recoverTarget)) {
@@ -250,7 +251,7 @@ public class Actor extends ActorBase {
 		
 		String damageDescription = "";
 		if (defense.injury != 0) {
-			damageDescription = " Sustained <b><font color=red>" + defense.injury + "</font></b> injury to the " + defense.location.description;
+			damageDescription = " Sustained <b><font color=red>" + defense.injury + "</font></b> injury to the " + defense.location.type.name();
 			String knockdownstunningPenalty = (defense.location.knockdownPenalty != 0)?" @ " + defense.location.knockdownPenalty:"";
 			if (defense.cripplingInjury)
 				damageDescription += " <b>(crippling" + knockdownstunningPenalty + ")</br>";

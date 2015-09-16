@@ -1,6 +1,7 @@
 package gurpsinittool.app;
 
 import gurpsinittool.data.Actor;
+import gurpsinittool.data.GameMaster;
 
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -149,10 +150,12 @@ public class GroupTreeTransferHandler extends TransferHandler {
 	        // Refresh current group table, since it might be selected
 	        if (parent.getSelectionPath().getLastPathComponent().equals(parentNode)) { // If data is being displayed, add new Actors through the ActorTableModel
 	        	if (DEBUG) { System.out.println("GroupTreeTransferHandler.importData: Selected node is changing"); }
-	        	InitTableModel model = (InitTableModel) parent.getGroupTable().getModel();
+	        	GameMaster gameMaster = parent.getGroupTable().getGameMaster();
+	        	InitTableModel model = parent.getGroupTable().getActorTableModel();
 	        	for (int i = actorRows.length-1; i >= 0; i--) { // Actors added from bottom up, excluding new row
 		        	if (DEBUG) { System.out.println("GroupTreeTransferHandler.importData: Adding actor through ActorTableModel # " + i); }
-		        	model.addActor(actorRows[i], model.getRowCount()-1);
+		        	//model.addActor(actorRows[i], model.getRowCount()-1);
+		        	gameMaster.addActor(actorRows[i], model.getRowCount()-1);
 		        }	        	
 	        }
 	        else {

@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,16 +15,16 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.Arrays;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.AbstractAction;
 import javax.swing.AbstractCellEditor;
+import javax.swing.Action;
 import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.DropMode;
@@ -38,15 +37,12 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
@@ -55,18 +51,15 @@ import javax.swing.table.TableColumn;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
-import javax.swing.text.DocumentFilter.FilterBypass;
-
 import gurpsinittool.app.InitTableModel.columns;
 import gurpsinittool.data.*;
 //import gurpsinittool.test.RandomData;
 import gurpsinittool.data.ActorBase.ActorStatus;
 import gurpsinittool.data.ActorBase.ActorType;
 import gurpsinittool.data.ActorBase.BasicTrait;
-import gurpsinittool.ui.DefenseDialog;
+import gurpsinittool.util.MiscUtil;
 
-public class InitTable extends JTable 
-	implements ActionListener {
+public class InitTable extends BasicTable {
 	
 	/**
 	 * Default Serial UID
@@ -76,111 +69,23 @@ public class InitTable extends JTable
 	private static final boolean DEBUG = false;
 
 	private JPopupMenu popupMenu;
-	private Map<ActorStatus, JMenuItem> coordinatedStatusMenuItems;
+	private Map<ActorStatus, Action> coordinatedStatusMenuItems;
 	private InitTableModel tableModel;
 	private boolean isInitTable;
-	private Properties propertyBag;
+	private GameMaster gameMaster;
 	
 	/**
 	 * Default Constructor
 	 */
-	public InitTable(Properties propertyBag, boolean isInitTable) {
+	public InitTable(GameMaster gameMaster, boolean isInitTable) {
 		super(new InitTableModel());
 		putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
-		this.propertyBag = propertyBag;
+		this.gameMaster = gameMaster;
 		this.isInitTable = isInitTable;
 		tableModel = (InitTableModel) dataModel;
+		gameMaster.addPropertyChangeListener(tableModel);
 		initialize();
-	    
-//		if (isInitTable) {
-//			RandomData.RandomActors(tableModel);
-//		}
 	}
-
-    public void actionPerformed(ActionEvent e) {
-    	if (DEBUG) { System.out.println("InitTable: Received action command " + e.getActionCommand()); }
-    	if ("Delete".equals(e.getActionCommand())) { // Delete selected rows
-    		stopCellEditing();
-    		int[] rows = getSelectedRows();
-    		int result = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete these rows?", "Confirm Row Delete", JOptionPane.OK_CANCEL_OPTION);
-    		if (result == JOptionPane.OK_OPTION) {
-    			for (int i = rows.length-1; i >= 0; i--) {  // Go from bottom up to preserve numbering
-    				if (DEBUG) { System.out.println("InitTable: Deleting row: " + rows[i]); }   			
-    				tableModel.removeActor(rows[i]); // Just remove the rows indicated: not all instances of clones
-    			}
-    		}
-    	}
-    	else if ("Reset".equals(e.getActionCommand())) { // Delete selected rows
-    		stopCellEditing();
-      		int[] rows = getSelectedRows();
-       		if (DEBUG) { System.out.println("InitTable: Resetting actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).getTraitValue(BasicTrait.Name)); }   	
-       		for (int i = 0; i < rows.length; i++) {
-       			Actor actor = tableModel.getActor(rows[i]);
-       			actor.Reset();
-       		}
-    	}
-    	else if ("Set Active".equals(e.getActionCommand())) { // Clone selected rows at the end (as "Haste" spell)
-      		int[] rows = getSelectedRows();
-      		if (DEBUG) { System.out.println("InitTable: Setting active actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).getTraitValue(BasicTrait.Name)); }   	
-      		tableModel.setActiveRow(rows[0]); // sets actor as current active, and sets state to active
-//       		for (int i = 0; i < rows.length; i++) {
-//       			tableModel.setValueAt("Active", rows[i], InitTableModel.columns.State.ordinal());
-//       		}
-    	}
-    	else if ("Tag".equals(e.getActionCommand())) { // Add tag to selected rows
-      		int[] rows = getSelectedRows();
-      		if (DEBUG) { System.out.println("InitTable: Tagging actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).getTraitValue(BasicTrait.Name)); }   	
-       		for (int i = 0; i < rows.length; i++) {
-       			tableModel.tagActor(tableModel.getActor(rows[i]));
-       		}
-    	}
-    	else if ("Remove Tag".equals(e.getActionCommand())) { // Remove tag from selected rows
-      		int[] rows = getSelectedRows();
-      		if (DEBUG) { System.out.println("InitTable: Un-tagging actor. Row: " + rows[0] + ", Actor: " + tableModel.getActor(rows[0]).getTraitValue(BasicTrait.Name)); }   	
-       		for (int i = 0; i < rows.length; i++) {
-       			tableModel.removeTag(tableModel.getActor(rows[i]));
-       		}
-    	}
-    	else if ("Attack".equals(e.getActionCommand())) {
-    		selectedActorsAttack();
-    	}
-    	else if ("Defend".equals(e.getActionCommand())) {
-    		selectedActorDefend();
-    	}
-//     	if ("Clone".equals(e.getActionCommand())) { // Clone selected rows at the end (as "Haste" spell)
-//     		Actor[] actors = tableModel.getActors(getSelectedRows());
-//    		for (int i = 0; i < actors.length; i++) {
-//    		   	if (DEBUG) { System.out.println("InitTable: Cloning actor: " + actors[i].Name); }   			
-//    			tableModel.addActor(actors[i], tableModel.getRowCount()-1); // Add actor to the end of the table
-//    		}
-//    	}
-    	else {
-    		// Check actor states and types
-//            for (Actor.ActorState s : Actor.ActorState.values()) {
-//            	if (s.toString().equals(e.getActionCommand())) {
-//            		stopCellEditing();
-//              		int[] rows = getSelectedRows();
-//               		for (int i = 0; i < rows.length; i++) {
-//               			tableModel.setValueAt(s.toString(), rows[i], InitTableModel.columns.State.ordinal());
-//               		}
-//            	}
-//            }
-            for (Actor.ActorType t : Actor.ActorType.values()) {
-            	if (t.toString().equals(e.getActionCommand())) {
-            		stopCellEditing();
-            		int[] rows = getSelectedRows();
-            		Actor[] actors = tableModel.getActors(rows);
-            		for (Actor a : actors) {
-            			a.setType(t);
-            		}
-            		// Old method was through table model.setValueAt:
-               		//for (int i = 0; i < rows.length; i++) {
-               		//	tableModel.setValueAt(t.toString(), rows[i], InitTableModel.columns.Type.ordinal());
-               		//}
-            	}
-            }
-    	}
-    }
     
     /**
      * Auto re-size the column widths to optimally fit information
@@ -216,30 +121,15 @@ public class InitTable extends JTable
     	//this.resizeAndRepaint();
     }
     
+    // TODO: re-visit the location of this function - should it be in game logic? Not sure (it is more on the GUI side, I think).
     /**
      * Convenience method to create menu items for the table's menus.
      * @param text - Text of the menu item
      * @return
      */
-    private JMenuItem createMenuItem(String text, int mnemonic) {
-    	JMenuItem menuItem = new JMenuItem(text, mnemonic);
-    	menuItem.addActionListener(this);
-    	return menuItem;
-    }
-    
-    /**
-     * Convenience method to create menu items for the table's menus.
-     * @param text - Text of the menu item
-     * @return
-     */
-    private JMenuItem createCoordinatedStatusMenuItem(final ActorStatus status, int mnemonic) {
-    	JMenuItem menuItem = new JMenuItem(status.toString(), mnemonic);
-    	menuItem.setAction(new AbstractAction(status.toString()) {
-    		public void actionPerformed(ActionEvent ae) {
-    			coordinatedChangeStatusOfSelectedActors(status);
-    		}   		
-    	});
-    	coordinatedStatusMenuItems.put(status, menuItem);
+    private JMenuItem createCoordinatedStatusMenuItem(Action action, final ActorStatus status) {
+    	JMenuItem menuItem = new JMenuItem(action);
+    	coordinatedStatusMenuItems.put(status, action);
     	return menuItem;
     }
     
@@ -249,33 +139,32 @@ public class InitTable extends JTable
      * @return
      */
     private void updateCoordinatedStatusMenuItems() {
-    	for (Map.Entry<ActorStatus, JMenuItem> entry : coordinatedStatusMenuItems.entrySet()) {
+    	for (Map.Entry<ActorStatus, Action> entry : coordinatedStatusMenuItems.entrySet()) {
     		ActorStatus status = entry.getKey();
-    		JMenuItem menuItem = entry.getValue();
+    		Action action = entry.getValue();
     		
     		// Determine which way to go
     		boolean all_set = true;
     		boolean all_unset = true;
-    		for (int row: getSelectedRows()) {
-    			Actor actor = tableModel.getActor(row);
-    			if (actor.hasStatus(status))
+    		int[] rows = getSelectedRows();
+        	Actor[] actors = tableModel.getActors(rows);
+        	for (Actor a : actors) {
+    			if (a.hasStatus(status))
     				all_unset = false;
     			else
-    				all_set = false;
-    					
+    				all_set = false;    				
     		}
     		if (all_set)
-    			menuItem.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/tick.png"), "Tick"));
+    			action.putValue(Action.SMALL_ICON, new ImageIcon(GITApp.class.getResource("/resources/images/tick.png"), "Tick"));
     		else if (all_unset)
-    			menuItem.setIcon(null);
+    			action.putValue(Action.SMALL_ICON, null);    		 
     		else
-    			menuItem.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/shape_square.png"), "Square"));
+    			action.putValue(Action.SMALL_ICON, new ImageIcon(GITApp.class.getResource("/resources/images/shape_square.png"), "Squar"));    		 
     	}
     	
-    }
-    
+    }    
  
-	public void initialize() {
+	private void initialize() {
 		 //InitTable initTable = new InitTable(new ActorTableModel());
         setDefaultRenderer(Object.class, new InitTableCellRenderer());
         setDefaultRenderer(Float.class, new InitTableCellRenderer());
@@ -307,37 +196,44 @@ public class InitTable extends JTable
 
 		// Table popup menu
         popupMenu = new JPopupMenu();
-        coordinatedStatusMenuItems = new HashMap<ActorStatus, JMenuItem>();
+        coordinatedStatusMenuItems = new HashMap<ActorStatus, Action>();
         JMenu menuFile = new JMenu("Status");
         menuFile.setMnemonic(KeyEvent.VK_S);
-        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Attacking, KeyEvent.VK_A));
-        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Waiting, KeyEvent.VK_W));
-        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.StunPhys, KeyEvent.VK_P));
-        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.StunMental, KeyEvent.VK_M));
-        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.StunRecovr, KeyEvent.VK_S));
-        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Disarmed, KeyEvent.VK_R));
-        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Kneeling, KeyEvent.VK_K));
-        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Prone, KeyEvent.VK_P));
-        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Disabled, KeyEvent.VK_D));
-        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Unconscious, KeyEvent.VK_U));
-        menuFile.add(createCoordinatedStatusMenuItem(ActorStatus.Dead, KeyEvent.VK_E));
+        menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusAttacking, ActorStatus.Attacking));
+        menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusDisabled, ActorStatus.Disabled));
+        menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusDisarmed, ActorStatus.Disarmed));
+        menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusMentalStun, ActorStatus.StunMental));
+        menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusPhysicalStun, ActorStatus.StunPhys));
+        menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusRecoveringStun, ActorStatus.StunRecovr));
+        menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusUnconscious, ActorStatus.Unconscious));
+        menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusDead, ActorStatus.Dead));
         popupMenu.add(menuFile);
+        
+        menuFile = new JMenu("Posture");
+        menuFile.setMnemonic(KeyEvent.VK_S);
+        menuFile.add(new JMenuItem(gameMaster.actionPostureStanding));
+        menuFile.add(new JMenuItem(gameMaster.actionPostureKneeling));
+        menuFile.add(new JMenuItem(gameMaster.actionPostureProne));
+        popupMenu.add(menuFile);
+        
         menuFile = new JMenu("Type");
         menuFile.setMnemonic(KeyEvent.VK_T);
-        menuFile.add(createMenuItem("PC", KeyEvent.VK_C));
-        menuFile.add(createMenuItem("Ally", KeyEvent.VK_A));
-        menuFile.add(createMenuItem("Enemy", KeyEvent.VK_E));
-        menuFile.add(createMenuItem("Neutral", KeyEvent.VK_N));
-        menuFile.add(createMenuItem("Special", KeyEvent.VK_S));
+        menuFile.add(new JMenuItem(gameMaster.actionSetSelectedTypePC));
+        menuFile.add(new JMenuItem(gameMaster.actionSetSelectedTypeAlly));
+        menuFile.add(new JMenuItem(gameMaster.actionSetSelectedTypeNeutral));
+        menuFile.add(new JMenuItem(gameMaster.actionSetSelectedTypeEnemy));
+        menuFile.add(new JMenuItem(gameMaster.actionSetSelectedTypeSpecial));
         popupMenu.add(menuFile);
-        if (isInitTable) { popupMenu.add(createMenuItem("Set Active", KeyEvent.VK_A)); }
-        if (isInitTable) { popupMenu.add(createMenuItem("Attack", KeyEvent.VK_K)); }
-        if (isInitTable) { popupMenu.add(createMenuItem("Defend", KeyEvent.VK_D)); }
-        //popupMenu.add(createMenuItem("Clone", KeyEvent.VK_C));
-        popupMenu.add(createMenuItem("Reset", KeyEvent.VK_R));
-        popupMenu.add(createMenuItem("Delete", KeyEvent.VK_DELETE));
-        if (isInitTable) { popupMenu.add(createMenuItem("Tag", KeyEvent.VK_T)); }
-        if (isInitTable) { popupMenu.add(createMenuItem("Remove Tag", KeyEvent.VK_V)); }
+ 
+        // Core functionality
+        if (isInitTable) { popupMenu.add(new JMenuItem(gameMaster.actionSetSelectedActorActive)); }
+        if (isInitTable) { popupMenu.add(new JMenuItem(gameMaster.actionAttack)); }
+        if (isInitTable) { popupMenu.add(new JMenuItem(gameMaster.actionDefend)); }
+        popupMenu.add(new JMenuItem(gameMaster.actionResetSelectedActors));
+        popupMenu.add(new JMenuItem(gameMaster.actionDeleteSelectedActors));
+        if (isInitTable) { popupMenu.add(new JMenuItem(gameMaster.actionTagSelectedActors)); }
+        if (isInitTable) { popupMenu.add(new JMenuItem(gameMaster.actionRemoveTagSelectedActors)); }
+        
         MousePopupListener popupListener = new MousePopupListener();
         addMouseListener(popupListener);
         getTableHeader().addMouseListener(popupListener);
@@ -358,12 +254,8 @@ public class InitTable extends JTable
 		return isInitTable;
 	}
 	
-	/**
-	 * Advance current Actor. Should only be called for initTable, not groupTable.
-	 * @return Whether the round has ended
-	 */
-	public boolean nextActor() {	
-		return tableModel.nextActor();
+	public GameMaster getGameMaster() {
+		return gameMaster;
 	}
 	
 	/**
@@ -372,14 +264,6 @@ public class InitTable extends JTable
 	 */
 	public InitTableModel getActorTableModel() {
 		return tableModel;
-	}
-	
-	/**
-	 * Retrieve the currently active Actor
-	 * @return The currently active Actor
-	 */
-	public Actor getActiveActor() {
-		return tableModel.getActiveActor();
 	}
 	
 	/**
@@ -406,119 +290,11 @@ public class InitTable extends JTable
 		return rows;
 	}
 	
-	/**
-	 * Convenience method to set an actor's value through the model instead of directly
-	 * @param actor The actor to modify
-	 * @param field The field to change
-	 * @param newValue The new value
-	 */
-	public void setActorValue(Actor actor, InitTableModel.columns field, Object newValue) {
-		tableModel.setValueAt(newValue, tableModel.getActorRows(actor)[0], field.ordinal());
+	public Actor[] getSelectedActors() {
+		int[] rows = getSelectedRows();
+		return tableModel.getActors(rows);
 	}
-	
-	/**
-	 * Add or remove the specified status indicator to all selected actors
-	 * @param status The status to add or remove
-	 * @param add True if add, false if remove
-	 */
-	public void modifyStatusOfSelectedActors(ActorStatus status, boolean add) {
-		for (int row: getSelectedRows()) {
-			Actor actor = tableModel.getActor(row);
-			if (add)
-				actor.addStatus(status);
-			else 
-				actor.removeStatus(status);
-		}
-	}
-	
-	/**
-	 * Toggle the specified status indicator to all selected actors individually
-	 * @param status The status to toggle
-	 */
-	public void toggleStatusOfSelectedActors(ActorStatus status) {
-		for (int row: getSelectedRows()) {
-			Actor actor = tableModel.getActor(row);
-			if (actor.hasStatus(status))
-				actor.removeStatus(status);
-			else
-				actor.addStatus(status);
-		}
-	}
-	
-	/**
-	 * Adjust all the statuses in a coordinated fashion.
-	 * If any are unset: all are set
-	 * If all are set: unset
-	 * @param status The status to toggle
-	 */
-	public void coordinatedChangeStatusOfSelectedActors(ActorStatus status) {
-		boolean all_set = true;
-		// First, determine which way to go
-		for (int row: getSelectedRows()) {
-			Actor actor = tableModel.getActor(row);
-			if (!actor.hasStatus(status)) {
-				all_set = false;
-				break;
-			}
-		}
-		for (int row: getSelectedRows()) {
-			Actor actor = tableModel.getActor(row);
-			if (all_set)
-				actor.removeStatus(status);
-			else
-				actor.addStatus(status);
-		}
-	}
-	
-	/**
-	 * Reset the encounter. Set the active actor to -1
-	 */
-	public void resetEncounter() {
-		tableModel.resetEncounter();
-	}
-	
-    public void activeActorAttack() {
-    	if (DEBUG) System.out.println("InitTable: activeActorAttack");
-    	Actor actor = getActiveActor();
-    	if (actor == null) 
-    		return;
-    	actor.Attack();
-    }
-    
-    public void selectedActorsAttack() {
-    	for (int row: getSelectedRows()) {
-			Actor actor = tableModel.getActor(row);
-			actor.Attack();
-    	}
-    }
-    
-    /**
-     * Show the Defense Dialog and forward to the actor for processing if valid
-     */
-    public void selectedActorDefend() {
-    	System.out.println("InitTable: selectedActorDefend: start");
-    	// Verify valid actor
-    	Actor actor = getSelectedActor();
-    	if (actor == null)
-    		return;
-    	// Clear out edits in progress
-    	stopCellEditing();
-    	// Show Defense Dialog window
-    	DefenseDialog defenseDialog = new DefenseDialog(actor, SwingUtilities.getWindowAncestor(this));
-    	// TODO: this is a hack of the property bag system: fix!
-    	defenseDialog.setLocation(Integer.valueOf(propertyBag.getProperty("GITApp.defense.location.x")),
-        					Integer.valueOf(propertyBag.getProperty("GITApp.defense.location.y")));
-        GITApp.validateOnScreen(defenseDialog);
-        defenseDialog.setVisible(true); // Modal call
-    	// Process and log result!
-    	if (defenseDialog.valid) {
-    		actor.Defend(defenseDialog.defense);
-    	}
-    	// TODO: this is a hack of the property bag system: fix!
-    	propertyBag.setProperty("GITApp.defense.location.x", String.valueOf(defenseDialog.getLocation().x));
-    	propertyBag.setProperty("GITApp.defense.location.y", String.valueOf(defenseDialog.getLocation().y));
-    }
-    
+
 	/**
 	 * Halt cell editing, if it is occurring.
 	 */
@@ -528,7 +304,7 @@ public class InitTable extends JTable
 			if (!getCellEditor().stopCellEditing())
 				getCellEditor().cancelCellEditing();
 	}
-	
+
 	/**
 	 * Modify a component to match it's conditions
 	 * @param component : the component to modify
@@ -619,7 +395,7 @@ public class InitTable extends JTable
 	}
    
 	private void formatEditField(JTextField c, boolean isSelected, int row, int col) {
-		((InitTableModel)getModel()).getActor(row);
+		tableModel.getActor(row);
 		if (row == getRowCount() -1) {
 			c.setBackground(new Color(255,255,255));
 			c.setForeground(new Color(128,128,128));
@@ -628,29 +404,11 @@ public class InitTable extends JTable
 		}
 		
 		InitTableModel.columns columns = InitTableModel.columns.valueOf(getColumnName(col));
-		Actor a = ((InitTableModel)getModel()).getActor(row);
+		Actor a = tableModel.getActor(row);
 					
 		formatComponentColor((JComponent)c, a, isSelected, columns);
 		formatComponentAlignment(c, a);
 		c.setBorder(new LineBorder(new Color(255,255,255)));
-	}
-
-	private static void setBold(JLabel c) {
-		Font oldFont = c.getFont();
-		Font newFont = new Font(oldFont.getName(), Font.BOLD, oldFont.getSize());
-		c.setFont(newFont);
-	}
-	
-	/**
-	 * Override this method to fix a bug in the JVM which causes the table to
-	 * start editing when a mnemonic key or function key is pressed.
-	 */
-	protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
-		if (getInputMap(condition).get(ks) != null) {  } // Allow any key that is part of the input map
-		else if (e.isControlDown() || e.isAltDown() || e.isMetaDown()) { // ignore potential accelerators and mnemonics
-			return false;
-		}
-		return super.processKeyBinding(ks, e, condition, pressed);
 	}
 	
 	/**
@@ -690,14 +448,14 @@ public class InitTable extends JTable
 			int Fatigue = a.getTraitValueInt(BasicTrait.Fatigue);
 			int HP = a.getTraitValueInt(BasicTrait.HP);
 			int FP = a.getTraitValueInt(BasicTrait.FP);
-			if (col == columns.Act && (tableModel.getActiveActorIndex() == row)) {
+			if (col == columns.Act && (gameMaster.getActiveActor() == row)) {
 				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/go.png"), "Current Actor"));  
 			}
 			else if ((col == columns.Move /*|| col == columns.Dodge*/) && (Injury > 2*HP/3 && Fatigue > 2*FP/3)) {
 				int currentValue = Integer.parseInt(c.getText());
 				int newValue = (int) Math.ceil((double)currentValue/4);
 				//c.setText("<html>" + c.getText() + " <strong>(" + newValue + ")</strong></html>");
-				setBold(c);
+				MiscUtil.setLabelBold(c);
 				c.setText(newValue + " (" + c.getText() + ")");
 				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/exclamation.png"), "Greatly reduced state"));
 			}
@@ -705,7 +463,7 @@ public class InitTable extends JTable
 				int currentValue = Integer.parseInt(c.getText());
 				int newValue = (int) Math.ceil((double)currentValue/2);
 				//c.setText("<html>" + c.getText() + " <strong>(" + newValue + ")</strong></html>");
-				setBold(c);
+				MiscUtil.setLabelBold(c);
 				c.setText(newValue + " (" + c.getText() + ")");
 				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png"), "Reduced state"));
 			}
@@ -713,7 +471,7 @@ public class InitTable extends JTable
 				int penalty = (int) (-1*(Math.floor((double)Injury/HP)-1));
 				if (penalty < 0) {
 					//c.setText("<html>" + c.getText() + " <strong>(" + penalty + ")</strong></html>");
-					setBold(c);
+					MiscUtil.setLabelBold(c);
 					c.setText(c.getText() + " [" + penalty + "]");
 				}
 				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png"), "Must check to stay conscious"));

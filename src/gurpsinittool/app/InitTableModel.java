@@ -3,22 +3,17 @@ package gurpsinittool.app;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.table.AbstractTableModel;
 
 import gurpsinittool.data.*;
 import gurpsinittool.data.ActorBase.ActorStatus;
-import gurpsinittool.data.ActorBase.ActorType;
 import gurpsinittool.data.ActorBase.BasicTrait;
 import gurpsinittool.util.CleanFileChangeEventSource;
-import gurpsinittool.util.EncounterLogEvent;
-import gurpsinittool.util.EncounterLogEventListener;
-import gurpsinittool.util.EncounterLogEventSource;
 import gurpsinittool.util.FileChangeEventListener;
+import gurpsinittool.util.SearchSupport;
 
 public class InitTableModel extends AbstractTableModel implements PropertyChangeListener {
 
@@ -38,12 +33,10 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 	
 	Actor newActor = new Actor();
 	private ArrayList<Actor> actorList = new ArrayList<Actor>();	
-	private int activeActor = -1;
 	
 	public InitTableModel() {
 		// This is a special row which allows new actors to be added.
 		addNewActor();
-		Actor.LogEventSource = encounterLogEventSource;
 	}
 	
 	/**
@@ -60,7 +53,6 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 		else if (destRow < 0) // Don't try to put stuff before the beginning!
 			destRow = 0;
 			
-		if (destRow <= activeActor) { activeActor++; } // Track active actor
 		actorList.add(destRow, actor);
 		setDirty();
 		fireTableRowsInserted(destRow,destRow);
@@ -77,41 +69,9 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 		setDirty();
     	fireTableRowsInserted(actorList.size()-1,actorList.size()-1);
 	}
-	
-	/**
-	 * Create a copy of an actor to another slot
-	 * @param source : the index of the actor to copy
-	 * @param dest : the index of the slot to copy into (pushes current actor down one)
-	 *
-	public void copyActor(int source, int dest) {
-		if (dest >= actorList.size()-1) // Don't put anything after the 'new' row
-			dest = actorList.size()-2;
-			
-		Actor movingActor = getActor(source);
-		actorList.add(dest, movingActor);
-	}*/
-	
-	/**
-	 * Get index of current active actor
-	 * @return
-	 */
-	public int getActiveActorIndex() {
-		return activeActor;
-	}
-	
-	/**
-	 * Retrieve the currently active Actor
-	 * @return The currently active Actor
-	 */
-	public Actor getActiveActor() {
-		if (activeActor < 0)
-			return null;
-		return getActor(activeActor);
-	}
-	
+
 	/**
 	 * Get the actor in a particular row.
-	 * Be careful about editing the actor: update table rows will not be refreshed!
 	 * @param row - table row
 	 * @return Actor used in specified row
 	 */
@@ -141,7 +101,6 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 
 	/**
 	 * Get an array of Actors based on an array of indexes
-	 * Be careful about editing the Actors: update table rows will not be refreshed!
 	 * @param rows - array of row numbers
 	 * @return Array of Actors corresponding to the row numbers
 	 */
@@ -224,16 +183,6 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
         default:
         }
         
-//        // Check if there is any actual change
-//        if (getValueAt(row, col).equals(value)) {
-//    		if (DEBUG) { System.out.println("ActorTableModel: setValueAt: values are identical. Exiting."); }
-//    		return;
-//        }
-//
-//        // Create a new row if necessary (editing the 'new...' row)
-//        if (row == actorList.size() -1)
-//        	addNewActor();
-        
         Actor a = (Actor) actorList.get(row);
 		switch (columns.values()[col]) {
 		case Name:
@@ -271,12 +220,6 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 		//	break;
 		default:
 		}
-//		// Update the entire row, since changing state or type may affect formatting for all cells in the row.
-//		setDirty();
-//		int [] rows = getActorRows(a);
-//		for (int i=0; i < rows.length; i++) {
-//			fireTableRowsUpdated(rows[i], rows[i]);
-//		}
     }
     
 	@Override
@@ -288,64 +231,6 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
         	return true;
         }
     }
-	
-	/**
-	 * Move the actor from one slot to another
-	 * @param source : the index of the actor to move
-	 * @param dest : the index of the slot to move into (pushes current actor down one)
-	 *
-	public void moveActor(int source, int dest) {
-		if (dest == actorList.size()-1) // Don't move anything after the 'new' row
-			dest--;
-		
-		if (source == dest) // Don't do anything if nothing is necessary  
-			return;
-
-		if (source < dest) // when we remove source, it will cause all the later actors to move up one, so we need to adjust the dest#
-			dest--;
-		
-		Actor movingActor = getActor(source);
-		actorList.remove(source);
-		actorList.add(dest, movingActor);
-	}*/
-	
-	/**
-	 * Set next actor as active
-	 * @return Whether the round has ended
-	 */
-	public boolean nextActor() {
-		setDirty();
-		if (activeActor != -1) {
-			fireTableCellUpdated(activeActor, 0);
-		}
-		boolean isNewRound = nextActorInternal();
-		if (activeActor != -1) {
-			fireTableCellUpdated(activeActor, 0);
-		}
-		return isNewRound;
-	}
-	
-	/**
-	 * Calculate the next actor without updating the table
-	 * @return Whether the round has ended
-	 */
-	protected boolean nextActorInternal() {
-		Actor currentActor;
-		do {
-			activeActor++;
-			if (activeActor >= actorList.size() - 1) { // Remember that the last entry is 'new...'
-				activeActor = -1;
-				return true;
-			}
-			currentActor = getActiveActor();
-			currentActor.NextTurn();
-		// Skip over disabled/unconscious/dead/waiting actors
-		} while (currentActor.hasStatus(ActorStatus.Disabled)
-				|| currentActor.hasStatus(ActorStatus.Unconscious)
-				|| currentActor.hasStatus(ActorStatus.Dead)
-				|| currentActor.hasStatus(ActorStatus.Waiting));
-		return false;
-	}
 
 	/**
 	 * Remove an actor from the table (only the specific row)
@@ -355,37 +240,8 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 		Actor actor = getActor(row);
 		actor.removePropertyChangeListener(this);
 		actorList.remove(row);
-		if (row < activeActor) { activeActor--; } // track active Actor
-		else if (row == activeActor) { activeActor--; nextActor(); }
 		setDirty();
 		fireTableRowsDeleted(row, row);
-	}
-	
-	/**
-	 * Remove an actor from the table based on the reference
-	 * Removes ALL instances of that actor
-	 * @param actor : the actor to remove
-	 */
-	public void removeActor(Actor actor) {
-		while (actorList.contains(actor)) {
-			int row = actorList.indexOf(actor);
-			removeActor(row);
-		}
-	}
-
-	/**
-	 * Reset the encounter. Set the active actor to -1
-	 */
-	public void resetEncounter() {
-		setDirty();
-		//Don't Reset each actor
-		//for (int i = 0; i < actorList.size()-1; ++i) {
-    	//	actorList.get(i).Reset();
-    	//}
-		if (activeActor != -1) {
-			fireTableCellUpdated(activeActor, 0);	
-			activeActor = -1;
-		}
 	}
 	
 	/**
@@ -409,149 +265,16 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 		fireTableDataChanged();
 	}
 	
-	/**
-	 * Set the active actor by row #
-	 * @param row : the row which is now active
-	 */
-	public void setActiveRow(int row) {
-		if (row > getRowCount()-2) { // Error if trying to set 'new...' row active or non-existant row
-			throw new IndexOutOfBoundsException("Specified row is not an actor");
-		}
-		if (activeActor != -1) {
-			fireTableCellUpdated(activeActor, 0);
-		}
-		activeActor = row;
-		getActiveActor().removeStatus(ActorStatus.Waiting); // Remove any 'waiting' state automatically
-		setDirty();
-		fireTableCellUpdated(activeActor, 0);
-	}
-	
-    // Tag active, non-tagged, enemy actors with available tags
-    public void autoTagActors() {
-    	// Generate list of tags, and clean unneeded tags
-    	HashSet<String> tags = catalogTags(true);
-    	
-    	// Now go thorough and add tags to non-unconscious/dead enemy actors
-    	for (int i = 0; i < actorList.size()-1; ++i) {
-    		Actor a = actorList.get(i);
-    		if (a.isTypeAutomated() && !(a.hasStatus(ActorStatus.Unconscious)
-    											|| a.hasStatus(ActorStatus.Disabled)
-     											|| a.hasStatus(ActorStatus.Dead)
-    											|| a.hasStatus(ActorStatus.Waiting))) {
-	    		tagActor(a, tags);
-    		}
-    	}
-    }
-    
+
     /**
-     * Remove the tag from an actor
-     * @param actor The actor to remove the tag from
+     * Helper function to wrap search functionality acting on private actorList data member. Arguments are passed directly to 
+     * MiscUtil.searchActorList and return value is passed back.
+     * @return index of found record, or -1 if nothing found
      */
-    public void removeTag(Actor actor) {
-    	Matcher matcher;
-		Pattern nameTag = Pattern.compile("^(.*) \\[([^\\s]+)\\]$");
-		String aName = actor.getTraitValue(BasicTrait.Name);
-		if ((matcher = nameTag.matcher(aName)).matches()) {
-    		String name = matcher.group(1);
-    		actor.setTrait(BasicTrait.Name, name);
-		}
+    public int searchActors(int startingIndex, int endingIndex, boolean next, boolean reverse, Pattern pattern){
+    	return SearchSupport.searchActorList(actorList, startingIndex, endingIndex, next, reverse, pattern);
     }
-    
-    /**
-     * Tag an actor with the next available tag. This version automatically generates the list of tags in current use.
-     * @param actor The actor to tag
-     */
-    public void tagActor(Actor actor) {
-    	tagActor(actor, catalogTags(false));
-    }
-    
-    /**
-     * Tag an actor with the next available tag if not already tagged
-     * @param actor The actor to tag
-     * @param tags A list of all tags currently in use
-     */
-    public void tagActor(Actor actor, HashSet<String> tags) {
-    	String aName = actor.getTraitValue(BasicTrait.Name);
-		if (!nameTag.matcher(aName).matches()) {
-			String tag = getNextTag(tags);
-			if (DEBUG) System.out.println("InitTableModel:tagActor: Tagging actor " + aName + " with " + "[" + tag + "]");
-			actor.setTrait(BasicTrait.Name, aName + " [" + tag + "]");
-			tags.add(tag);
-		}
-    }
-    
-    /**
-     * Helper method to catalog all tags currently in use
-     * @param clean Whether to clear out stale tags (from enemies that are dead/unconscious)
-     * @return a HashSet of all tags currently in use
-     */
-    public HashSet<String> catalogTags(boolean clean) {
-		Matcher matcher;
-		Pattern nameTag = Pattern.compile("^(.*) \\[([^\\s]+)\\]$");
-		HashSet<String> tags = new HashSet<String>();
-		
-    	// First go through actors, removing unneeded tags (unconscious/dead) and logging existing ones
-    	for (int i = 0; i < actorList.size()-1; ++i) {
-    		Actor a = actorList.get(i);
-    		String aName = a.getTraitValue(BasicTrait.Name);
-    		if (DEBUG) System.out.println("catalogTags: Cataloging actor: " + aName);
-    		if ((matcher = nameTag.matcher(aName)).matches()) {
-    			String name = matcher.group(1);
-    			String tag = matcher.group(2);
-    			// Check if tag should be cleared
-    			if (clean && a.isTypeAutomated() && (a.hasStatus(ActorStatus.Unconscious)
-    														|| a.hasStatus(ActorStatus.Disabled)
-    														|| a.hasStatus(ActorStatus.Dead))) {
-    				System.out.println("catalogTags: cleaning tag: " + tag);
-    				a.setTrait(BasicTrait.Name, name);
-    			} else {
-	    			if (tags.contains(tag)) 
-	    				System.out.println("-W- InitTableModel::catalogTags: Duplicate tag detected! " + tag);
-	    			tags.add(tag);
-    			}
-    		}
-    	}
-    	return tags;
-    }
-    
-    /**
-     * Helper function to iterate through possible tags and select the next unused one
-     * @param tags Hash of all used tags
-     * @return the next unused tag
-     */
-	public static Pattern nameTag = Pattern.compile("^(.*) \\[([^\\s]+)\\]$");
-	public static enum flagColors {R, B};
-	public static int flagMaxNum = 6;
-    private static String getNextTag(HashSet<String> tags) {
-    	for (flagColors color: flagColors.values()) {
-    		for (int i = 1; i <= flagMaxNum; ++i) {
-    			String tag = color.toString() + i;
-    			if (!tags.contains(tag))
-    				return tag;
-    		}
-    	}
-    	System.out.println("-W- InitTableModel:getNextTag: no free tags!");
-    	return "S99";
-    }
-	
-	protected EncounterLogEventSource encounterLogEventSource = new EncounterLogEventSource();
-	
-	/**
-	 * Add an event listener for EncounterLogEvents
-	 * @param listener - the listener to add
-	 */
-	public void addEncounterLogEventListener(EncounterLogEventListener listener) {
-		encounterLogEventSource.addEncounterLogEventListener(listener);
-	}
-	
-	/**
-	 * Remove an event listener for EncounterLogEvents
-	 * @param listener - the listener to remove
-	 */
-	public void removeEncounterLogEventListener(EncounterLogEventListener listener) {
-		encounterLogEventSource.removeEncounterLogEventListener(listener);
-	}
-	
+  
 	protected CleanFileChangeEventSource cleanFileChangeEventSource = new CleanFileChangeEventSource(this);
    
     /**
@@ -606,6 +329,13 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 				fireTableRowsUpdated(rows[i], rows[i]);
 			}
 			System.out.println("InitTableModel: propertyChange: done with actor " + actor.getTraitValue(BasicTrait.Name));
-		}		
+		} else if (e.getPropertyName().equals("ActiveActor")) {
+				int oldValue = (Integer) e.getOldValue();
+				int newValue = (Integer) e.getNewValue();
+				if (oldValue != -1)
+					fireTableRowsUpdated(oldValue, oldValue);
+				if (newValue != -1)
+					fireTableRowsUpdated(newValue, newValue);
+		}
 	}
 }

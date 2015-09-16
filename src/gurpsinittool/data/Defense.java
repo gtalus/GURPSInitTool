@@ -1,7 +1,10 @@
 package gurpsinittool.data;
 
+import java.util.ArrayList;
+
 import gurpsinittool.data.ActorBase.BasicTrait;
 import gurpsinittool.data.HitLocations.HitLocation;
+import gurpsinittool.data.HitLocations.LocationType;
 import gurpsinittool.util.DieRoller;
 
 public class Defense {
@@ -24,7 +27,9 @@ public class Defense {
 	public int roll; // The defense roll
 	public DR override_dr; // Override the actor's base DR
 	public Damage damage; // The amount of damage inflicted
-	public HitLocation location;
+	public HitLocation location; // The location of the attack and the location of any injury sustained. 
+	// NOTE: location may change based on injury tolerance (ie attack to vitals against 'No Vitals' 
+	// target will be reported as injury to the torso)
 	
 	// Results
 	public int effectiveDefense;
@@ -74,6 +79,7 @@ public class Defense {
 	public void calcDefenseResults(Actor actor) {
 		calcEffectiveDefense(actor); // Calculate effectiveDefense
 		calcDefenseResult(actor); // Calcuate the 'result'
+		checkLocation(actor); // correct location for any Injury Tolerances
 		calcInjury(actor); // Figure out all the injury items
 	}
 	
@@ -108,6 +114,10 @@ public class Defense {
 		}
 	}
 	
+	/** 
+	 * Determine the defense success/failure/etc
+	 * @param actor
+	 */
 	private void calcDefenseResult(Actor actor) {
 		int shield_db = shield ? actor.getTraitValueInt(BasicTrait.Shield_DB) : 0;
 
@@ -125,6 +135,44 @@ public class Defense {
 		}
 	}
 
+    /**
+     * Check if location is valid for this actor and adjust if necessary
+     * @param actor
+     */
+    private void checkLocation(Actor actor) {
+      	if (actor.hasTrait("IT")) {
+    		ArrayList<String> tolerances = actor.getTraitValueArray("IT");
+    		// No Blood - nothing currently (also Diffuse and Homogenous)
+    		// No Brain
+    		if (tolerances.contains("No Brain") || tolerances.contains("Diffuse") || tolerances.contains("Homogenous")) {
+    			// "a blow to the skull or eye is treated no differently than a blow to the face (except that an eye injury can still cripple that eye)"
+    			// This program currently doesn't track crippling for eyes, so this is the same in every way
+    			if (location.type == LocationType.Skull || location.type == LocationType.Eye)
+    				location = HitLocations.getLocation(LocationType.Face);
+    		}
+    		// No Eyes
+    		if (tolerances.contains("No Eyes")) {
+    			if (location.type == LocationType.Eye)
+    				location = HitLocations.getLocation(LocationType.Face);
+    		}
+    		// No Head
+    		if (tolerances.contains("No Head")) {
+    			if (location.type == LocationType.Face || location.type == LocationType.Skull)
+    				location = HitLocations.getLocation(LocationType.Torso);
+    		}
+    		// No Neck
+    		if (tolerances.contains("No Neck")) {
+    			if (location.type == LocationType.Neck)
+    				location = HitLocations.getLocation(LocationType.Torso);
+    		}
+    		// No Vitals
+    		if (tolerances.contains("No Vitals") || tolerances.contains("Diffuse") || tolerances.contains("Homogenous")) {
+    			if (location.type == LocationType.Vitals || location.type == LocationType.Groin)
+    				location = HitLocations.getLocation(LocationType.Torso);
+    		}
+    	}
+    }
+    
 	/** 
      * Calculate any injury
      */
@@ -142,6 +190,7 @@ public class Defense {
     	int ShieldDR = actor.getTraitValueInt(BasicTrait.Shield_DR);
     	int ShieldHP = actor.getTraitValueInt(BasicTrait.Shield_HP);
     	int HP = actor.getTraitValueInt(BasicTrait.HP);
+    	ArrayList<String> tolerances = actor.getTraitValueArray("IT"); // Empty array if actor does not have this trait
     	switch (result) {
     	case CritSuccess:
     	case Success:
@@ -163,9 +212,18 @@ public class Defense {
     		int basicDamage = (int) (damage.BasicDamage - coverDR - Math.floor(totalDR/damage.ArmorDivisor));
 			basicDamage = Math.max(0, basicDamage);
 			// Calculate injury to the target
-			double damageMultiplier = location.DamageMultiplier(damage.Type);
+			double damageMultiplier = damage.DamageMultiplier(location);
+			if (tolerances.contains("Homogenous"))
+				damageMultiplier = damage.DamageMultiplierHomogenous(location);
+			else if (tolerances.contains("Unliving"))
+				damageMultiplier = damage.DamageMultiplierUnliving(location);
  			injury = (int) (basicDamage*damageMultiplier); 
     		injury = (injury <= 0 && basicDamage > 0)?1:injury; // Min damage 1 if any got through DR
+    		// Diffuse
+    		if(tolerances.contains("Diffuse")) {
+    			int maxDamage = damage.DamageMaxDiffuse();
+    			injury = (injury > maxDamage)?maxDamage:injury;
+    		}
     		// Check for crippling
     		if (location.cripplingThreshold != 0) {
     			int cripplingThreshold = (int) Math.floor(HP * location.cripplingThreshold + 1.00001);

@@ -5,8 +5,8 @@
  */
 package gurpsinittool.ui;
 
-import gurpsinittool.app.GITApp;
 import gurpsinittool.data.GameSettings;
+import gurpsinittool.util.MiscUtil;
 
 import java.util.Properties;
 
@@ -19,7 +19,7 @@ public class OptionsWindow extends javax.swing.JFrame {
     @Override
 	public void setVisible(boolean visible) {
     	if (visible) {
-	    	GITApp.validateOnScreen(this);
+	    	MiscUtil.validateOnScreen(this);
 	   		if (!isVisible()) {
 	   			copySettingsToComponents();
 	   		} else if (getState() == java.awt.Frame.ICONIFIED) {

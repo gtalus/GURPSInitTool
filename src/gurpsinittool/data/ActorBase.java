@@ -17,7 +17,7 @@ import gurpsinittool.util.EncounterLogEventSource;
 public class ActorBase implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
-	public static EncounterLogEventSource LogEventSource; // where to send log messages
+	public static final EncounterLogEventSource LogEventSource = new EncounterLogEventSource(); // where to send log messages
 	public static GameSettings settings; // Settings which determine game behavior, including automation
 
 	private transient PropertyChangeSupport mPcs = new PropertyChangeSupport(this); // Change reporting, don't serialize!
@@ -284,6 +284,12 @@ public class ActorBase implements Serializable {
 			e.printStackTrace();
 			return 0;
 		}
+	}
+	public ArrayList<String> getTraitValueArray(String name) {
+		if (hasTrait(name))
+			return new ArrayList<String>(Arrays.asList(getTrait(name).value.split("\\s*;\\s*")));
+		else 
+			return new ArrayList<String>();
 	}
 	public Collection<String> getAllTraitNames() {
 		return traits.keySet();

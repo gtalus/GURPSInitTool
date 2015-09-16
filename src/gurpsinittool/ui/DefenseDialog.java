@@ -33,31 +33,91 @@ import gurpsinittool.util.DieRoller;
  *
  * @author dcsmall
  */
+@SuppressWarnings("serial")
 public class DefenseDialog extends javax.swing.JDialog {
 
 	Actor actor; // The actor making the defense
-	public Defense defense = new Defense(); // Defense options, inputs, and results (including the game logic to calculate them)
+	public Defense defense; // Defense options, inputs, and results (including the game logic to calculate them)
 
 	public boolean valid = false;
 	
+	boolean updating = false;
+	
+	// Actions
+	public Action cancelAction = new AbstractAction() {
+		public void actionPerformed(ActionEvent actionEvent) {
+			cancelButtonActionPerformed(actionEvent); } 
+	};
+	public Action okAction = new AbstractAction() {
+		public void actionPerformed(ActionEvent actionEvent) {
+			okButtonActionPerformed(actionEvent); } 
+	};
+	public Action eeAction = new AbstractAction() {
+		public void actionPerformed(ActionEvent actionEvent) {
+			eeCheck.doClick(); } 
+	};
+	public Action retreatAction = new AbstractAction() {
+		public void actionPerformed(ActionEvent actionEvent) {
+			retreatCheck.doClick(); } 
+	};
+	public Action sideAction = new AbstractAction() {
+		public void actionPerformed(ActionEvent actionEvent) {
+			sideCheck.doClick(); } 
+	};
+	public Action stunAction = new AbstractAction() {
+		public void actionPerformed(ActionEvent actionEvent) {
+			stunnedCheck.doClick(); } 
+	};
+	public Action shieldAction = new AbstractAction() {
+		public void actionPerformed(ActionEvent actionEvent) {
+			shieldCheckBox.doClick(); } 
+	};
+	public Action deceptiveAction = new AbstractAction() {
+		public void actionPerformed(ActionEvent actionEvent) {
+			otherSpinner.setValue(otherSpinner.getPreviousValue()); } 
+	};
+	public Action reverseDeceptiveAction = new AbstractAction() {
+		public void actionPerformed(ActionEvent actionEvent) {
+			otherSpinner.setValue(otherSpinner.getNextValue()); } 
+	};
+	public Action parryDefenseAction = new AbstractAction() {
+		public void actionPerformed(ActionEvent actionEvent) {
+			parryButton.doClick(); } 
+	};
+	public Action blockDefenseAction = new AbstractAction() {
+		public void actionPerformed(ActionEvent actionEvent) {
+			blockButton.doClick(); } 
+	};
+	public Action dodgeDefenseAction = new AbstractAction() {
+		public void actionPerformed(ActionEvent actionEvent) {
+			dodgeButton.doClick(); } 
+	};
+	public Action noDefenseAction = new AbstractAction() {
+		public void actionPerformed(ActionEvent actionEvent) {
+			noneButton.doClick(); } 
+	};
     /**
      * Creates new form DefenseDialog
      */
-    public DefenseDialog(Actor actor, java.awt.Window parent) {
+    public DefenseDialog(java.awt.Window parent) {
         super(parent, DEFAULT_MODALITY_TYPE);
         initComponents();
         initEnterEsc();
         initLocationCombo();
         initPositionCombo();
-        setActor(actor);
-        damageTextField.selectAll();
-        damageTextField.requestFocusInWindow();
+        // Setup doc listeners
+    	JFormattedTextField field = (JFormattedTextField) otherSpinner.getEditor().getComponent(0);
+    	DefaultFormatter formatter = (DefaultFormatter) field.getFormatter();
+    	formatter.setCommitsOnValidEdit(true);
+    	rollTextField.getDocument().addDocumentListener(new ValueDocumentListener());
+    	drTextField.getDocument().addDocumentListener(new ValueDocumentListener());
+    	damageTextField.getDocument().addDocumentListener(new ValueDocumentListener());
     }
     
     private void initLocationCombo() {
     	Vector<String> comboItems = new Vector<String>();
     	for (HitLocations.LocationType location: HitLocations.LocationType.values()) {
-    		comboItems.add(HitLocations.locations.get(location).description);
+    		comboItems.add(HitLocations.getLocation(location).type.name());
     	}
     	locationCombo.setModel(new DefaultComboBoxModel<String>(comboItems));
     }
@@ -70,30 +130,7 @@ public class DefenseDialog extends javax.swing.JDialog {
     	positionCombo.setModel(new DefaultComboBoxModel<String>(comboItems));
     }
 
-    private void initEnterEsc() {
-    	Action cancelAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                cancelButtonActionPerformed(actionEvent); } };
-        Action okAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                okButtonActionPerformed(actionEvent); } };
-        Action eeAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                eeCheck.doClick(); } };
-        Action retreatAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                retreatCheck.doClick(); } };
-        Action sideAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                sideCheck.doClick(); } };
-        Action stunAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                stunnedCheck.doClick(); } };
-        Action deceptiveAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent actionEvent) {
-               otherSpinner.setValue(otherSpinner.getPreviousValue()); } };
-                                               
-                
+    private void initEnterEsc() {     
         damageTextField.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "OK");
         damageTextField.getActionMap().put("OK", okAction); 
         damageTextField.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CANCEL");
@@ -114,9 +151,21 @@ public class DefenseDialog extends javax.swing.JDialog {
         getRootPane().getActionMap().put("Side", sideAction); 
         getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control T"), "Stun");
         getRootPane().getActionMap().put("Stun", stunAction); 
-        getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control D"), "Deceptive");
+        getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control D"), "Deceptive"); // => 'O' for other (and shift-'O' for minus other
         getRootPane().getActionMap().put("Deceptive", deceptiveAction); 
-     
+        getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control shift D"), "Reverse Deceptive"); // => 'O' for other (and shift-'O' for minus other
+        getRootPane().getActionMap().put("Reverse Deceptive", reverseDeceptiveAction);         
+        getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control I"), "Shield"); 
+        getRootPane().getActionMap().put("Shield", shieldAction); 
+
+        getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control P"), "Parry"); 
+        getRootPane().getActionMap().put("Parry", parryDefenseAction); 
+        getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control B"), "Block"); 
+        getRootPane().getActionMap().put("Block", blockDefenseAction); 
+        getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control G"), "Dodge");
+        getRootPane().getActionMap().put("Dodge", dodgeDefenseAction); 
+        getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control N"), "None");
+        getRootPane().getActionMap().put("None", noDefenseAction); 
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -148,9 +197,7 @@ public class DefenseDialog extends javax.swing.JDialog {
         effectiveDefense = new javax.swing.JLabel();
         name = new javax.swing.JTextField();
         result = new javax.swing.JTextField();
-        shield_dr = new javax.swing.JLabel();
         db = new javax.swing.JLabel();
-        shield_hp = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
         rollTextField = new javax.swing.JFormattedTextField();
         damageTextField = new javax.swing.JTextField();
@@ -163,6 +210,7 @@ public class DefenseDialog extends javax.swing.JDialog {
         positionCombo = new javax.swing.JComboBox();
         jLabel10 = new javax.swing.JLabel();
         drTextField = new javax.swing.JTextField();
+        jSeparator1 = new javax.swing.JSeparator();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setResizable(false);
@@ -189,7 +237,8 @@ public class DefenseDialog extends javax.swing.JDialog {
         jLabel2.setText("Damage:");
 
         shieldCheckBox.setSelected(true);
-        shieldCheckBox.setText("Shield:");
+        shieldCheckBox.setText("Shield");
+        shieldCheckBox.setToolTipText("");
         shieldCheckBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 checkItemStateChanged(evt);
@@ -281,12 +330,8 @@ public class DefenseDialog extends javax.swing.JDialog {
         result.setBorder(null);
         result.setFocusable(false);
 
-        shield_dr.setText("DR: 4");
-
         db.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         db.setText("DB: 2");
-
-        shield_hp.setText("HP: 20/20");
 
         jLabel8.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel8.setText("DR:");
@@ -349,12 +394,19 @@ public class DefenseDialog extends javax.swing.JDialog {
         jLabel10.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel10.setText("Posture:");
 
+        drTextField.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                drTextFieldFocusGained(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(name)
             .addComponent(result)
+            .addComponent(jSeparator1)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -376,58 +428,55 @@ public class DefenseDialog extends javax.swing.JDialog {
                                     .addComponent(blockNote)
                                     .addComponent(dodgeNote)
                                     .addComponent(parryNote)))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(noneButton, javax.swing.GroupLayout.Alignment.LEADING))
-                                .addGap(3, 3, 3)
-                                .addComponent(effectiveDefense, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jLabel3)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel10)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(positionCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(eeCheck)
                             .addComponent(retreatCheck)
                             .addComponent(sideCheck)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(otherSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel4))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(4, 4, 4)
-                                .addComponent(shield_dr)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(shield_hp))
                             .addComponent(stunnedCheck)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(shieldCheckBox)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(db, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                                .addComponent(db))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(otherSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel2)
-                            .addComponent(jLabel8)
-                            .addComponent(jLabel1))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(layout.createSequentialGroup()
-                                        .addComponent(damageTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(18, 18, 18))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(drTextField)
-                                        .addGap(46, 46, 46)))
+                                        .addComponent(jLabel2)
+                                        .addGap(33, 33, 33))
+                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                        .addComponent(damageTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel9)
-                                    .addComponent(locationCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(rollTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(locationCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(rerollButton))))))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel8)
+                                    .addComponent(drTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(noneButton)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(effectiveDefense)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel1)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(rollTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(rerollButton)))))
+                        .addGap(0, 0, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -462,40 +511,39 @@ public class DefenseDialog extends javax.swing.JDialog {
                             .addComponent(db))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(shield_dr)
-                    .addComponent(shield_hp)
                     .addComponent(jLabel10)
-                    .addComponent(positionCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(positionCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(otherSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel4))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jLabel4)
-                        .addComponent(otherSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(effectiveDefense, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(rollTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(rerollButton))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(effectiveDefense, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addGap(0, 0, 0)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(rollTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(rerollButton))))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 4, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel8)
                     .addComponent(jLabel9)
+                    .addComponent(jLabel8)
+                    .addComponent(jLabel2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(locationCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(damageTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(drTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel2)
-                            .addComponent(damageTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(result, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(okButton)
-                            .addComponent(cancelButton)))
-                    .addComponent(locationCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addComponent(result, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(okButton)
+                    .addComponent(cancelButton)))
         );
 
         pack();
@@ -509,6 +557,7 @@ public class DefenseDialog extends javax.swing.JDialog {
 
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
     	System.out.println("DefenseDialog: CANCEL!");
+    	valid = false;
     	setVisible(false);
     }//GEN-LAST:event_cancelButtonActionPerformed
 
@@ -531,6 +580,10 @@ public class DefenseDialog extends javax.swing.JDialog {
     private void radioButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioButtonActionPerformed
     	updateDefenseResults();
     }//GEN-LAST:event_radioButtonActionPerformed
+
+    private void drTextFieldFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_drTextFieldFocusGained
+        drTextField.selectAll();
+    }//GEN-LAST:event_drTextFieldFocusGained
 
     /**
      * @param args the command line arguments
@@ -562,13 +615,14 @@ public class DefenseDialog extends javax.swing.JDialog {
         /* Create and display the dialog */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                DefenseDialog dialog = new DefenseDialog(null, new javax.swing.JWindow());
+                DefenseDialog dialog = new DefenseDialog(new javax.swing.JWindow());
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
                     @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {
                         System.exit(0);
                     }
                 });
+                dialog.setActor(new Actor());
                 dialog.setVisible(true);
             }
         });
@@ -593,6 +647,7 @@ public class DefenseDialog extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
+    private javax.swing.JSeparator jSeparator1;
     private javax.swing.JComboBox locationCombo;
     private javax.swing.JTextField name;
     private javax.swing.JRadioButton noneButton;
@@ -606,14 +661,14 @@ public class DefenseDialog extends javax.swing.JDialog {
     private javax.swing.JCheckBox retreatCheck;
     private javax.swing.JFormattedTextField rollTextField;
     private javax.swing.JCheckBox shieldCheckBox;
-    private javax.swing.JLabel shield_dr;
-    private javax.swing.JLabel shield_hp;
     private javax.swing.JCheckBox sideCheck;
     private javax.swing.JCheckBox stunnedCheck;
     // End of variables declaration//GEN-END:variables
     
     public void setActor(Actor actor) {
+    	updating = true;
     	this.actor = actor;
+    	defense = new Defense();
     	defense.setInitialOptions(actor);
 
     	name.setText(actor.getTraitValue(BasicTrait.Name));
@@ -632,7 +687,6 @@ public class DefenseDialog extends javax.swing.JDialog {
 			break;
 		case Special:
 			name.setBackground(new Color(255,200,255));
-			break;
 		}
     	
     	// Calculate effective base defense values
@@ -675,9 +729,11 @@ public class DefenseDialog extends javax.swing.JDialog {
     	int ShieldHP = actor.getTraitValueInt(BasicTrait.Shield_HP);
     	String DR = actor.getTraitValue(BasicTrait.DR);
     	db.setText("DB: " + ShieldDB);
-    	shield_dr.setText("DR: " + ShieldDR);
-    	shield_hp.setText("HP: " + (ShieldHP-actor.getTempInt("shieldDamage")) + "/" + ShieldHP);
+    	shieldCheckBox.setToolTipText("DR: " + ShieldDR + " HP: " + (ShieldHP-actor.getTempInt("shieldDamage")) + "/" + ShieldHP);
+    	//shield_dr.setText("DR: " + ShieldDR);
+    	//shield_hp.setText("HP: " + (ShieldHP-actor.getTempInt("shieldDamage")) + "/" + ShieldHP);
     	drTextField.setText(DR);
+    	damageTextField.setText("");
     	
     	// Set position
     	// TODO: make this more flexible (perhaps based off of an ENUM???!!!)
@@ -689,15 +745,11 @@ public class DefenseDialog extends javax.swing.JDialog {
     	// TODO: otherMod? what would this be set to? some temp var?
     	
     	rollDefense();
+    	updating = false;
     	updateDefenseResults();
-    	
-    	// Setup doc listeners
-    	JFormattedTextField field = (JFormattedTextField) otherSpinner.getEditor().getComponent(0);
-    	DefaultFormatter formatter = (DefaultFormatter) field.getFormatter();
-    	formatter.setCommitsOnValidEdit(true);
-    	rollTextField.getDocument().addDocumentListener(new ValueDocumentListener());
-    	drTextField.getDocument().addDocumentListener(new ValueDocumentListener());
-    	damageTextField.getDocument().addDocumentListener(new ValueDocumentListener());
+    	  	
+        damageTextField.selectAll();
+        damageTextField.requestFocusInWindow();
     }
     
     private void rollDefense() {
@@ -708,7 +760,7 @@ public class DefenseDialog extends javax.swing.JDialog {
      * Calculate the result of the attack
      */
     private void updateDefenseResults() {
-    	if (actor == null) // Exit immediately if actor not initialized yet
+    	if (actor == null || updating) // Exit immediately if actor not initialized yet or currently updating
     		return;
 
     	// Parse input fields. Return if any fail
@@ -732,6 +784,7 @@ public class DefenseDialog extends javax.swing.JDialog {
      * Sync dialog -> defense object
      */
     private void updateDefenseSettings() {
+    	if (updating) return;
     	// Sync defense initial options to dialog components
     	if (parryButton.isSelected()) {
     		defense.type = DefenseType.Parry;

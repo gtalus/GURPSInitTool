@@ -175,7 +175,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jSeparator2 = new javax.swing.JToolBar.Separator();
         resizeAttackTable = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
-        attacksTable = new javax.swing.JTable();
+        attacksTable = new BasicTable();
         type = new javax.swing.JComboBox();
         jLabel7 = new javax.swing.JLabel();
         hp = new javax.swing.JFormattedTextField();
@@ -221,7 +221,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         sm = new javax.swing.JFormattedTextField();
         traits = new javax.swing.JPanel();
         jScrollPane5 = new javax.swing.JScrollPane();
-        traitsTable = new javax.swing.JTable();
+        traitsTable = new BasicTable();
         jToolBar4 = new javax.swing.JToolBar();
         add_trait = new javax.swing.JButton();
         remove_trait = new javax.swing.JButton();
