@@ -1,4 +1,4 @@
 # GURPSInitTool
 GURPS combat assistant and Initiative tracking tool
 
-https://readthedocs.org/projects/gurpsinittool/badge/
+![doc badge](https://readthedocs.org/projects/gurpsinittool/badge/)
