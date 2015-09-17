@@ -110,17 +110,12 @@ public class Actor extends ActorBase {
     //================================================================================
     // Attack Support
     //================================================================================
-
-	public void Attack() {
-		if (attacks.size() < 1) {
-			logEventTypeName("<i><font color=gray>has no attacks defined!</font></i>");
-			return;
-		}	
-		if (defaultAttack < 0 || defaultAttack >= attacks.size()) {
-			logEventError("has invalid default attack: " + defaultAttack);
+	public void Attack(int num) {
+		if (num < 0 || num >= attacks.size()) {
+			System.err.println("-E- Actor:Attack: invalid attack attempted: id # " +String.valueOf(num));
 			return;
 		}
-		Attack attack = attacks.get(defaultAttack);
+		Attack attack = attacks.get(num);
 		int eff_skill = attack.Skill;
 		// Positoin
 		if (hasStatus(ActorStatus.Prone))
@@ -162,23 +157,36 @@ public class Actor extends ActorBase {
 		logEventTypeName("attacks with " + attack.Name + ": " + hit_miss +  " (" + roll + "/" + eff_skill + "=" + margin + ") for damage " + (isHit?"<font color=red><b>":"") + damage.BasicDamage + armorDivStr + " " + damage.Type + (isHit?"</b></font>":"") + " (" + attack.Damage + ")" + crit_string);
 	}
 	
+	public void Attack() {
+		if (attacks.size() < 1) {
+			logEventTypeName("<i><font color=gray>has no attacks defined!</font></i>");
+			return;
+		}	
+		if (defaultAttack < 0 || defaultAttack >= attacks.size()) {
+			logEventError("has invalid default attack: " + defaultAttack);
+			return;
+		}
+		Attack(defaultAttack);		
+	}
+	
     //================================================================================
     // Defense Support
     //================================================================================
 	public String Defend(Defense defense) {
-		ProcessDefense(defense);
-		GenerateDefenseLog(defense);
+		RecordDefenseAttempt(defense);
+		LogDefenseResults(defense);
+		ProcessDefenseResults(defense);
 		KnockdownStunningCheck(defense);
 		return "";
 	}
 	
-	 private void ProcessDefense(Defense defense) {
+	// Process the impact of attempting the defense itself (fatigue, number of Parries this turn, etc)
+	private void RecordDefenseAttempt(Defense defense) {
 		int Fatigue = getTraitValueInt(BasicTrait.Fatigue);
-		int Injury = getTraitValueInt(BasicTrait.Injury);
+		setTrait(BasicTrait.Fatigue, String.valueOf(Fatigue+defense.fatigue));
+
 		// Process shield damage/injury/fatigue
 		setTemp("shieldDamage", getTempInt("shieldDamage") + defense.shieldDamage);
-		setTrait(BasicTrait.Injury, String.valueOf(Injury+defense.injury));
-		setTrait(BasicTrait.Fatigue, String.valueOf(Fatigue+defense.fatigue));
 		switch (defense.type) { // Record defense attempts
 		case Parry:
 			setTemp("numParry", getTempInt("numParry")+1);
@@ -188,8 +196,78 @@ public class Actor extends ActorBase {
 			break;
 		default:
 		}
-    }
-	    
+	}
+
+	private void LogDefenseResults(Defense defense) {
+		// Defense description
+		String resultType = (defense.result == DefenseResult.CritSuccess)?"<b><font color=blue>critically</font></b>"
+				:(defense.result == DefenseResult.Success)?"successfully"
+						:(defense.result == DefenseResult.ShieldHit)?"partially"
+								:"unsuccessfully";
+
+		String defenseDescription = "";
+		switch (defense.type) {
+		case Parry:
+			defenseDescription = resultType + " parried blow.";
+			break;
+		case Block:
+			defenseDescription = resultType + " blocked blow.";
+			break;
+		case Dodge:
+			defenseDescription = resultType + " dodged blow.";
+			break;
+		case None:
+			defenseDescription = "made no defense against blow.";
+		}
+		
+		if (defense.result == DefenseResult.CritFailure)
+			defenseDescription = "<b><font color=red>critically</font></b> failed " + defense.type.toString().toLowerCase() + ".";
+
+		String damageDescription = "";
+		if (defense.injury != 0) {
+			damageDescription = " Sustained <b><font color=red>" + defense.injury + "</font></b> injury to the " + defense.location.type.name();
+			String knockdownstunningPenalty = (defense.location.knockdownPenalty != 0)?" @ " + defense.location.knockdownPenalty:"";
+			if (defense.cripplingInjury)
+				damageDescription += " <b>(crippling" + knockdownstunningPenalty + ")</br>";
+			else if (defense.majorWound)
+				damageDescription += " <b>(major" + knockdownstunningPenalty + ")</br>";
+			damageDescription += ".";
+		}
+		else if (defense.result == DefenseResult.ShieldHit || defense.result == DefenseResult.Failure) 
+			damageDescription = " But took no injury.";
+		if (defense.shieldDamage != 0) 
+			damageDescription += " <b>Shield damaged " + defense.shieldDamage + ".</b>";
+
+		logEventTypeName(defenseDescription + damageDescription);
+	}
+
+	private void ProcessDefenseResults(Defense defense) {
+		// Apply injury
+		setTrait(BasicTrait.Injury, String.valueOf(getTraitValueInt(BasicTrait.Injury)+defense.injury));
+
+		// Crit failure
+		if (defense.result == DefenseResult.CritFailure) {
+			switch (defense.type) {
+			case Parry:
+				CriticalTables.Entry crit_result = CriticalTables.getRandomEntry(CriticalTables.critical_miss);
+				String crit_string = "<i><font color=gray><b>Critical Miss Table Result:</b>" + crit_result.notes + "</font></i>";
+				logEventTypeName(crit_string);
+				break;
+			case Block:
+				logEventTypeName("Loses grip on shield, must ready before next block");
+				break;
+			case Dodge:
+				if (!hasStatus(ActorStatus.Prone))
+					logEventTypeName("Falls prone.");				
+				setPosture(ActorStatus.Prone);
+				break;
+			case None:
+				System.err.println("-E- unexpected 'None' defense type for critical failure!");
+				break;
+			}
+		}
+	}
+	
     private void KnockdownStunningCheck(Defense defense) {
     	int HT = getTraitValueInt(BasicTrait.HT);
     	int HP = getTraitValueInt(BasicTrait.HP);
@@ -227,46 +305,6 @@ public class Actor extends ActorBase {
  		}
     }
 	    
-    private void GenerateDefenseLog(Defense defense) {
-		// Defense description
-		String resultType = (defense.result == DefenseResult.CritSuccess)?"<b><font color=blue>critically</font></b>"
-							:(defense.result == DefenseResult.Success)?"successfully"
-							:(defense.result == DefenseResult.ShieldHit)?"partially"
-							:"unsuccessfully";
-		
-		String defenseDescription = "";
-		switch (defense.type) {
-		case Parry:
-			defenseDescription = resultType + " parried blow.";
-			break;
-		case Block:
-			defenseDescription = resultType + " blocked blow.";
-			break;
-		case Dodge:
-			defenseDescription = resultType + " dodged blow.";
-			break;
-		case None:
-			defenseDescription = "made no defense against blow.";
-		}
-		
-		String damageDescription = "";
-		if (defense.injury != 0) {
-			damageDescription = " Sustained <b><font color=red>" + defense.injury + "</font></b> injury to the " + defense.location.type.name();
-			String knockdownstunningPenalty = (defense.location.knockdownPenalty != 0)?" @ " + defense.location.knockdownPenalty:"";
-			if (defense.cripplingInjury)
-				damageDescription += " <b>(crippling" + knockdownstunningPenalty + ")</br>";
-			else if (defense.majorWound)
-				damageDescription += " <b>(major" + knockdownstunningPenalty + ")</br>";
-			damageDescription += ".";
-		}
-		else if (defense.result == DefenseResult.ShieldHit || defense.result == DefenseResult.Failure) 
-			damageDescription = " But took no injury.";
-   		if (defense.shieldDamage != 0) 
-   			damageDescription += " <b>Shield damaged " + defense.shieldDamage + ".</b>";
-			
-		logEventTypeName(defenseDescription + damageDescription);
-     }
-    
     /**
      * Get the current defense value of a particular DefenseType
      * @param type - the type of defense to report

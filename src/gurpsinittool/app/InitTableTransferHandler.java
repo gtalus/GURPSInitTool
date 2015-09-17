@@ -102,7 +102,7 @@ public class InitTableTransferHandler extends TransferHandler {
         table.stopCellEditing(); // Don't allow the table to be in edit mode while we change the structure
         int row = dl.getRow(); 
         // Don't try to put items after the 'new' row
-        //if (row >= tableModel.getRowCount()) { row = tableModel.getRowCount() - 1; }
+        if (row >= table.getRowCount()) { row = table.getRowCount() - 1; }
 
         for (int i = actorRows.length-1; i >= 0; i--) { // Actors added to same 'row', so go from bottom up to preserve order
         	if (DEBUG) { System.out.println("InitTreeTransferHandler.importData: Adding actor # " + i + " @ row: " + row); }

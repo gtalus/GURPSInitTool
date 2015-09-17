@@ -127,7 +127,7 @@ public class DefenseDialog extends javax.swing.JDialog {
     	comboItems.add("Standing");
     	comboItems.add("Kneeling");
     	comboItems.add("Prone");
-    	positionCombo.setModel(new DefaultComboBoxModel<String>(comboItems));
+    	postureCombo.setModel(new DefaultComboBoxModel<String>(comboItems));
     }
 
     private void initEnterEsc() {     
@@ -207,7 +207,7 @@ public class DefenseDialog extends javax.swing.JDialog {
         noneButton = new javax.swing.JRadioButton();
         jLabel3 = new javax.swing.JLabel();
         stunnedCheck = new javax.swing.JCheckBox();
-        positionCombo = new javax.swing.JComboBox();
+        postureCombo = new javax.swing.JComboBox();
         jLabel10 = new javax.swing.JLabel();
         drTextField = new javax.swing.JTextField();
         jSeparator1 = new javax.swing.JSeparator();
@@ -379,13 +379,13 @@ public class DefenseDialog extends javax.swing.JDialog {
             }
         });
 
-        positionCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        positionCombo.addActionListener(new java.awt.event.ActionListener() {
+        postureCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Standing" }));
+        postureCombo.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radioButtonActionPerformed(evt);
             }
         });
-        positionCombo.addKeyListener(new java.awt.event.KeyAdapter() {
+        postureCombo.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
                 locationComboKeyReleased(evt);
             }
@@ -432,7 +432,7 @@ public class DefenseDialog extends javax.swing.JDialog {
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel10)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(positionCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(postureCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(eeCheck)
@@ -512,7 +512,7 @@ public class DefenseDialog extends javax.swing.JDialog {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel10)
-                    .addComponent(positionCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(postureCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(otherSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel4))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -528,7 +528,7 @@ public class DefenseDialog extends javax.swing.JDialog {
                             .addComponent(rerollButton))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 4, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(2, 2, 2)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel9)
                     .addComponent(jLabel8)
@@ -632,7 +632,7 @@ public class DefenseDialog extends javax.swing.JDialog {
     private javax.swing.JLabel blockNote;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton cancelButton;
-    private javax.swing.JTextField damageTextField;
+    public javax.swing.JTextField damageTextField;
     private javax.swing.JLabel db;
     private javax.swing.JRadioButton dodgeButton;
     private javax.swing.JLabel dodgeNote;
@@ -648,14 +648,14 @@ public class DefenseDialog extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JComboBox locationCombo;
+    public javax.swing.JComboBox locationCombo;
     private javax.swing.JTextField name;
     private javax.swing.JRadioButton noneButton;
     private javax.swing.JButton okButton;
     private javax.swing.JSpinner otherSpinner;
     private javax.swing.JRadioButton parryButton;
     private javax.swing.JLabel parryNote;
-    private javax.swing.JComboBox positionCombo;
+    private javax.swing.JComboBox postureCombo;
     private javax.swing.JButton rerollButton;
     private javax.swing.JTextField result;
     private javax.swing.JCheckBox retreatCheck;
@@ -729,6 +729,7 @@ public class DefenseDialog extends javax.swing.JDialog {
     	int ShieldHP = actor.getTraitValueInt(BasicTrait.Shield_HP);
     	String DR = actor.getTraitValue(BasicTrait.DR);
     	db.setText("DB: " + ShieldDB);
+    	db.setToolTipText("DR: " + ShieldDR + " HP: " + (ShieldHP-actor.getTempInt("shieldDamage")) + "/" + ShieldHP);
     	shieldCheckBox.setToolTipText("DR: " + ShieldDR + " HP: " + (ShieldHP-actor.getTempInt("shieldDamage")) + "/" + ShieldHP);
     	//shield_dr.setText("DR: " + ShieldDR);
     	//shield_hp.setText("HP: " + (ShieldHP-actor.getTempInt("shieldDamage")) + "/" + ShieldHP);
@@ -738,9 +739,9 @@ public class DefenseDialog extends javax.swing.JDialog {
     	// Set position
     	// TODO: make this more flexible (perhaps based off of an ENUM???!!!)
     	if (defense.position.equals("Kneeling"))
-    		positionCombo.setSelectedIndex(1);
+    		postureCombo.setSelectedIndex(1);
     	if (defense.position.equals("Prone"))
-    		positionCombo.setSelectedIndex(2);
+    		postureCombo.setSelectedIndex(2);
     	
     	// TODO: otherMod? what would this be set to? some temp var?
     	
@@ -804,7 +805,7 @@ public class DefenseDialog extends javax.swing.JDialog {
     	defense.stunned = stunnedCheck.isSelected();
     	defense.shield = shieldCheckBox.isSelected();
     	
-    	defense.position = positionCombo.getSelectedItem().toString();
+    	defense.position = postureCombo.getSelectedItem().toString();
     	
     	try {
     		defense.otherMod = Integer.parseInt(otherSpinner.getValue().toString());
@@ -860,7 +861,11 @@ public class DefenseDialog extends javax.swing.JDialog {
     	case ShieldHit:
     		message = "Shield ";
     	case Failure:
-			message += "Hit";
+    		message += "Hit";
+    		break;
+    	case CritFailure:
+			message += "Hit (crit fail)";
+			break;
     	}
     	
      	if (defense.injury != 0) {
@@ -881,8 +886,9 @@ public class DefenseDialog extends javax.swing.JDialog {
     			result.setBackground(new Color(255,255,200));
 	    	}
 			message += " (" + defense.shieldDamage + " shld dmg)";
+		} else if (defense.result == DefenseResult.CritFailure) {
+			result.setBackground(new Color(255,200,200));
 		}
-  
     	result.setText(message);
     }
     

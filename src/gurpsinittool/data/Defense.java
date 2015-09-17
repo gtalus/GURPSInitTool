@@ -11,7 +11,7 @@ public class Defense {
 	// List of valid defense types
 	public enum DefenseType {Parry, Block, Dodge, None};
 	// Possible defense results
-	public enum DefenseResult {CritSuccess, Success, ShieldHit, Failure}; 
+	public enum DefenseResult {CritSuccess, Success, ShieldHit, Failure, CritFailure}; 
 
 	// General Options
 	public DefenseType type;
@@ -126,6 +126,8 @@ public class Defense {
 			result = DefenseResult.Failure;
 		} else if (DieRoller.isCritSuccess(roll, effectiveDefense)) { // Crit Defense!
 			result = DefenseResult.CritSuccess;
+		} else if (DieRoller.isCritFailure(roll, effectiveDefense)) { // Crit Failed Defense!
+			result = DefenseResult.CritFailure;
 		} else if (DieRoller.isFailure(roll, effectiveDefense)) { // Hit
 			result = DefenseResult.Failure;
 		} else if (DieRoller.isFailure(roll, effectiveDefense - shield_db)) { // Shield Hit
@@ -207,6 +209,7 @@ public class Defense {
     		// Calculate total cover DR provided (including armor divisor)
     		coverDR = (int) (Math.floor(ShieldDR/damage.ArmorDivisor) + Math.ceil(ShieldHP/4));
     	case Failure:
+    	case CritFailure:
     		// Calculate actual basic damage to the target, including any cover DR
 			int totalDR = override_dr.getDRforType(damage.Type) + location.extraDR;
     		int basicDamage = (int) (damage.BasicDamage - coverDR - Math.floor(totalDR/damage.ArmorDivisor));

@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
@@ -38,6 +39,15 @@ public class GameMaster {
 	public Action actionResetRound;
 	public Action actionTagActors;
 	public Action actionAttack;
+	public class AttackNumAction extends AbstractAction {
+		int num;
+		public AttackNumAction(int num) {this.num = num; }
+		public void actionPerformed(ActionEvent arg0) {
+			initTable.stopCellEditing();
+			for (Actor a : initTable.getSelectedActors())
+				a.Attack(num);
+		}
+	};
 	public Action actionDefend;
 	
 	public Action actionPostureStanding;
@@ -84,7 +94,12 @@ public class GameMaster {
 	public int getRound() {
 		return round;
 	}
-	
+	private void selectActiveActor() {
+		if (activeActor != -1)
+			initTable.setRowSelectionInterval(activeActor, activeActor);
+		else
+			initTable.clearSelection();
+	}
 	private void setActiveActor(int newValue) {
 		int oldValue = activeActor.intValue();
 		activeActor = newValue;
@@ -337,13 +352,13 @@ public class GameMaster {
 
 		// Round Management
 		actionNextActor = new GAction("Next Combatant", "Move to the next active combatant in the turn sequence (Ctrl+N)", new ImageIcon("src/resources/images/control_play_blue.png")) {
-			public void actionPerformed(ActionEvent arg0) {	nextActor(); }
+			public void actionPerformed(ActionEvent arg0) {	nextActor(); selectActiveActor(); }
 		};
 		actionEndRound = new GAction("End Round", "Step to the end of the turn sequence (Ctrl+E)", new ImageIcon("src/resources/images/control_end_blue.png")) {
-			public void actionPerformed(ActionEvent arg0) {	endRound(); }
+			public void actionPerformed(ActionEvent arg0) {	endRound(); selectActiveActor(); }
 		};
 		actionNextRound = new GAction("Next Round", "Step to the start of the next round sequence (Ctrl+R)", new ImageIcon("src/resources/images/control_fastforward_blue.png")) {
-			public void actionPerformed(ActionEvent arg0) {	nextRound(); }
+			public void actionPerformed(ActionEvent arg0) {	nextRound(); selectActiveActor(); }
 		};
 		actionResetRound = new GAction("Reset Round Counter", "Reset the round counter (Alt+R)", new ImageIcon("src/resources/images/control_start_blue.png")) {
 			public void actionPerformed(ActionEvent arg0) {	

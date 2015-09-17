@@ -40,6 +40,7 @@ import gurpsinittool.data.Actor;
 import gurpsinittool.data.ActorBase.ActorStatus;
 import gurpsinittool.data.ActorBase.ActorType;
 import gurpsinittool.data.ActorBase.BasicTrait;
+import gurpsinittool.data.GameMaster;
 
 
 /**
@@ -60,6 +61,9 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	private TraitTableModel traitTableModel;
 	private TraitTableModel tempTableModel;
 	
+	// GameMaster object
+	public GameMaster gameMaster;
+	
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton add_attack;
     private javax.swing.JButton add_trait;
@@ -71,6 +75,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     private javax.swing.JFormattedTextField dodge;
     private javax.swing.JTextField dr;
     private javax.swing.JFormattedTextField dx;
+    private javax.swing.JButton execute_attack;
     private javax.swing.JFormattedTextField fatigue;
     private javax.swing.JFormattedTextField fp;
     private javax.swing.JFormattedTextField hp;
@@ -172,6 +177,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         add_attack = new javax.swing.JButton();
         remove_attack = new javax.swing.JButton();
         default_attack = new javax.swing.JButton();
+        execute_attack = new javax.swing.JButton();
         jSeparator2 = new javax.swing.JToolBar.Separator();
         resizeAttackTable = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
@@ -257,6 +263,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jToolBar1.setRollover(true);
 
         add_attack.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/add.png"))); // NOI18N
+        add_attack.setToolTipText("Add new attack");
         add_attack.setFocusable(false);
         add_attack.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         add_attack.setIconTextGap(1);
@@ -269,6 +276,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jToolBar1.add(add_attack);
 
         remove_attack.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/delete.png"))); // NOI18N
+        remove_attack.setToolTipText("Remove selected attack");
         remove_attack.setFocusable(false);
         remove_attack.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         remove_attack.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -280,6 +288,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jToolBar1.add(remove_attack);
 
         default_attack.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/wrench_orange.png"))); // NOI18N
+        default_attack.setToolTipText("Set default attack");
         default_attack.setFocusable(false);
         default_attack.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         default_attack.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -289,9 +298,22 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
             }
         });
         jToolBar1.add(default_attack);
+
+        execute_attack.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/sword.png"))); // NOI18N
+        execute_attack.setToolTipText("Execute selected attack");
+        execute_attack.setFocusable(false);
+        execute_attack.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        execute_attack.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        execute_attack.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                execute_attackActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(execute_attack);
         jToolBar1.add(jSeparator2);
 
         resizeAttackTable.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/script_code.png"))); // NOI18N
+        resizeAttackTable.setToolTipText("Atuo-size columns");
         resizeAttackTable.setFocusable(false);
         resizeAttackTable.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         resizeAttackTable.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -736,6 +758,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jToolBar4.setRollover(true);
 
         add_trait.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/add.png"))); // NOI18N
+        add_trait.setToolTipText("Add new trait");
         add_trait.setFocusable(false);
         add_trait.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         add_trait.setIconTextGap(1);
@@ -748,6 +771,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jToolBar4.add(add_trait);
 
         remove_trait.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/delete.png"))); // NOI18N
+        remove_trait.setToolTipText("Remove selected trait");
         remove_trait.setFocusable(false);
         remove_trait.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         remove_trait.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -760,6 +784,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jToolBar4.add(jSeparator5);
 
         resizeTraitTable.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/script_code.png"))); // NOI18N
+        resizeTraitTable.setToolTipText("Auto-size columns");
         resizeTraitTable.setFocusable(false);
         resizeTraitTable.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         resizeTraitTable.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -811,6 +836,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jToolBar5.setRollover(true);
 
         refreshTempTable.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/arrow_refresh_small.png"))); // NOI18N
+        refreshTempTable.setToolTipText("Refresh values");
         refreshTempTable.setFocusable(false);
         refreshTempTable.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         refreshTempTable.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -823,6 +849,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jToolBar5.add(jSeparator6);
 
         resizeTempTable.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/script_code.png"))); // NOI18N
+        resizeTempTable.setToolTipText("Auto-size columns");
         resizeTempTable.setFocusable(false);
         resizeTempTable.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         resizeTempTable.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -1210,8 +1237,11 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         this.doLayout();
     }//GEN-LAST:event_showTempCheckBoxActionPerformed
 
-
-
+    private void execute_attackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_execute_attackActionPerformed
+    	int modelRow = attacksTable.getRowSorter().convertRowIndexToModel(attacksTable.getSelectedRow());
+    	//gameMaster.new AttackNumAction(modelRow).actionPerformed(null);
+    	actor.Attack(modelRow);
+    }//GEN-LAST:event_execute_attackActionPerformed
 
     /**
      * Disable the panel, setting all values to default
@@ -1273,6 +1303,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     	add_attack.setEnabled(false);
        	remove_attack.setEnabled(false);
       	default_attack.setEnabled(false);
+      	execute_attack.setEnabled(false);
       	resizeAttackTable.setEnabled(false);
       	attackTableModel.setActor(null);
       	resizeTempTable.setEnabled(false);
@@ -1314,6 +1345,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     	add_attack.setEnabled(true);
        	remove_attack.setEnabled(true);
       	default_attack.setEnabled(true);
+      	execute_attack.setEnabled(true);
       	resizeAttackTable.setEnabled(true);
       	add_trait.setEnabled(true);
        	remove_trait.setEnabled(true);

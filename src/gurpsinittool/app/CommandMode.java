@@ -33,7 +33,18 @@ public class CommandMode implements AWTEventListener {
 		
 		//TypedMap.put('a', theApp.actionAttack);
 		TypedMap.put('k', gameMaster.actionAttack);
-		// TODO: different types of attacks (non-default, manual table selection)
+		// different types of attacks (non-default, manual table selection)
+		// Currently indexed starting at 1
+		TypedMap.put('1', gameMaster.new AttackNumAction(0));
+		TypedMap.put('2', gameMaster.new AttackNumAction(1));
+		TypedMap.put('3', gameMaster.new AttackNumAction(2));
+		TypedMap.put('4', gameMaster.new AttackNumAction(3));
+		TypedMap.put('5', gameMaster.new AttackNumAction(4));
+		TypedMap.put('6', gameMaster.new AttackNumAction(5));
+		TypedMap.put('7', gameMaster.new AttackNumAction(6));
+		TypedMap.put('8', gameMaster.new AttackNumAction(7));
+		TypedMap.put('9', gameMaster.new AttackNumAction(8));
+		TypedMap.put('0', gameMaster.new AttackNumAction(9));
 		TypedMap.put('d', gameMaster.actionDefend);
 		
 		TypedMap.put('s', gameMaster.actionPostureStanding);
@@ -100,6 +111,8 @@ public class CommandMode implements AWTEventListener {
 	public void eventDispatched(AWTEvent event) {
 		if(modeOn && event instanceof KeyEvent){
 			KeyEvent key = (KeyEvent)event;
+			if (!theApp.isFocused() && !defense.isFocused()) return;
+			
 			if (key.isControlDown() || key.isAltDown() || key.isMetaDown()) { // ignore potential accelerators and mnemonics
 				return;
 			} else if (key.getKeyCode() == KeyEvent.VK_ENTER || key.getKeyCode() == KeyEvent.VK_ESCAPE ) { // allow enter and escape
@@ -111,7 +124,10 @@ public class CommandMode implements AWTEventListener {
 				}
 				return;
 			} else if (defense.isVisible()) { // Defense mode
-				if (key.getID()==KeyEvent.KEY_TYPED) {
+				if (defense.locationCombo.hasFocus() || 
+						(defense.damageTextField.hasFocus() && !defense.damageTextField.getText().isEmpty())) {
+					return; // let the key go through
+				} else if (key.getID()==KeyEvent.KEY_TYPED) {
 					if (DefenseMap.containsKey(key.getKeyChar())) {			
 						DefenseMap.get(key.getKeyChar()).actionPerformed(null);
 						key.consume();

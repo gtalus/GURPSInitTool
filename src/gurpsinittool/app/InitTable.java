@@ -202,7 +202,8 @@ public class InitTable extends BasicTable {
         menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusAttacking, ActorStatus.Attacking));
         menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusDisabled, ActorStatus.Disabled));
         menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusDisarmed, ActorStatus.Disarmed));
-        menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusMentalStun, ActorStatus.StunMental));
+        menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusWaiting, ActorStatus.Waiting));
+       menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusMentalStun, ActorStatus.StunMental));
         menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusPhysicalStun, ActorStatus.StunPhys));
         menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusRecoveringStun, ActorStatus.StunRecovr));
         menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusUnconscious, ActorStatus.Unconscious));
