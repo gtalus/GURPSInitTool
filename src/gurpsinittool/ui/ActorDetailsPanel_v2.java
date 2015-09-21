@@ -14,18 +14,14 @@ package gurpsinittool.ui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.event.KeyEvent;
+import java.awt.KeyboardFocusManager;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -36,11 +32,13 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import gurpsinittool.app.*;
+import gurpsinittool.app.textfield.ParsingField;
+import gurpsinittool.app.textfield.ParsingFieldParserFactory;
 import gurpsinittool.data.Actor;
 import gurpsinittool.data.ActorBase.ActorStatus;
 import gurpsinittool.data.ActorBase.ActorType;
 import gurpsinittool.data.ActorBase.BasicTrait;
-import gurpsinittool.data.GameMaster;
+//import gurpsinittool.data.GameMaster;
 
 
 /**
@@ -62,26 +60,25 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	private TraitTableModel tempTableModel;
 	
 	// GameMaster object
-	public GameMaster gameMaster;
+	//public GameMaster gameMaster;
 	
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton add_attack;
     private javax.swing.JButton add_trait;
     private javax.swing.JPanel attacks;
     private javax.swing.JTable attacksTable;
-    private javax.swing.JFormattedTextField block;
-    private javax.swing.JFormattedTextField db;
+    private gurpsinittool.app.textfield.ParsingField block;
     private javax.swing.JButton default_attack;
-    private javax.swing.JFormattedTextField dodge;
-    private javax.swing.JTextField dr;
-    private javax.swing.JFormattedTextField dx;
+    private gurpsinittool.app.textfield.ParsingField dodge;
+    private gurpsinittool.app.textfield.ParsingField dr;
+    private gurpsinittool.app.textfield.ParsingField dx;
     private javax.swing.JButton execute_attack;
-    private javax.swing.JFormattedTextField fatigue;
-    private javax.swing.JFormattedTextField fp;
-    private javax.swing.JFormattedTextField hp;
-    private javax.swing.JFormattedTextField ht;
-    private javax.swing.JFormattedTextField injury;
-    private javax.swing.JFormattedTextField iq;
+    private gurpsinittool.app.textfield.ParsingField fatigue;
+    private gurpsinittool.app.textfield.ParsingField fp;
+    private gurpsinittool.app.textfield.ParsingField hp;
+    private gurpsinittool.app.textfield.ParsingField ht;
+    private gurpsinittool.app.textfield.ParsingField injury;
+    private gurpsinittool.app.textfield.ParsingField iq;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -116,11 +113,11 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar4;
     private javax.swing.JToolBar jToolBar5;
-    private javax.swing.JFormattedTextField move;
+    private gurpsinittool.app.textfield.ParsingField move;
     private javax.swing.JTextField name;
     private javax.swing.JTextArea notes;
-    private javax.swing.JFormattedTextField parry;
-    private javax.swing.JFormattedTextField per;
+    private gurpsinittool.app.textfield.ParsingField parry;
+    private gurpsinittool.app.textfield.ParsingField per;
     private javax.swing.JButton refreshTempTable;
     private javax.swing.JButton remove_attack;
     private javax.swing.JButton remove_trait;
@@ -128,19 +125,20 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     private javax.swing.JButton resizeTempTable;
     private javax.swing.JButton resizeTraitTable;
     private javax.swing.JPanel shieldPanel;
-    private javax.swing.JFormattedTextField shield_dr;
-    private javax.swing.JFormattedTextField shield_hp;
+    private gurpsinittool.app.textfield.ParsingField shield_db;
+    private gurpsinittool.app.textfield.ParsingField shield_dr;
+    private gurpsinittool.app.textfield.ParsingField shield_hp;
     private javax.swing.JCheckBox showTempCheckBox;
-    private javax.swing.JFormattedTextField sm;
-    private javax.swing.JFormattedTextField speed;
-    private javax.swing.JFormattedTextField st;
+    private gurpsinittool.app.textfield.ParsingField sm;
+    private gurpsinittool.app.textfield.ParsingField speed;
+    private gurpsinittool.app.textfield.ParsingField st;
     private javax.swing.JLabel status_label;
     private javax.swing.JPanel tempPanel;
     private javax.swing.JTable tempTable;
     private javax.swing.JPanel traits;
     private javax.swing.JTable traitsTable;
     private javax.swing.JComboBox type;
-    private javax.swing.JFormattedTextField will;
+    private gurpsinittool.app.textfield.ParsingField will;
     // End of variables declaration//GEN-END:variables
     
 
@@ -153,7 +151,8 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         initComponents();
         attacksTable.setDefaultRenderer(String.class, attackTableModel.new AttackTableCellRenderer());
         attacksTable.setDefaultRenderer(Integer.class, attackTableModel.new AttackTableCellRenderer());
-        notes.getDocument().addDocumentListener(new ActorTextDocumentListener(textListenField.Notes));
+        attacksTable.getColumnModel().getColumn(AttackTableModel.columns.Damage.ordinal()).setCellEditor(attackTableModel.new AttackTableCellEditor(ParsingFieldParserFactory.DamageParser()));
+
         showTempCheckBox.setSelected(false); showTempCheckBoxActionPerformed(null); // Start hidden
         disableAndClearPanel();
     }
@@ -184,47 +183,31 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         attacksTable = new BasicTable();
         type = new javax.swing.JComboBox();
         jLabel7 = new javax.swing.JLabel();
-        hp = new javax.swing.JFormattedTextField();
-        injury = new javax.swing.JFormattedTextField();
-        ht = new javax.swing.JFormattedTextField();
         jLabel1 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         notes = new javax.swing.JTextArea();
         jLabel9 = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
-        fp = new javax.swing.JFormattedTextField();
-        move = new javax.swing.JFormattedTextField();
-        fatigue = new javax.swing.JFormattedTextField();
         jLabel6 = new javax.swing.JLabel();
-        parry = new javax.swing.JFormattedTextField();
         name = new javax.swing.JTextField();
         jLabel11 = new javax.swing.JLabel();
-        block = new javax.swing.JFormattedTextField();
         jLabel12 = new javax.swing.JLabel();
-        dodge = new javax.swing.JFormattedTextField();
         jLabel13 = new javax.swing.JLabel();
         shieldPanel = new javax.swing.JPanel();
         jLabel15 = new javax.swing.JLabel();
         jLabel16 = new javax.swing.JLabel();
         jLabel17 = new javax.swing.JLabel();
-        db = new javax.swing.JFormattedTextField();
-        shield_dr = new javax.swing.JFormattedTextField();
-        shield_hp = new javax.swing.JFormattedTextField();
-        st = new javax.swing.JFormattedTextField();
+        shield_db = new gurpsinittool.app.textfield.ParsingField();
+        shield_dr = new gurpsinittool.app.textfield.ParsingField();
+        shield_hp = new gurpsinittool.app.textfield.ParsingField();
         jLabel8 = new javax.swing.JLabel();
         jLabel14 = new javax.swing.JLabel();
-        dx = new javax.swing.JFormattedTextField();
         jLabel21 = new javax.swing.JLabel();
-        will = new javax.swing.JFormattedTextField();
         jLabel22 = new javax.swing.JLabel();
-        iq = new javax.swing.JFormattedTextField();
         jLabel23 = new javax.swing.JLabel();
-        per = new javax.swing.JFormattedTextField();
         jLabel24 = new javax.swing.JLabel();
         jLabel25 = new javax.swing.JLabel();
-        speed = new javax.swing.JFormattedTextField();
         jLabel26 = new javax.swing.JLabel();
-        sm = new javax.swing.JFormattedTextField();
         traits = new javax.swing.JPanel();
         jScrollPane5 = new javax.swing.JScrollPane();
         traitsTable = new BasicTable();
@@ -242,7 +225,23 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         refreshTempTable = new javax.swing.JButton();
         jSeparator6 = new javax.swing.JToolBar.Separator();
         resizeTempTable = new javax.swing.JButton();
-        dr = new javax.swing.JTextField();
+        st = new gurpsinittool.app.textfield.ParsingField();
+        dr = new gurpsinittool.app.textfield.ParsingField();
+        dx = new gurpsinittool.app.textfield.ParsingField();
+        iq = new gurpsinittool.app.textfield.ParsingField();
+        ht = new gurpsinittool.app.textfield.ParsingField();
+        hp = new gurpsinittool.app.textfield.ParsingField();
+        will = new gurpsinittool.app.textfield.ParsingField();
+        per = new gurpsinittool.app.textfield.ParsingField();
+        fp = new gurpsinittool.app.textfield.ParsingField();
+        speed = new gurpsinittool.app.textfield.ParsingField();
+        sm = new gurpsinittool.app.textfield.ParsingField();
+        move = new gurpsinittool.app.textfield.ParsingField();
+        dodge = new gurpsinittool.app.textfield.ParsingField();
+        parry = new gurpsinittool.app.textfield.ParsingField();
+        block = new gurpsinittool.app.textfield.ParsingField();
+        fatigue = new gurpsinittool.app.textfield.ParsingField();
+        injury = new gurpsinittool.app.textfield.ParsingField();
 
         jLabel2.setFont(jLabel2.getFont().deriveFont(jLabel2.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel2.setText("Status:");
@@ -360,49 +359,6 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jLabel7.setFont(jLabel7.getFont().deriveFont(jLabel7.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel7.setText("FP:");
 
-        hp.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
-        hp.setText("99");
-        hp.setName("HP"); // NOI18N
-        hp.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                fieldFocusGained(evt);
-            }
-        });
-        hp.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                actorIntPropertyChange(evt);
-            }
-        });
-
-        injury.setForeground(new java.awt.Color(220, 0, 0));
-        injury.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
-        injury.setText("99");
-        injury.setName("Injury"); // NOI18N
-        injury.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                fieldFocusGained(evt);
-            }
-        });
-        injury.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                actorIntPropertyChange(evt);
-            }
-        });
-
-        ht.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
-        ht.setText("99");
-        ht.setName("HT"); // NOI18N
-        ht.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                fieldFocusGained(evt);
-            }
-        });
-        ht.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                actorIntPropertyChange(evt);
-            }
-        });
-
         jLabel1.setFont(jLabel1.getFont().deriveFont(jLabel1.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel1.setText("Notes:");
 
@@ -414,6 +370,11 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         notes.setRows(5);
         notes.setWrapStyleWord(true);
         notes.setName("Notes"); // NOI18N
+        notes.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fieldFocusLost(evt);
+            }
+        });
         jScrollPane1.setViewportView(notes);
 
         jLabel9.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
@@ -422,65 +383,8 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jLabel10.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel10.setText("Dodge");
 
-        fp.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
-        fp.setText("99");
-        fp.setName("FP"); // NOI18N
-        fp.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                fieldFocusGained(evt);
-            }
-        });
-        fp.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                actorIntPropertyChange(evt);
-            }
-        });
-
-        move.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
-        move.setText("99");
-        move.setName("Move"); // NOI18N
-        move.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                fieldFocusGained(evt);
-            }
-        });
-        move.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                actorIntPropertyChange(evt);
-            }
-        });
-
-        fatigue.setForeground(new java.awt.Color(220, 0, 0));
-        fatigue.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
-        fatigue.setText("99");
-        fatigue.setName("Fatigue"); // NOI18N
-        fatigue.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                fieldFocusGained(evt);
-            }
-        });
-        fatigue.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                actorIntPropertyChange(evt);
-            }
-        });
-
         jLabel6.setFont(jLabel6.getFont().deriveFont(jLabel6.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel6.setText("Fatigue:");
-
-        parry.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
-        parry.setText("99");
-        parry.setName("Parry"); // NOI18N
-        parry.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                fieldFocusGained(evt);
-            }
-        });
-        parry.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                actorIntPropertyChange(evt);
-            }
-        });
 
         name.setBackground(new java.awt.Color(236, 233, 216));
         name.setFont(new java.awt.Font("Tahoma", 1, 20)); // NOI18N
@@ -492,48 +396,15 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                 fieldFocusGained(evt);
             }
             public void focusLost(java.awt.event.FocusEvent evt) {
-                nameFocusLost(evt);
-            }
-        });
-        name.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                nameKeyTyped(evt);
+                fieldFocusLost(evt);
             }
         });
 
         jLabel11.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel11.setText("Parry");
 
-        block.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
-        block.setText("99");
-        block.setName("Block"); // NOI18N
-        block.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                fieldFocusGained(evt);
-            }
-        });
-        block.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                actorIntPropertyChange(evt);
-            }
-        });
-
         jLabel12.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel12.setText("Block");
-
-        dodge.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
-        dodge.setText("99");
-        dodge.setName("Dodge"); // NOI18N
-        dodge.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                fieldFocusGained(evt);
-            }
-        });
-        dodge.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                actorIntPropertyChange(evt);
-            }
-        });
 
         jLabel13.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel13.setText("DR");
@@ -550,45 +421,36 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jLabel17.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel17.setText("HP:");
 
-        db.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
-        db.setText("99");
-        db.setName("Shield_DB"); // NOI18N
-        db.addFocusListener(new java.awt.event.FocusAdapter() {
+        shield_db.setName("Shield_DB"); // NOI18N
+        shield_db.setParser(ParsingFieldParserFactory.IntegerParser());
+        shield_db.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
                 fieldFocusGained(evt);
             }
-        });
-        db.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                actorIntPropertyChange(evt);
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fieldFocusLost(evt);
             }
         });
 
-        shield_dr.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
-        shield_dr.setText("99");
         shield_dr.setName("Shield_DR"); // NOI18N
+        shield_dr.setParser(ParsingFieldParserFactory.IntegerParser());
         shield_dr.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
                 fieldFocusGained(evt);
             }
-        });
-        shield_dr.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                actorIntPropertyChange(evt);
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fieldFocusLost(evt);
             }
         });
 
-        shield_hp.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
-        shield_hp.setText("99");
         shield_hp.setName("Shield_HP"); // NOI18N
+        shield_hp.setParser(ParsingFieldParserFactory.IntegerParser());
         shield_hp.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
                 fieldFocusGained(evt);
             }
-        });
-        shield_hp.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                actorIntPropertyChange(evt);
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fieldFocusLost(evt);
             }
         });
 
@@ -599,7 +461,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
             .addGroup(shieldPanelLayout.createSequentialGroup()
                 .addComponent(jLabel15)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(db, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(shield_db, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel16)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -615,28 +477,14 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
             .addGroup(shieldPanelLayout.createSequentialGroup()
                 .addGroup(shieldPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel15, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(db, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(shieldPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jLabel17, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(shield_hp, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel16, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(shield_db, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(shield_dr, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel16, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(shield_hp, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(0, 0, 0))
         );
-
-        st.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
-        st.setText("99");
-        st.setName("ST"); // NOI18N
-        st.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                fieldFocusGained(evt);
-            }
-        });
-        st.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                actorIntPropertyChange(evt);
-            }
-        });
 
         jLabel8.setFont(jLabel8.getFont().deriveFont(jLabel8.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel8.setText("ST:");
@@ -644,70 +492,14 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jLabel14.setFont(jLabel14.getFont().deriveFont(jLabel14.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel14.setText("DX:");
 
-        dx.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
-        dx.setText("99");
-        dx.setName("DX"); // NOI18N
-        dx.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                fieldFocusGained(evt);
-            }
-        });
-        dx.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                actorIntPropertyChange(evt);
-            }
-        });
-
         jLabel21.setFont(jLabel21.getFont().deriveFont(jLabel21.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel21.setText("Will:");
-
-        will.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
-        will.setText("99");
-        will.setName("Will"); // NOI18N
-        will.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                fieldFocusGained(evt);
-            }
-        });
-        will.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                actorIntPropertyChange(evt);
-            }
-        });
 
         jLabel22.setFont(jLabel22.getFont().deriveFont(jLabel22.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel22.setText("IQ:");
 
-        iq.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
-        iq.setText("99");
-        iq.setName("IQ"); // NOI18N
-        iq.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                fieldFocusGained(evt);
-            }
-        });
-        iq.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                actorIntPropertyChange(evt);
-            }
-        });
-
         jLabel23.setFont(jLabel23.getFont().deriveFont(jLabel23.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel23.setText("Per:");
-
-        per.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
-        per.setText("99");
-        per.setName("Per"); // NOI18N
-        per.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                fieldFocusGained(evt);
-            }
-        });
-        per.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                actorIntPropertyChange(evt);
-            }
-        });
 
         jLabel24.setFont(jLabel24.getFont().deriveFont(jLabel24.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel24.setText("Move:");
@@ -715,37 +507,8 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jLabel25.setFont(jLabel25.getFont().deriveFont(jLabel25.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel25.setText("Speed:");
 
-        speed.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0.00"))));
-        speed.setText("99");
-        speed.setToolTipText("");
-        speed.setName("Speed"); // NOI18N
-        speed.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                fieldFocusGained(evt);
-            }
-        });
-        speed.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                actorFloatPropertyChange(evt);
-            }
-        });
-
         jLabel26.setFont(jLabel26.getFont().deriveFont(jLabel26.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel26.setText("SM:");
-
-        sm.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
-        sm.setText("99");
-        sm.setName("SM"); // NOI18N
-        sm.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                fieldFocusGained(evt);
-            }
-        });
-        sm.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                actorIntPropertyChange(evt);
-            }
-        });
 
         traits.setBorder(javax.swing.BorderFactory.createTitledBorder("Traits"));
 
@@ -864,7 +627,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         tempPanel.setLayout(tempPanelLayout);
         tempPanelLayout.setHorizontalGroup(
             tempPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+            .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 211, Short.MAX_VALUE)
             .addComponent(jToolBar5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         tempPanelLayout.setVerticalGroup(
@@ -875,14 +638,192 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                 .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 27, Short.MAX_VALUE))
         );
 
-        dr.setText("99");
+        st.setName("ST"); // NOI18N
+        st.setParser(ParsingFieldParserFactory.IntegerParser());
+        st.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fieldFocusLost(evt);
+            }
+        });
+
         dr.setName("DR"); // NOI18N
+        dr.setParser(ParsingFieldParserFactory.DRParser());
         dr.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
                 fieldFocusGained(evt);
             }
             public void focusLost(java.awt.event.FocusEvent evt) {
-                drFocusLost(evt);
+                fieldFocusLost(evt);
+            }
+        });
+
+        dx.setName("DX"); // NOI18N
+        dx.setParser(ParsingFieldParserFactory.IntegerParser());
+        dx.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fieldFocusLost(evt);
+            }
+        });
+
+        iq.setName("IQ"); // NOI18N
+        iq.setParser(ParsingFieldParserFactory.IntegerParser());
+        iq.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fieldFocusLost(evt);
+            }
+        });
+
+        ht.setName("HT"); // NOI18N
+        ht.setParser(ParsingFieldParserFactory.IntegerParser());
+        ht.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fieldFocusLost(evt);
+            }
+        });
+
+        hp.setName("HP"); // NOI18N
+        hp.setParser(ParsingFieldParserFactory.IntegerParser());
+        hp.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fieldFocusLost(evt);
+            }
+        });
+
+        will.setName("Will"); // NOI18N
+        will.setParser(ParsingFieldParserFactory.IntegerParser());
+        will.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fieldFocusLost(evt);
+            }
+        });
+
+        per.setName("Per"); // NOI18N
+        per.setParser(ParsingFieldParserFactory.IntegerParser());
+        per.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fieldFocusLost(evt);
+            }
+        });
+
+        fp.setName("FP"); // NOI18N
+        fp.setParser(ParsingFieldParserFactory.IntegerParser());
+        fp.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fieldFocusLost(evt);
+            }
+        });
+
+        speed.setName("Speed"); // NOI18N
+        speed.setParser(ParsingFieldParserFactory.FloatParser());
+        speed.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fieldFocusLost(evt);
+            }
+        });
+
+        sm.setName("SM"); // NOI18N
+        sm.setParser(ParsingFieldParserFactory.IntegerParser());
+        sm.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fieldFocusLost(evt);
+            }
+        });
+
+        move.setName("Move"); // NOI18N
+        move.setParser(ParsingFieldParserFactory.IntegerParser());
+        move.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fieldFocusLost(evt);
+            }
+        });
+
+        dodge.setName("Dodge"); // NOI18N
+        dodge.setParser(ParsingFieldParserFactory.IntegerParser());
+        dodge.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fieldFocusLost(evt);
+            }
+        });
+
+        parry.setName("Parry"); // NOI18N
+        parry.setParser(ParsingFieldParserFactory.IntegerParser());
+        parry.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fieldFocusLost(evt);
+            }
+        });
+
+        block.setName("Block"); // NOI18N
+        block.setParser(ParsingFieldParserFactory.IntegerParser());
+        block.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fieldFocusLost(evt);
+            }
+        });
+
+        fatigue.setBackground(new java.awt.Color(255, 220, 220));
+        fatigue.setName("Fatigue"); // NOI18N
+        fatigue.setParser(ParsingFieldParserFactory.IntegerParser());
+        fatigue.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fieldFocusLost(evt);
+            }
+        });
+
+        injury.setBackground(new java.awt.Color(255, 220, 220));
+        injury.setName("Injury"); // NOI18N
+        injury.setParser(ParsingFieldParserFactory.IntegerParser());
+        injury.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                fieldFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fieldFocusLost(evt);
             }
         });
 
@@ -903,82 +844,82 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(3, 3, 3)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel10)
-                            .addComponent(dodge, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(parry, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel11))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(block, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel12))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jLabel13, javax.swing.GroupLayout.DEFAULT_SIZE, 38, Short.MAX_VALUE)
-                            .addComponent(dr))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel6)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(fatigue, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jLabel5)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(injury, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel9)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(ht, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(ht, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel22)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(iq, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(iq, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel14)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(dx, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(dx, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel8)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(st, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(10, 10, 10)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel7)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(fp))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel23)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(per))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addComponent(jLabel4)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(hp))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel21)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(will, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel4)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(hp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel21)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(will, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(jLabel23, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel7)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(fp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(5, 5, 5)
+                                        .addComponent(per, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                                 .addComponent(jLabel26)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(sm, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel25)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(speed, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel24)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(move))))
+                                .addComponent(sm, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                        .addComponent(jLabel25)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(speed, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                        .addComponent(jLabel24)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(move, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addGap(0, 38, Short.MAX_VALUE))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(12, 12, 12)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jLabel10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(dodge, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jLabel11, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(parry, javax.swing.GroupLayout.DEFAULT_SIZE, 36, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jLabel12, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(block, javax.swing.GroupLayout.DEFAULT_SIZE, 36, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(dr, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(18, 18, Short.MAX_VALUE)
+                        .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel1)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
@@ -990,7 +931,15 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(type, 0, 152, Short.MAX_VALUE)
                             .addComponent(status_label, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                    .addComponent(jLabel1)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(11, 11, 11)
+                        .addComponent(jLabel5)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(injury, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel6)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(fatigue, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1006,40 +955,40 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                     .addComponent(status_label))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(st, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(speed, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel25, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(hp, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(st, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(hp, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(speed, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel21, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(dx, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(jLabel24, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(move, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(will, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(dx, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(will, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(move, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel22, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(iq, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel23, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(iq, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(per, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel9)
-                    .addComponent(ht, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel7)
-                    .addComponent(fp, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel26)
+                    .addComponent(ht, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(fp, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(sm, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel6)
-                    .addComponent(fatigue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel5)
+                    .addComponent(fatigue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(injury, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1051,10 +1000,10 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(block, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(parry, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(dr, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addComponent(dodge, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(dr, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(parry, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(block, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 9, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(jLabel10))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1073,43 +1022,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 131, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
-    
-    private void actorIntPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_actorIntPropertyChange
-    	if (actorLoading != 0 || actor == null) return; // Ignore
-    	Object source = evt.getSource();
-        if (JFormattedTextField.class.isInstance(source)) {
-            if(evt.getPropertyName().equals("value")) {
-                JFormattedTextField field = JFormattedTextField.class.cast(source);
-                String name = field.getName();
-                Object value = field.getValue();
-                actorLoading++;
-                setActorTraitValue(name, String.valueOf((Long) value));
-                refreshActorIntField(field); // Refresh the field to allow for any actor-based filtering
-                actorLoading--;
-            }
-        } else {
-            System.err.println("ERROR: ActorDetailsPanel: property change from non-JFormattedTextField source! " + evt.toString());
-        }
-    }//GEN-LAST:event_actorIntPropertyChange
-        
-    private void actorFloatPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_actorFloatPropertyChange
-        if (actorLoading != 0 || actor == null) return; // Ignore
-    	Object source = evt.getSource();
-        if (JFormattedTextField.class.isInstance(source)) {
-            if(evt.getPropertyName().equals("value")) {
-                JFormattedTextField field = JFormattedTextField.class.cast(source);
-                String name = field.getName();
-                Object value = field.getValue();
-                actorLoading++;
-                setActorTraitValue(name, String.valueOf(value));
-                refreshActorFloatField(field); // Refresh the field to allow for any actor-based filtering
-                actorLoading--;
-            }
-        } else {
-            System.err.println("ERROR: ActorDetailsPanel: property change from non-JFormattedTextField source! " + evt.toString());
-        }
-    }//GEN-LAST:event_actorFloatPropertyChange
-
+            
     private void typeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_typeActionPerformed
         if(actorLoading == 0 && actor != null) {
         	setActorType(((JComboBox)evt.getSource()).getSelectedItem().toString());
@@ -1124,8 +1037,11 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     		JFormattedTextField t = (JFormattedTextField) evt.getComponent();
     		t.setText(t.getText());
     		t.selectAll();
-    	}
-    	else if (JComboBox.class.equals(com.getClass())) {
+    	} else if (ParsingField.class.equals(com.getClass())) {
+    		if (DEBUG) { System.out.println("ActorDetailsPanel: fieldFocusGained on a ActorField!"); }
+    		ParsingField t = (ParsingField) evt.getComponent();
+    		t.selectAll();
+    	} else if (JComboBox.class.equals(com.getClass())) {
     		if (DEBUG) { System.out.println("ActorDetailsPanel: fieldFocusGained on a JComboBox!"); }
     	}
     	else if (JTextField.class.equals(com.getClass())) {
@@ -1140,33 +1056,24 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     		
     }//GEN-LAST:event_fieldFocusGained
 
-    private void nameKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_nameKeyTyped
-        // Consume Esc and Enter keys
-    	char c = evt.getKeyChar();
-    	if (c == KeyEvent.VK_ESCAPE) {
-    	   	if (DEBUG) { System.out.println("ActorDetailsPanel: nameKeyTyped ESCAPE"); }
-    	   	refreshActorStringField(name);
-    	}
-    	else if (c == KeyEvent.VK_ENTER) {
-    	   	if (DEBUG) { System.out.println("ActorDetailsPanel: nameKeyTyped ENTER"); }
-        	setActorTraitValue("Name", name.getText());
-        }
-    }//GEN-LAST:event_nameKeyTyped
-
-    private void nameFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_nameFocusLost
-    	if (DEBUG) { System.out.println("ActorDetailsPanel: nameFocusLost" + evt.toString()); }
+    private void fieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldFocusLost
+    	if (DEBUG) { System.out.println("ActorDetailsPanel: fieldFocusLost (actorLoading=" + actorLoading + ") " + evt.toString()); }
     	if (!evt.isTemporary() && actorLoading == 0) {
-    		setActorTraitValue("Name", name.getText());
+    		Component source = evt.getComponent();
+    		if (ParsingField.class.equals(source.getClass())) {
+    			ParsingField field = (ParsingField)source;
+    			setActorTraitValue(field.getName(), field.getText());
+    		} else if ( JTextField.class.equals(source.getClass())) {
+    			JTextField field = (JTextField)source;
+    			setActorTraitValue(field.getName(), field.getText());
+    		} else if ( JTextArea.class.equals(source.getClass())) {
+    			JTextArea field = (JTextArea)source;
+    			setActorTraitValue(field.getName(), field.getText());
+    		} else {        
+    			System.err.println("ActorDetailsPanel: fieldFocusLost: unsupported source! " + source.getClass().toString());
+    		}
     	}
-    }//GEN-LAST:event_nameFocusLost
-
-    private void drFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_drFocusLost
-    	if (DEBUG) { System.out.println("ActorDetailsPanel: drFocusLost" + evt.toString()); }
-    	if (!evt.isTemporary() && actorLoading == 0) {
-    		setActorTraitValue("DR", dr.getText());
-    	}
-    }//GEN-LAST:event_drFocusLost
-
+    }//GEN-LAST:event_fieldFocusLost
     
     private void add_traitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_add_traitActionPerformed
         traitTableModel.addTrait();
@@ -1218,6 +1125,12 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         resizeTableInPanel(attacks, attacksTable, attackTableModel);
     }//GEN-LAST:event_add_attackActionPerformed
 
+    private void execute_attackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_execute_attackActionPerformed
+    	int modelRow = attacksTable.getRowSorter().convertRowIndexToModel(attacksTable.getSelectedRow());
+    	//gameMaster.new AttackNumAction(modelRow).actionPerformed(null);
+    	actor.Attack(modelRow);
+    }//GEN-LAST:event_execute_attackActionPerformed
+
     private void resizeTempTableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resizeTempTableActionPerformed
         resizeTableInPanel(tempPanel, tempTable, tempTableModel);
     }//GEN-LAST:event_resizeTempTableActionPerformed
@@ -1237,56 +1150,52 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         this.doLayout();
     }//GEN-LAST:event_showTempCheckBoxActionPerformed
 
-    private void execute_attackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_execute_attackActionPerformed
-    	int modelRow = attacksTable.getRowSorter().convertRowIndexToModel(attacksTable.getSelectedRow());
-    	//gameMaster.new AttackNumAction(modelRow).actionPerformed(null);
-    	actor.Attack(modelRow);
-    }//GEN-LAST:event_execute_attackActionPerformed
+ 
 
     /**
      * Disable the panel, setting all values to default
      */
     protected void disableAndClearPanel() {
     	actorLoading++;
-    	st.setValue(null);
+    	st.setText("");
     	st.setEnabled(false);
-    	hp.setValue(null);
+    	hp.setText("");
     	hp.setEnabled(false);
-    	speed.setValue(null);
+    	speed.setText("");
     	speed.setEnabled(false);
-    	dx.setValue(null);
+    	dx.setText("");
     	dx.setEnabled(false);
-    	will.setValue(null);
+    	will.setText("");
     	will.setEnabled(false);
-    	move.setValue(null);
+    	move.setText("");
     	move.setEnabled(false);
-    	iq.setValue(null);
+    	iq.setText("");
     	iq.setEnabled(false);
-    	per.setValue(null);
+    	per.setText("");
     	per.setEnabled(false);
-    	ht.setValue(null);
+    	ht.setText("");
     	ht.setEnabled(false);
-    	fp.setValue(null);
+    	fp.setText("");
     	fp.setEnabled(false);
-    	sm.setValue(null);
+    	sm.setText("");
     	sm.setEnabled(false);
-    	fatigue.setValue(null);
+    	fatigue.setText("");
     	fatigue.setEnabled(false);
-    	injury.setValue(null);
+    	injury.setText("");
     	injury.setEnabled(false);
-    	dodge.setValue(null);
+    	dodge.setText("");
     	dodge.setEnabled(false);
-    	parry.setValue(null);
+    	parry.setText("");
     	parry.setEnabled(false);
-    	block.setValue(null);
+    	block.setText("");
     	block.setEnabled(false);
     	dr.setText("");
     	dr.setEnabled(false);
-    	db.setValue(null);
-    	db.setEnabled(false);
-    	shield_dr.setValue(null);
+    	shield_db.setText("");
+    	shield_db.setEnabled(false);
+    	shield_dr.setText("");
     	shield_dr.setEnabled(false);
-    	shield_hp.setValue(null);
+    	shield_hp.setText("");
     	shield_hp.setEnabled(false);
     	
     	//status.setSelectedIndex(-1);
@@ -1336,7 +1245,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     	parry.setEnabled(true);
     	block.setEnabled(true);
     	dr.setEnabled(true);
-    	db.setEnabled(true);
+    	shield_db.setEnabled(true);
     	shield_dr.setEnabled(true);
     	shield_hp.setEnabled(true);
     	//status.setEnabled(true);
@@ -1389,39 +1298,38 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     }
     
     /**
-     * Refresh the actor in the display
+     * Refresh the actor in the display, discarding any potential edits
      */
     protected void refreshActor () {
     	if (actorLoading != 0) return;
 		actorLoading++; // turn off property updates
-		refreshActorName();
-	
+	    
+		refreshActorField(name);
+		formatActorName();
 		// TODO: clean-up / replace with editor component
 		status_label.setText(actor.getStatusesString());
-		
 	    type.setSelectedItem(actor.getType());
-	    refreshActorIntField(st);
-	    refreshActorIntField(hp);
-	    refreshActorFloatField(speed);
-	    refreshActorIntField(dx);
-	    refreshActorIntField(will);
-	    refreshActorIntField(move);
-	    refreshActorIntField(iq);
-	    refreshActorIntField(per);
-	    refreshActorIntField(ht);
-	    refreshActorIntField(fp);
-	    refreshActorIntField(sm);
-	    refreshActorIntField(fatigue);
-	    refreshActorIntField(injury);
-	    refreshActorIntField(dodge);
-	    refreshActorIntField(parry);
-	    refreshActorIntField(block);
-	    refreshActorStringField(dr);
-	    refreshActorIntField(db);
-	    refreshActorIntField(shield_dr);
-	    refreshActorIntField(shield_hp);
-	    
-	    refreshActorStringField(notes);
+	    refreshActorField(st);
+	    refreshActorField(hp);
+	    refreshActorField(speed);
+	    refreshActorField(dx);
+	    refreshActorField(will);
+	    refreshActorField(move);
+	    refreshActorField(iq);
+	    refreshActorField(per);
+	    refreshActorField(ht);
+	    refreshActorField(fp);
+	    refreshActorField(sm);
+	    refreshActorField(fatigue);
+	    refreshActorField(injury);
+	    refreshActorField(dodge);
+	    refreshActorField(parry);
+	    refreshActorField(block);
+	    refreshActorField(dr);
+	    refreshActorField(shield_db);
+	    refreshActorField(shield_dr);
+	    refreshActorField(shield_hp);	 
+	    refreshActorField(notes);
 	             
 		actorLoading--; // turn property updates back on
 	}
@@ -1429,9 +1337,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	/**
 	 * Refresh actor name field, which depends on the type and status
 	 */
-	protected void refreshActorName() {
-		actorLoading++;
-		refreshActorStringField(name);
+	protected void formatActorName() {
 		switch (actor.getType()) {
 		case PC:
 			name.setBackground(new Color(200,255,200));
@@ -1453,24 +1359,9 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 		if (actor.hasStatus(ActorStatus.Unconscious) || actor.hasStatus(ActorStatus.Dead)) {
 			name.setForeground(new Color(128,128,128));
 		}
-		actorLoading--;
 	}
 	
-	protected void refreshActorIntField(JFormattedTextField field) {
-		actorLoading++;
-		String traitName = field.getName();
-		field.setValue(Integer.parseInt(actor.getTraitValue(traitName)));
-		actorLoading--;
-	}
-	
-	protected void refreshActorFloatField(JFormattedTextField field) {
-		actorLoading++;
-		String traitName = field.getName();
-		field.setValue(Float.parseFloat(actor.getTraitValue(traitName)));
-		actorLoading--;
-	}
-	
-	protected void refreshActorStringField(JTextComponent field) {
+	protected void refreshActorField(JTextComponent field) {
 		actorLoading++;
 		String traitName = field.getName();
 		field.setText(actor.getTraitValue(traitName));
@@ -1483,9 +1374,10 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	 * @param value - the value to set
 	 */
 	protected void setActorTraitValue(String name, String value){
-            actorLoading++;
-            actor.setTrait(name, value);
-            actorLoading--;
+		if (actor == null) return;
+		actorLoading++;
+		actor.setTrait(name, value);
+		actorLoading--;
 	}
 	
 	/**
@@ -1496,7 +1388,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	protected void setActorType(String value){
 			actorLoading++;
             actor.setType(ActorType.valueOf(value));
-            refreshActorName(); // need to refresh actor name, since this may cause a change in formatting
+            formatActorName(); // need to refresh actor name, since this may cause a change in formatting
             actorLoading--;
 	}
 	
@@ -1514,11 +1406,9 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 				((actor==null)?"[null]":"'"+actor.getTraitValue(BasicTrait.Name)+"'") + " => " +
 				((newActor==null)?"[null]":"'"+newActor.getTraitValue(BasicTrait.Name)+"'"));
 		if (actor != null) {
-			// TODO: stop any in-progress edits somehow
 			actorLoading++; // Prevent loop-back into this function due to flushed edits
 			actor.removePropertyChangeListener(this);
-			stopCellEditing(attacksTable);
-			stopCellEditing(traitsTable);
+			flushEdits();
 			actorLoading--;
 		}
 
@@ -1536,11 +1426,33 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 		} else {
 			disableAndClearPanel();
 		}      
-		
 	}
     
 	protected enum textListenField {Name, Notes};
 
+	
+	/**
+	 * flush any edits in progress
+	 */
+	public void flushEdits() {
+		flushFieldEdits();
+		stopCellEditing(attacksTable);
+		stopCellEditing(traitsTable);
+	}
+	
+	/**
+	 * flush any field edits
+	 */
+	protected void flushFieldEdits() {
+		Component fcomponent = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+		if (fcomponent != null && this.isAncestorOf(fcomponent)) {
+			if (JTextComponent.class.isInstance(fcomponent)) {
+				JTextComponent comp = (JTextComponent) fcomponent;
+				setActorTraitValue(comp.getName(), comp.getText());
+			}
+		}
+	}
+	
 	/**
 	 * Halt cell editing, if it is occurring.
 	 */
@@ -1550,54 +1462,13 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 			if (!table.getCellEditor().stopCellEditing())
 				table.getCellEditor().cancelCellEditing();
 	}
-	
-	/**
-	 * Internal class to listen to the changes in text components
-	 */
-	protected class ActorTextDocumentListener implements DocumentListener {
-		
-		private textListenField lField;
-		
-		public ActorTextDocumentListener(textListenField field) {
-			lField = field;
-		}
-	
-	    public void insertUpdate(DocumentEvent e) {
-	        processTextChanges(e);
-	    }
-	    public void removeUpdate(DocumentEvent e) {
-	    	processTextChanges(e);
-	    }
-	    public void changedUpdate(DocumentEvent e) {
-	    	processTextChanges(e);
-	    }
-	    private void processTextChanges(DocumentEvent e) {
-	    	if (actorLoading == 0) {
-	    		Document document = (Document)e.getDocument();
-	    		try {
-	    			switch (lField) {
-	    			case Name:
-	    				setActorTraitValue("Name", document.getText(0,document.getLength()));
-	    				break;
-	    			case Notes:
-	    				// TODO: figure out a way to avoid triggering a refresh on every key typed!
-	    				if (DEBUG) { System.out.println("ActorTextDocumentListener: processTextChanges: Notes: updating actor"); }
-	    				setActorTraitValue("Notes", document.getText(0,document.getLength()));
-	    				break;
-	    			}
-					
-				} catch (BadLocationException e1) {
-					e1.printStackTrace();
-				}
-            }
-	    }
-	}
 
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		// TODO: add some intelligence to this?
+		// TODO: add some intelligence to this? Will need to create component map which allows 
+		// a 'getComponentByName(String name)' type function to operate
 		System.out.println("ActorDetailsPanel: received actor property changed notification!");
-		refreshActor();		
+		refreshActor();	
 	} 
 
 }

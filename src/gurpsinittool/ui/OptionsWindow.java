@@ -43,8 +43,8 @@ public class OptionsWindow extends javax.swing.JFrame {
         setDefaultProperties();
         setLocation(Integer.valueOf(propertyBag.getProperty("Options.location.x")),
                 Integer.valueOf(propertyBag.getProperty("Options.location.y")));
-        setSize(Integer.valueOf(propertyBag.getProperty("Options.size.width")),
-        		Integer.valueOf(propertyBag.getProperty("Options.size.height")));
+//        setSize(Integer.valueOf(propertyBag.getProperty("Options.size.width")),
+//        		Integer.valueOf(propertyBag.getProperty("Options.size.height")));
         
 		 if (propertyBag.containsKey("Options.game.AUTO_ATTACK")) {
 			 currentSettings.AUTO_ATTACK = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_ATTACK")); }
@@ -58,6 +58,8 @@ public class OptionsWindow extends javax.swing.JFrame {
 			 currentSettings.AUTO_SHOCK = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_SHOCK")); }
 		 if (propertyBag.containsKey("Options.game.LOG_STATUSCHANGES")) {
 			 currentSettings.LOG_STATUSCHANGES = Boolean.valueOf(propertyBag.getProperty("Options.game.LOG_STATUSCHANGES")); }
+		 if (propertyBag.containsKey("Options.game.LOG_DEFENSEDETAILS")) {
+			 currentSettings.LOG_DEFENSEDETAILS = Boolean.valueOf(propertyBag.getProperty("Options.game.LOG_DEFENSEDETAILS")); }
     }
 
     /**
@@ -68,10 +70,10 @@ public class OptionsWindow extends javax.swing.JFrame {
 			 propertyBag.setProperty("Options.location.x", "500"); }
 		 if (!propertyBag.containsKey("Options.location.y")) {
 			 propertyBag.setProperty("Options.location.y", "300"); }
-		 if (!propertyBag.containsKey("Options.size.width")) {
-			 propertyBag.setProperty("Options.size.width",  String.valueOf(getPreferredSize().width)); }
-		 if (!propertyBag.containsKey("Options.size.height")) {
-			 propertyBag.setProperty("Options.size.height",  String.valueOf(getPreferredSize().height)); }
+//		 if (!propertyBag.containsKey("Options.size.width")) {
+//			 propertyBag.setProperty("Options.size.width",  String.valueOf(getPreferredSize().width)); }
+//		 if (!propertyBag.containsKey("Options.size.height")) {
+//			 propertyBag.setProperty("Options.size.height",  String.valueOf(getPreferredSize().height)); }
 	 }
 	 
 	 /**
@@ -81,14 +83,15 @@ public class OptionsWindow extends javax.swing.JFrame {
 		 // Kept up-to-date with event listeners
 		 propertyBag.setProperty("Options.location.x", String.valueOf(getLocation().x));
 		 propertyBag.setProperty("Options.location.y", String.valueOf(getLocation().y));
-		 propertyBag.setProperty("Options.size.width", String.valueOf(getSize().width));
-		 propertyBag.setProperty("Options.size.height", String.valueOf(getSize().height));
+//		 propertyBag.setProperty("Options.size.width", String.valueOf(getSize().width));
+//		 propertyBag.setProperty("Options.size.height", String.valueOf(getSize().height));
 		 propertyBag.setProperty("Options.game.AUTO_ATTACK", String.valueOf(currentSettings.AUTO_ATTACK));
 		 propertyBag.setProperty("Options.game.AUTO_KNOCKDOWNSTUN", String.valueOf(currentSettings.AUTO_KNOCKDOWNSTUN));
 		 propertyBag.setProperty("Options.game.AUTO_STUNRECOVERY", String.valueOf(currentSettings.AUTO_STUNRECOVERY));
 		 propertyBag.setProperty("Options.game.AUTO_UNCONSCIOUS", String.valueOf(currentSettings.AUTO_UNCONSCIOUS));
 		 propertyBag.setProperty("Options.game.AUTO_SHOCK", String.valueOf(currentSettings.AUTO_SHOCK));
 		 propertyBag.setProperty("Options.game.LOG_STATUSCHANGES", String.valueOf(currentSettings.LOG_STATUSCHANGES));
+		 propertyBag.setProperty("Options.game.LOG_DEFENSEDETAILS", String.valueOf(currentSettings.LOG_DEFENSEDETAILS));
 	 }
 	 
     /**
@@ -111,6 +114,7 @@ public class OptionsWindow extends javax.swing.JFrame {
         applyButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
+        log_defensedetails = new javax.swing.JCheckBox();
         log_statuschanges = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -184,6 +188,9 @@ public class OptionsWindow extends javax.swing.JFrame {
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Logging"));
 
+        log_defensedetails.setText("Defense details");
+        log_defensedetails.setToolTipText("Log defense details (retreat/EE/side/etc.)");
+
         log_statuschanges.setText("Verbose Status Changes");
         log_statuschanges.setToolTipText("Log all status changes");
 
@@ -192,12 +199,17 @@ public class OptionsWindow extends javax.swing.JFrame {
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addComponent(log_statuschanges)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(log_statuschanges)
+                    .addComponent(log_defensedetails))
                 .addGap(0, 0, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(log_statuschanges)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addComponent(log_statuschanges)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(log_defensedetails))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -206,7 +218,7 @@ public class OptionsWindow extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(combatAutomationPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(0, 89, Short.MAX_VALUE)
+                .addGap(0, 66, Short.MAX_VALUE)
                 .addComponent(okButton, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(applyButton)
@@ -252,6 +264,7 @@ public class OptionsWindow extends javax.swing.JFrame {
     	auto_unconsciousness.setSelected(currentSettings.AUTO_UNCONSCIOUS);
         auto_shock.setSelected(currentSettings.AUTO_SHOCK);
         log_statuschanges.setSelected(currentSettings.LOG_STATUSCHANGES);
+        log_defensedetails.setSelected(currentSettings.LOG_DEFENSEDETAILS);
     }
     
     public void copyComponentsToSettings() {
@@ -261,6 +274,7 @@ public class OptionsWindow extends javax.swing.JFrame {
     	currentSettings.AUTO_UNCONSCIOUS = auto_unconsciousness.isSelected();   
     	currentSettings.AUTO_SHOCK = auto_shock.isSelected();
     	currentSettings.LOG_STATUSCHANGES = log_statuschanges.isSelected();
+    	currentSettings.LOG_DEFENSEDETAILS = log_defensedetails.isSelected();
     }
     /**
      * @param args the command line arguments
@@ -308,6 +322,7 @@ public class OptionsWindow extends javax.swing.JFrame {
     private javax.swing.JPanel combatAutomationPanel;
     private javax.swing.JPanel jPanel1;
     private gurpsinittool.data.GameSettings localSettings;
+    private javax.swing.JCheckBox log_defensedetails;
     private javax.swing.JCheckBox log_statuschanges;
     private javax.swing.JButton okButton;
     // End of variables declaration//GEN-END:variables

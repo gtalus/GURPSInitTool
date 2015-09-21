@@ -1,6 +1,7 @@
 package gurpsinittool.data;
 
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.HashSet;
@@ -11,28 +12,47 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
+import javax.swing.undo.AbstractUndoableEdit;
+import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.CompoundEdit;
+import javax.swing.undo.UndoManager;
+import javax.swing.undo.UndoableEdit;
 
 import gurpsinittool.app.InitTable;
 import gurpsinittool.data.ActorBase.ActorStatus;
 import gurpsinittool.data.ActorBase.ActorType;
 import gurpsinittool.data.ActorBase.BasicTrait;
+import gurpsinittool.ui.ActorDetailsPanel_v2;
 import gurpsinittool.ui.DefenseDialog;
 import gurpsinittool.util.MiscUtil;
+import gurpsinittool.util.EncounterLogEvent;
+import gurpsinittool.util.EncounterLogEventSource;
 import gurpsinittool.util.GAction;
 
-public class GameMaster {
+public class GameMaster implements UndoableEditListener, PropertyChangeListener {
 	// Game logic members
 	private Integer round = 0;
 	private Integer activeActor = -1;
 	
 	private static final boolean DEBUG = false;
 	private PropertyChangeSupport mPcs = new PropertyChangeSupport(this); // Change reporting
+	public EncounterLogEventSource LogEventSource = new EncounterLogEventSource(); // where to send log messages
+
+	private UndoManager undoManager = new UndoManager();
+	private CompoundEdit compoundEdit;
 	
 	// Linked objects
 	public InitTable initTable;
+	public ActorDetailsPanel_v2 detailsPanel;
 	public DefenseDialog defenseDialog;
 	
 	// Actions	
+	public Action actionUndo;
+	public Action actionRedo;
+	
 	public Action actionNextActor;
 	public Action actionEndRound;
 	public Action actionNextRound;
@@ -43,7 +63,7 @@ public class GameMaster {
 		int num;
 		public AttackNumAction(int num) {this.num = num; }
 		public void actionPerformed(ActionEvent arg0) {
-			initTable.stopCellEditing();
+			flushInteractiveEdits();
 			for (Actor a : initTable.getSelectedActors())
 				a.Attack(num);
 		}
@@ -86,6 +106,8 @@ public class GameMaster {
 	
 	public GameMaster() {
 		initializeActions();
+		updateUndoRedo();	
+		this.addPropertyChangeListener(this); // Yes, I'm listening to myself :)
 	}
 	
 	public int getActiveActor() {
@@ -112,23 +134,33 @@ public class GameMaster {
 	}
 	
 	public void addActor(Actor actor, int position) {
-		// TODO: action support /etc
+		postUndoableEdit(new AddActorEdit(actor, position)); // directly post edit to undo manager		
+		_addActor(actor,position);
+	}
+	
+	private void _addActor(Actor actor, int position) {
+		actor.addPropertyChangeListener(this);
 		if (position <= activeActor) { activeActor++; } // Track active actor
 		initTable.getActorTableModel().addActor(actor, position);
 	}
 	
     public void removeActor(int row) {
-		if (row < activeActor) { activeActor--; } // track active Actor
-		else if (row == activeActor) { activeActor--; nextActor(); }
-		initTable.getActorTableModel().removeActor(row);
-    }
+		postUndoableEdit(new RemoveActorEdit(initTable.getActorTableModel().getActor(row), row)); // directly post edit to undo manager			
+    	_removeActor(row);
+   }
     
     public void removeActor(Actor actor) {
-     	int[] rows = initTable.getActorTableModel().getActorRows(actor);
+    	int[] rows = initTable.getActorTableModel().getActorRows(actor);
     	for (int i = rows.length-1; i >= 0; i--) {
     		removeActor(rows[i]);
     	}
-     }
+    }
+    
+    private void _removeActor(int row) {
+    	if (row < activeActor) { activeActor--; } // track active Actor
+		else if (row == activeActor) { activeActor--; nextActor(); }
+		initTable.getActorTableModel().removeActor(row);
+    }
 	
     /**
      * Step to the next actor, taking auto-actions for the new actor if appropriate
@@ -136,9 +168,10 @@ public class GameMaster {
      */
     private boolean nextActor() {
     	// Check for start of round
-    	if (activeActor == -1)
-			setRound(round+1);
-    	
+    	if (activeActor == -1) {		
+    		logEvent("<b>** Round " + round + " **</b>");
+    		setRound(round+1);
+    	}
 		boolean retval = false;
 		int actorRow = activeActor;
 		Actor currentActor;
@@ -176,6 +209,12 @@ public class GameMaster {
     	while(!nextActor()) {}
     }
     
+
+    private void flushInteractiveEdits() {
+    	detailsPanel.flushEdits();
+    	initTable.stopCellEditing();
+    }
+    
 	/**
 	 * Adjust all the statuses in a coordinated fashion.
 	 * If any are unset: all are set
@@ -183,7 +222,7 @@ public class GameMaster {
 	 * @param status The status to toggle
 	 */
 	private void coordinatedChangeStatusOfSelectedActors(ActorStatus status) {
-		initTable.stopCellEditing();
+		flushInteractiveEdits();
 		// First, determine which way to go
 		boolean all_set = true;
     	Actor[] actors = initTable.getSelectedActors();
@@ -199,15 +238,14 @@ public class GameMaster {
 			else
 				a.addStatus(status);
     	}
-	}
-	
+	}	
 	
 	/**
 	 * Toggle the specified status indicator to all selected actors individually
 	 * @param status The status to toggle
 	 */
 	private void toggleStatusOfSelectedActors(ActorStatus status) {
-		initTable.stopCellEditing();
+		flushInteractiveEdits();
     	for (Actor a : initTable.getSelectedActors()) {
     		if (a.hasStatus(status))
 				a.removeStatus(status);
@@ -222,7 +260,7 @@ public class GameMaster {
 	 * @param add True if add, false if remove
 	 */
 	private void modifyStatusOfSelectedActors(ActorStatus status, boolean add) {
-		initTable.stopCellEditing();
+		flushInteractiveEdits();
     	for (Actor a : initTable.getSelectedActors()) {
     		if (add)
 				a.addStatus(status);
@@ -232,7 +270,7 @@ public class GameMaster {
 	}
 	
     private void setSelectedType(ActorType t) {
-    	initTable.stopCellEditing();
+    	flushInteractiveEdits();
     	for (Actor a : initTable.getSelectedActors()) {
     		a.setType(t);
     	}
@@ -346,31 +384,55 @@ public class GameMaster {
     	}
     	return tags;
     }
-
+    
+ 
 	@SuppressWarnings("serial")
 	private void initializeActions() {
+		// Undo / Redo
+		actionUndo = new GAction("Undo", "Undo the most recent edit (Ctrl+Z)", new ImageIcon("src/resources/images/arrow_undo.png")) {
+			public void actionPerformed(ActionEvent arg0) {	
+				try {
+					undoManager.undo();			
+				} catch (CannotUndoException e) {
+					System.out.println("-W- Cannot undo: " + e);
+					e.printStackTrace();
+				}
+				updateUndoRedo();
+			}
+		};
+		actionRedo = new GAction("Redo", "Redo the most recent undo (Ctrl+Y)", new ImageIcon("src/resources/images/arrow_redo.png")) {
+			public void actionPerformed(ActionEvent arg0) {	
+				try {
+					undoManager.redo();
+				} catch (CannotRedoException e) {
+					System.out.println("-W- Cannot redo: " + e);
+					e.printStackTrace();
+				}
 
+				updateUndoRedo();		
+			}
+		};
+	
 		// Round Management
 		actionNextActor = new GAction("Next Combatant", "Move to the next active combatant in the turn sequence (Ctrl+N)", new ImageIcon("src/resources/images/control_play_blue.png")) {
-			public void actionPerformed(ActionEvent arg0) {	nextActor(); selectActiveActor(); }
+			public void actionPerformed(ActionEvent arg0) {	startCompoundEdit(); nextActor(); selectActiveActor(); endCompoundEdit();}
 		};
 		actionEndRound = new GAction("End Round", "Step to the end of the turn sequence (Ctrl+E)", new ImageIcon("src/resources/images/control_end_blue.png")) {
-			public void actionPerformed(ActionEvent arg0) {	endRound(); selectActiveActor(); }
+			public void actionPerformed(ActionEvent arg0) {	startCompoundEdit(); endRound(); selectActiveActor(); endCompoundEdit();}
 		};
 		actionNextRound = new GAction("Next Round", "Step to the start of the next round sequence (Ctrl+R)", new ImageIcon("src/resources/images/control_fastforward_blue.png")) {
-			public void actionPerformed(ActionEvent arg0) {	nextRound(); selectActiveActor(); }
+			public void actionPerformed(ActionEvent arg0) {	startCompoundEdit(); nextRound(); selectActiveActor(); endCompoundEdit();}
 		};
 		actionResetRound = new GAction("Reset Round Counter", "Reset the round counter (Alt+R)", new ImageIcon("src/resources/images/control_start_blue.png")) {
 			public void actionPerformed(ActionEvent arg0) {	
 				setRound(0);
-				setActiveActor(-1);				
-				nextActor();
+				setActiveActor(-1);		
 			}
 		};	
 		// Actor management
 		actionDeleteSelectedActors = new GAction("Delete", "Delete the selected combatants", null) {
 			public void actionPerformed(ActionEvent arg0) { 
-				initTable.stopCellEditing();
+				flushInteractiveEdits();
 				int result = JOptionPane.showConfirmDialog(initTable, "Are you sure you want to delete these rows?", "Confirm Row Delete", JOptionPane.OK_CANCEL_OPTION);
 				if (result == JOptionPane.OK_OPTION) {
 					int[] rows = initTable.getSelectedRows();
@@ -382,7 +444,7 @@ public class GameMaster {
 		};
 		actionResetSelectedActors = new GAction("Reset", "Reset the state of the selected combatants", null) {
 			public void actionPerformed(ActionEvent arg0) { 
-				initTable.stopCellEditing();
+				flushInteractiveEdits();
 		    	for (Actor a : initTable.getSelectedActors()) {
 		    		a.Reset();
 		    	}		  
@@ -390,18 +452,22 @@ public class GameMaster {
 		};
 		actionSetSelectedActorActive = new GAction("Set Active", "Set the selected combatant to be currently active", null) {
 			public void actionPerformed(ActionEvent arg0) { 
-				initTable.stopCellEditing();
+				flushInteractiveEdits();
 				int[] rows = initTable.getSelectedRows();
 				setActiveActor(rows[0]);
 				initTable.getActorTableModel().getActor(activeActor).removeStatus(ActorStatus.Waiting); // auto-remove waiting
 			}
 		};
-		actionTagActors = new GAction("Update Tags", "Update all tags (Ctrl+T)", new ImageIcon("src/resources/images/tag_blue_add.png")) {
-			public void actionPerformed(ActionEvent arg0) {	autoTagActors(); initTable.autoSizeColumns(); }
+		actionTagActors = new GAction("Update Tags", "Update all NPC tags (Ctrl+T)", new ImageIcon("src/resources/images/tag_blue_add.png")) {
+			public void actionPerformed(ActionEvent arg0) {	
+				flushInteractiveEdits();
+				autoTagActors(); 
+				initTable.autoSizeColumns(); 
+			}
 		};
 		actionTagSelectedActors = new GAction("Tag", "Add tags to the selected combatants", null) {
 			public void actionPerformed(ActionEvent arg0) { 
-				initTable.stopCellEditing();
+				flushInteractiveEdits();
 		    	for (Actor a : initTable.getSelectedActors()) {
 		    		tagActor(a);
 		    	}
@@ -409,7 +475,7 @@ public class GameMaster {
 		};
 		actionRemoveTagSelectedActors = new GAction("Remove Tag", "Remove tags from the selected combatants", null) {
 			public void actionPerformed(ActionEvent arg0) { 
-				initTable.stopCellEditing();
+				flushInteractiveEdits();
 		    	for (Actor a : initTable.getSelectedActors()) {
 		    		removeTag(a);
 		    	}
@@ -418,7 +484,7 @@ public class GameMaster {
 		// Actor actions
 		actionAttack = new GAction("Attack", "Selected combatants attack (Ctrl+K)", new ImageIcon("src/resources/images/sword.png")) {
 			public void actionPerformed(ActionEvent arg0) { 
-				initTable.stopCellEditing();
+				flushInteractiveEdits();
 				for (Actor a : initTable.getSelectedActors()) {
 					a.Attack();
 				}
@@ -430,7 +496,7 @@ public class GameMaster {
 				Actor actor = initTable.getSelectedActor();
 				if (actor == null)
 					return;    			 
-				initTable.stopCellEditing(); // Clear out edits in progress    			 
+				flushInteractiveEdits(); // Clear out edits in progress    			 
 				defenseDialog.setActor(actor); // Initialize values with actor
 				MiscUtil.validateOnScreen(defenseDialog);
 				defenseDialog.setVisible(true); // Modal call    			 
@@ -526,11 +592,220 @@ public class GameMaster {
 	
 	}
 	
+	// Log Support
+	private void logEvent(String text) {
+		System.out.println("HERE: log event");
+		if (LogEventSource != null)
+			LogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, text));
+	}
+		
 	// Change Support
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
         mPcs.addPropertyChangeListener(listener);
     }
     public void removePropertyChangeListener(PropertyChangeListener listener) {
         mPcs.removePropertyChangeListener(listener);
+    }
+
+	// Undo/Redo support
+    private void updateUndoRedo() {
+		actionUndo.setEnabled(undoManager.canUndo());
+		actionRedo.setEnabled(undoManager.canRedo());
+		if (undoManager.canUndo()) {
+			actionUndo.putValue(Action.NAME, undoManager.getUndoPresentationName());
+    	} else {
+    		actionUndo.putValue(Action.NAME, "Undo");
+    	}
+		if (undoManager.canRedo()) {
+			actionRedo.putValue(Action.NAME, undoManager.getRedoPresentationName());
+    	} else {
+    		actionRedo.putValue(Action.NAME, "Redo");
+    	}
+    }
+    
+    @Override    
+	public void undoableEditHappened(UndoableEditEvent e) {
+    	postUndoableEdit(e.getEdit());
+	}
+    
+	private void postUndoableEdit(UndoableEdit e) {
+		if (compoundEdit != null) {
+			//System.out.println("HERE: postUndoableEdit: adding to compound edit: " + e.getPresentationName());
+			compoundEdit.addEdit(e);
+		} else {
+			//System.out.println("HERE: postUndoableEdit: adding edit: " + e.getPresentationName());
+			undoManager.addEdit(e);
+		}
+    	updateUndoRedo();
+    	
+	}
+	
+	private void startCompoundEdit() {
+		if (compoundEdit != null) {
+			System.err.println("-E- GameMaster: startCompoundEdit: compound edit already started!!");
+			// TODO: print stack trace
+			return;
+		} else {
+			//System.out.println("HERE: startCompoundEdit");
+			compoundEdit = new CompoundEdit();
+		}
+	}
+	
+	private void endCompoundEdit() {
+		if (compoundEdit == null) {
+			System.err.println("-E- GameMaster: endCompoundEdit: compound edit not started!!");
+			// TODO: print stack trace
+			return;
+		} else { // End it and post it
+			//System.out.println("HERE: endCompoundEdit");
+			// TODO: add fake presentation name edit for display purposes?
+			compoundEdit.end();
+			CompoundEdit temp = compoundEdit;
+			compoundEdit = null; // so we don't add it to itself
+			postUndoableEdit(temp);
+		}
+	}
+    
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		if (Actor.class.isInstance(e.getSource())) {
+			Actor actor = (Actor) e.getSource();
+			System.out.println("GameMaster: propertyChange: saw property change for actor " + actor.getTraitValue(BasicTrait.Name));
+			String propertyName = e.getPropertyName();
+			if (propertyName.startsWith("trait.")) {
+				String traitName = propertyName.substring(6);
+				postUndoableEdit(new ActorTraitEdit(actor, traitName, (String)e.getOldValue(), (String)e.getNewValue()));
+			} else 
+				System.err.println("GameMaster: propertyChange: unrecognized Actor property: " + propertyName);
+		} else if (GameMaster.class.isInstance(e.getSource())) {
+			// Assume I'm the source
+			System.out.println("GameMaster: propertyChange: saw property change for Gamemaster");
+			String propertyName = e.getPropertyName();
+			if (propertyName.equals("ActiveActor")) {
+				postUndoableEdit(new ActiveActorEdit((Integer) e.getOldValue(), (Integer) e.getNewValue()));
+			} else if (propertyName.equals("Round")) {
+				postUndoableEdit(new RoundEdit((Integer) e.getOldValue(), (Integer) e.getNewValue()));		
+			} else 
+				System.err.println("GameMaster: propertyChange: unrecognized GameMaster property: " + propertyName);
+		} else {
+			System.err.println("GameMaster: propertyChange: unexpected source type: " + e.getSource().getClass().toString());
+		}
+	}
+
+	private class RoundEdit extends AbstractUndoableEdit {
+		private int newValue;
+		private int oldValue;
+		public RoundEdit(int oldValue, int newValue) {
+			this.oldValue = oldValue;
+			this.newValue = newValue;
+		}
+		public String getPresentationName() { return "Advance"; }
+
+		public void undo() {
+			super.undo();
+			removePropertyChangeListener(GameMaster.this);
+			setRound(oldValue);
+			addPropertyChangeListener(GameMaster.this);
+		}
+
+		public void redo() {
+			super.redo();
+			removePropertyChangeListener(GameMaster.this);
+			setRound(newValue);
+			addPropertyChangeListener(GameMaster.this);
+		}        	
+	}
+	   
+    private class ActiveActorEdit extends AbstractUndoableEdit {
+    	private int newValue;
+    	private int oldValue;
+    	public ActiveActorEdit(int oldValue, int newValue) {
+    		this.oldValue = oldValue;
+    		this.newValue = newValue;
+    	}
+    	public String getPresentationName() { return "Advance"; }
+    	
+    	public void undo() {
+			super.undo();
+    		removePropertyChangeListener(GameMaster.this);
+    		setActiveActor(oldValue);
+    		addPropertyChangeListener(GameMaster.this);
+    	}
+    	
+    	public void redo() {
+    		super.redo();
+    		removePropertyChangeListener(GameMaster.this);
+    		setActiveActor(newValue);
+    		addPropertyChangeListener(GameMaster.this);
+    	}        	
+    }
+    
+    private class AddActorEdit extends AbstractUndoableEdit {
+    	private Actor actor;
+    	private int index;
+    	public AddActorEdit(Actor actor, int index) {
+    		this.actor = actor;
+    		this.index = index;
+    	}
+    	public String getPresentationName() { return "Add"; }
+    	
+    	public void undo() {
+			super.undo();
+    		_removeActor(index);
+    	}
+    	
+    	public void redo() {
+    		super.redo();
+    		_addActor(actor,index);
+    	}        	
+    }
+    
+    private class RemoveActorEdit extends AbstractUndoableEdit {
+    	private Actor actor;
+    	private int index;
+    	public RemoveActorEdit(Actor actor, int index) {
+    		this.actor = actor;
+    		this.index = index;
+    	}
+    	public String getPresentationName() { return "Delete"; }
+    	
+    	public void undo() {
+			super.undo();
+    		_addActor(actor,index);
+    	}
+    	
+    	public void redo() {
+    		super.redo();
+    		_removeActor(index);
+    	}        	
+    }
+
+    private class ActorTraitEdit extends AbstractUndoableEdit {
+    	private Actor actor;
+    	private String traitName;
+    	private String oldValue;
+    	private String newValue;
+    	public ActorTraitEdit(Actor actor, String traitName, String oldValue, String newValue) {
+    		this.actor = actor;
+    		this.traitName = traitName;
+    		this.oldValue = oldValue;
+    		this.newValue = newValue;
+    	}
+    	public String getPresentationName() { return "Change"; }
+    	
+    	public void undo() {
+			super.undo();
+    		// need to suppress undoable edit adds while this is happening
+    		actor.removePropertyChangeListener(GameMaster.this);
+    		actor.setTrait(traitName, oldValue);    		
+    		actor.addPropertyChangeListener(GameMaster.this);
+    	}
+    	
+    	public void redo() {
+    		super.redo();
+    		actor.removePropertyChangeListener(GameMaster.this);
+    		actor.setTrait(traitName, newValue);  
+    		actor.addPropertyChangeListener(GameMaster.this);
+    	}        	
     }
 }

@@ -76,10 +76,11 @@ public class GroupManager extends JFrame
 		actorDetailsPanel = new ActorDetailsPanel_v2();
 		groupTable = new InitTable(gameMaster, false);
 		groupTree = new GroupTree(groupTable);
-		searchSupport = new SearchSupport(groupTree, groupTable);
+		searchSupport = new SearchSupport(getRootPane(), groupTree, groupTable);
 		
 		// Initialize GameMaster
 		gameMaster.initTable = groupTable;
+		gameMaster.detailsPanel = actorDetailsPanel;
 		
         // Create and set up the window.	
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);

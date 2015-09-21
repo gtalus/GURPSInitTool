@@ -30,103 +30,107 @@
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace min="-2" pref="3" max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="jLabel10" min="-2" max="-2" attributes="1"/>
-                          <Component id="dodge" min="-2" pref="41" max="-2" attributes="1"/>
-                      </Group>
-                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="parry" alignment="0" min="-2" pref="41" max="-2" attributes="1"/>
-                          <Component id="jLabel11" alignment="0" min="-2" max="-2" attributes="1"/>
-                      </Group>
-                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="block" alignment="0" min="-2" pref="41" max="-2" attributes="1"/>
-                          <Component id="jLabel12" alignment="0" min="-2" max="-2" attributes="1"/>
-                      </Group>
-                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                          <Component id="jLabel13" pref="38" max="32767" attributes="0"/>
-                          <Component id="dr" max="32767" attributes="0"/>
-                      </Group>
-                      <EmptySpace min="-2" max="-2" attributes="0"/>
-                      <Component id="jSeparator1" min="-2" max="-2" attributes="1"/>
-                  </Group>
-                  <Group type="102" alignment="0" attributes="0">
-                      <Component id="jLabel6" min="-2" max="-2" attributes="1"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="fatigue" min="-2" pref="33" max="-2" attributes="1"/>
-                      <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
-                      <Component id="jLabel5" min="-2" max="-2" attributes="1"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="injury" min="-2" pref="33" max="-2" attributes="1"/>
-                  </Group>
-                  <Group type="102" alignment="0" attributes="0">
-                      <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="jLabel9" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
-                              <Component id="ht" min="-2" pref="29" max="-2" attributes="1"/>
+                              <Component id="ht" max="32767" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="jLabel22" min="-2" max="-2" attributes="1"/>
                               <EmptySpace max="-2" attributes="0"/>
-                              <Component id="iq" min="-2" pref="31" max="-2" attributes="1"/>
+                              <Component id="iq" max="32767" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="jLabel14" min="-2" max="-2" attributes="1"/>
                               <EmptySpace max="-2" attributes="0"/>
-                              <Component id="dx" min="-2" pref="29" max="-2" attributes="1"/>
+                              <Component id="dx" max="32767" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="jLabel8" min="-2" max="-2" attributes="1"/>
                               <EmptySpace max="-2" attributes="0"/>
-                              <Component id="st" min="-2" pref="30" max="-2" attributes="1"/>
+                              <Component id="st" min="-2" pref="30" max="-2" attributes="0"/>
                           </Group>
                       </Group>
-                      <EmptySpace min="-2" pref="10" max="-2" attributes="0"/>
+                      <EmptySpace type="unrelated" min="-2" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                          <Group type="102" attributes="0">
-                              <Component id="jLabel7" min="-2" max="-2" attributes="1"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="fp" max="32767" attributes="1"/>
-                          </Group>
                           <Group type="102" alignment="0" attributes="0">
-                              <Component id="jLabel23" min="-2" max="-2" attributes="1"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="per" max="32767" attributes="1"/>
-                          </Group>
-                          <Group type="102" alignment="1" attributes="0">
                               <Component id="jLabel4" min="-2" max="-2" attributes="1"/>
                               <EmptySpace max="-2" attributes="0"/>
-                              <Component id="hp" max="32767" attributes="1"/>
+                              <Component id="hp" max="32767" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="jLabel21" min="-2" max="-2" attributes="1"/>
                               <EmptySpace max="-2" attributes="0"/>
-                              <Component id="will" min="-2" pref="29" max="-2" attributes="1"/>
+                              <Component id="will" min="-2" pref="30" max="-2" attributes="0"/>
+                          </Group>
+                          <Group type="102" alignment="0" attributes="0">
+                              <Group type="103" groupAlignment="1" attributes="0">
+                                  <Component id="jLabel23" alignment="0" min="-2" max="-2" attributes="1"/>
+                                  <Group type="102" attributes="0">
+                                      <Component id="jLabel7" min="-2" max="-2" attributes="1"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                  </Group>
+                              </Group>
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <Component id="fp" max="32767" attributes="0"/>
+                                  <Group type="102" attributes="0">
+                                      <EmptySpace min="-2" pref="5" max="-2" attributes="0"/>
+                                      <Component id="per" max="32767" attributes="0"/>
+                                  </Group>
+                              </Group>
                           </Group>
                       </Group>
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                      <Group type="103" groupAlignment="1" attributes="0">
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="jLabel26" min="-2" max="-2" attributes="1"/>
                               <EmptySpace max="-2" attributes="0"/>
-                              <Component id="sm" min="-2" pref="26" max="-2" attributes="1"/>
+                              <Component id="sm" min="-2" pref="26" max="-2" attributes="0"/>
+                              <EmptySpace max="32767" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
-                              <Component id="jLabel25" min="-2" max="-2" attributes="1"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="speed" min="-2" pref="33" max="-2" attributes="1"/>
-                          </Group>
-                          <Group type="102" alignment="0" attributes="0">
-                              <Component id="jLabel24" min="-2" max="-2" attributes="1"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="move" max="32767" attributes="1"/>
+                              <Group type="103" groupAlignment="1" max="-2" attributes="0">
+                                  <Group type="102" alignment="0" attributes="0">
+                                      <Component id="jLabel25" min="-2" max="-2" attributes="1"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="speed" max="32767" attributes="0"/>
+                                  </Group>
+                                  <Group type="102" alignment="0" attributes="0">
+                                      <Component id="jLabel24" min="-2" max="-2" attributes="1"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="move" min="-2" pref="30" max="-2" attributes="0"/>
+                                  </Group>
+                              </Group>
+                              <EmptySpace min="0" pref="38" max="32767" attributes="0"/>
                           </Group>
                       </Group>
                   </Group>
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace min="-2" pref="12" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                          <Component id="jLabel10" max="32767" attributes="1"/>
+                          <Component id="dodge" max="32767" attributes="0"/>
+                      </Group>
+                      <EmptySpace type="unrelated" min="-2" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                          <Component id="jLabel11" max="32767" attributes="1"/>
+                          <Component id="parry" pref="36" max="32767" attributes="0"/>
+                      </Group>
+                      <EmptySpace type="unrelated" min="-2" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                          <Component id="jLabel12" max="32767" attributes="1"/>
+                          <Component id="block" pref="36" max="32767" attributes="0"/>
+                      </Group>
+                      <EmptySpace type="unrelated" min="-2" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="jLabel13" min="-2" pref="38" max="-2" attributes="0"/>
+                          <Component id="dr" min="-2" pref="36" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace type="separate" max="32767" attributes="0"/>
+                      <Component id="jSeparator1" min="-2" max="-2" attributes="1"/>
+                  </Group>
+                  <Component id="jLabel1" alignment="0" min="-2" max="-2" attributes="0"/>
                   <Group type="102" alignment="0" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" alignment="1" attributes="0">
@@ -143,7 +147,16 @@
                           <Component id="status_label" max="32767" attributes="0"/>
                       </Group>
                   </Group>
-                  <Component id="jLabel1" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace min="-2" pref="11" max="-2" attributes="0"/>
+                      <Component id="jLabel5" min="-2" max="-2" attributes="1"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="injury" min="-2" pref="30" max="-2" attributes="0"/>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <Component id="jLabel6" min="-2" max="-2" attributes="1"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="fatigue" min="-2" pref="30" max="-2" attributes="0"/>
+                  </Group>
               </Group>
           </Group>
       </Group>
@@ -164,45 +177,45 @@
               </Group>
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="st" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel4" alignment="3" min="-2" pref="17" max="-2" attributes="0"/>
                   <Component id="jLabel8" alignment="3" min="-2" pref="17" max="-2" attributes="0"/>
-                  <Component id="speed" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel25" alignment="3" min="-2" pref="17" max="-2" attributes="0"/>
+                  <Component id="st" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="hp" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="speed" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="jLabel21" alignment="0" min="-2" pref="17" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="jLabel14" alignment="3" min="-2" pref="17" max="-2" attributes="0"/>
-                      <Component id="dx" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="jLabel24" alignment="3" min="-2" pref="17" max="-2" attributes="0"/>
-                      <Component id="move" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="dx" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="will" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="move" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="jLabel22" alignment="3" min="-2" pref="17" max="-2" attributes="0"/>
-                  <Component id="iq" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel23" alignment="3" min="-2" pref="17" max="-2" attributes="0"/>
+                  <Component id="iq" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="per" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="jLabel9" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="ht" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel7" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="fp" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel26" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="ht" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="fp" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="sm" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="jLabel6" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="fatigue" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel5" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="fatigue" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="injury" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace min="-2" max="-2" attributes="0"/>
@@ -216,10 +229,10 @@
                       <EmptySpace min="-2" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="103" alignment="0" groupAlignment="3" attributes="0">
-                              <Component id="block" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="parry" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="dodge" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="dr" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="dodge" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="parry" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="block" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <Component id="jSeparator1" alignment="0" min="-2" pref="9" max="-2" attributes="0"/>
                       </Group>
@@ -470,48 +483,6 @@
         <Property name="text" type="java.lang.String" value="FP:"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JFormattedTextField" name="hp">
-      <Properties>
-        <Property name="formatterFactory" type="javax.swing.JFormattedTextField$AbstractFormatterFactory" editor="org.netbeans.modules.form.editors.AbstractFormatterFactoryEditor">
-          <Format subtype="1" type="0"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="99"/>
-        <Property name="name" type="java.lang.String" value="HP" noResource="true"/>
-      </Properties>
-      <Events>
-        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
-        <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="actorIntPropertyChange"/>
-      </Events>
-    </Component>
-    <Component class="javax.swing.JFormattedTextField" name="injury">
-      <Properties>
-        <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-          <Color blue="0" green="0" red="dc" type="rgb"/>
-        </Property>
-        <Property name="formatterFactory" type="javax.swing.JFormattedTextField$AbstractFormatterFactory" editor="org.netbeans.modules.form.editors.AbstractFormatterFactoryEditor">
-          <Format subtype="1" type="0"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="99"/>
-        <Property name="name" type="java.lang.String" value="Injury" noResource="true"/>
-      </Properties>
-      <Events>
-        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
-        <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="actorIntPropertyChange"/>
-      </Events>
-    </Component>
-    <Component class="javax.swing.JFormattedTextField" name="ht">
-      <Properties>
-        <Property name="formatterFactory" type="javax.swing.JFormattedTextField$AbstractFormatterFactory" editor="org.netbeans.modules.form.editors.AbstractFormatterFactoryEditor">
-          <Format subtype="1" type="0"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="99"/>
-        <Property name="name" type="java.lang.String" value="HT" noResource="true"/>
-      </Properties>
-      <Events>
-        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
-        <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="actorIntPropertyChange"/>
-      </Events>
-    </Component>
     <Component class="javax.swing.JLabel" name="jLabel1">
       <Properties>
         <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
@@ -545,6 +516,9 @@
             <Property name="wrapStyleWord" type="boolean" value="true"/>
             <Property name="name" type="java.lang.String" value="Notes" noResource="true"/>
           </Properties>
+          <Events>
+            <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusLost"/>
+          </Events>
         </Component>
       </SubComponents>
     </Container>
@@ -564,48 +538,6 @@
         <Property name="text" type="java.lang.String" value="Dodge"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JFormattedTextField" name="fp">
-      <Properties>
-        <Property name="formatterFactory" type="javax.swing.JFormattedTextField$AbstractFormatterFactory" editor="org.netbeans.modules.form.editors.AbstractFormatterFactoryEditor">
-          <Format subtype="1" type="0"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="99"/>
-        <Property name="name" type="java.lang.String" value="FP" noResource="true"/>
-      </Properties>
-      <Events>
-        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
-        <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="actorIntPropertyChange"/>
-      </Events>
-    </Component>
-    <Component class="javax.swing.JFormattedTextField" name="move">
-      <Properties>
-        <Property name="formatterFactory" type="javax.swing.JFormattedTextField$AbstractFormatterFactory" editor="org.netbeans.modules.form.editors.AbstractFormatterFactoryEditor">
-          <Format subtype="1" type="0"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="99"/>
-        <Property name="name" type="java.lang.String" value="Move" noResource="true"/>
-      </Properties>
-      <Events>
-        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
-        <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="actorIntPropertyChange"/>
-      </Events>
-    </Component>
-    <Component class="javax.swing.JFormattedTextField" name="fatigue">
-      <Properties>
-        <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-          <Color blue="0" green="0" red="dc" type="rgb"/>
-        </Property>
-        <Property name="formatterFactory" type="javax.swing.JFormattedTextField$AbstractFormatterFactory" editor="org.netbeans.modules.form.editors.AbstractFormatterFactoryEditor">
-          <Format subtype="1" type="0"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="99"/>
-        <Property name="name" type="java.lang.String" value="Fatigue" noResource="true"/>
-      </Properties>
-      <Events>
-        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
-        <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="actorIntPropertyChange"/>
-      </Events>
-    </Component>
     <Component class="javax.swing.JLabel" name="jLabel6">
       <Properties>
         <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
@@ -615,19 +547,6 @@
         </Property>
         <Property name="text" type="java.lang.String" value="Fatigue:"/>
       </Properties>
-    </Component>
-    <Component class="javax.swing.JFormattedTextField" name="parry">
-      <Properties>
-        <Property name="formatterFactory" type="javax.swing.JFormattedTextField$AbstractFormatterFactory" editor="org.netbeans.modules.form.editors.AbstractFormatterFactoryEditor">
-          <Format subtype="1" type="0"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="99"/>
-        <Property name="name" type="java.lang.String" value="Parry" noResource="true"/>
-      </Properties>
-      <Events>
-        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
-        <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="actorIntPropertyChange"/>
-      </Events>
     </Component>
     <Component class="javax.swing.JTextField" name="name">
       <Properties>
@@ -645,8 +564,7 @@
       </Properties>
       <Events>
         <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
-        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="nameFocusLost"/>
-        <EventHandler event="keyTyped" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="nameKeyTyped"/>
+        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusLost"/>
       </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel11">
@@ -657,19 +575,6 @@
         <Property name="text" type="java.lang.String" value="Parry"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JFormattedTextField" name="block">
-      <Properties>
-        <Property name="formatterFactory" type="javax.swing.JFormattedTextField$AbstractFormatterFactory" editor="org.netbeans.modules.form.editors.AbstractFormatterFactoryEditor">
-          <Format subtype="1" type="0"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="99"/>
-        <Property name="name" type="java.lang.String" value="Block" noResource="true"/>
-      </Properties>
-      <Events>
-        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
-        <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="actorIntPropertyChange"/>
-      </Events>
-    </Component>
     <Component class="javax.swing.JLabel" name="jLabel12">
       <Properties>
         <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
@@ -677,19 +582,6 @@
         </Property>
         <Property name="text" type="java.lang.String" value="Block"/>
       </Properties>
-    </Component>
-    <Component class="javax.swing.JFormattedTextField" name="dodge">
-      <Properties>
-        <Property name="formatterFactory" type="javax.swing.JFormattedTextField$AbstractFormatterFactory" editor="org.netbeans.modules.form.editors.AbstractFormatterFactoryEditor">
-          <Format subtype="1" type="0"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="99"/>
-        <Property name="name" type="java.lang.String" value="Dodge" noResource="true"/>
-      </Properties>
-      <Events>
-        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
-        <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="actorIntPropertyChange"/>
-      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel13">
       <Properties>
@@ -717,7 +609,7 @@
               <Group type="102" attributes="0">
                   <Component id="jLabel15" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
-                  <Component id="db" min="-2" pref="31" max="-2" attributes="0"/>
+                  <Component id="shield_db" min="-2" pref="31" max="-2" attributes="0"/>
                   <EmptySpace type="unrelated" max="-2" attributes="0"/>
                   <Component id="jLabel16" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
@@ -735,12 +627,12 @@
               <Group type="102" attributes="0">
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Component id="jLabel15" min="-2" pref="20" max="-2" attributes="0"/>
-                      <Component id="db" min="-2" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="jLabel17" alignment="3" min="-2" pref="20" max="-2" attributes="0"/>
-                          <Component id="shield_hp" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="shield_dr" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jLabel16" alignment="3" min="-2" pref="20" max="-2" attributes="0"/>
+                          <Component id="shield_db" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="shield_dr" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="shield_hp" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
                   <EmptySpace min="-2" pref="0" max="-2" attributes="0"/>
@@ -773,60 +665,44 @@
             <Property name="text" type="java.lang.String" value="HP:"/>
           </Properties>
         </Component>
-        <Component class="javax.swing.JFormattedTextField" name="db">
+        <Component class="gurpsinittool.app.textfield.ParsingField" name="shield_db">
           <Properties>
-            <Property name="formatterFactory" type="javax.swing.JFormattedTextField$AbstractFormatterFactory" editor="org.netbeans.modules.form.editors.AbstractFormatterFactoryEditor">
-              <Format subtype="1" type="0"/>
-            </Property>
-            <Property name="text" type="java.lang.String" value="99"/>
             <Property name="name" type="java.lang.String" value="Shield_DB" noResource="true"/>
+            <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+            </Property>
           </Properties>
           <Events>
             <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
-            <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="actorIntPropertyChange"/>
+            <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusLost"/>
           </Events>
         </Component>
-        <Component class="javax.swing.JFormattedTextField" name="shield_dr">
+        <Component class="gurpsinittool.app.textfield.ParsingField" name="shield_dr">
           <Properties>
-            <Property name="formatterFactory" type="javax.swing.JFormattedTextField$AbstractFormatterFactory" editor="org.netbeans.modules.form.editors.AbstractFormatterFactoryEditor">
-              <Format subtype="1" type="0"/>
-            </Property>
-            <Property name="text" type="java.lang.String" value="99"/>
             <Property name="name" type="java.lang.String" value="Shield_DR" noResource="true"/>
+            <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+            </Property>
           </Properties>
           <Events>
             <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
-            <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="actorIntPropertyChange"/>
+            <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusLost"/>
           </Events>
         </Component>
-        <Component class="javax.swing.JFormattedTextField" name="shield_hp">
+        <Component class="gurpsinittool.app.textfield.ParsingField" name="shield_hp">
           <Properties>
-            <Property name="formatterFactory" type="javax.swing.JFormattedTextField$AbstractFormatterFactory" editor="org.netbeans.modules.form.editors.AbstractFormatterFactoryEditor">
-              <Format subtype="1" type="0"/>
-            </Property>
-            <Property name="text" type="java.lang.String" value="99"/>
             <Property name="name" type="java.lang.String" value="Shield_HP" noResource="true"/>
+            <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+            </Property>
           </Properties>
           <Events>
             <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
-            <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="actorIntPropertyChange"/>
+            <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusLost"/>
           </Events>
         </Component>
       </SubComponents>
     </Container>
-    <Component class="javax.swing.JFormattedTextField" name="st">
-      <Properties>
-        <Property name="formatterFactory" type="javax.swing.JFormattedTextField$AbstractFormatterFactory" editor="org.netbeans.modules.form.editors.AbstractFormatterFactoryEditor">
-          <Format subtype="1" type="0"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="99"/>
-        <Property name="name" type="java.lang.String" value="ST" noResource="true"/>
-      </Properties>
-      <Events>
-        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
-        <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="actorIntPropertyChange"/>
-      </Events>
-    </Component>
     <Component class="javax.swing.JLabel" name="jLabel8">
       <Properties>
         <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
@@ -847,19 +723,6 @@
         <Property name="text" type="java.lang.String" value="DX:"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JFormattedTextField" name="dx">
-      <Properties>
-        <Property name="formatterFactory" type="javax.swing.JFormattedTextField$AbstractFormatterFactory" editor="org.netbeans.modules.form.editors.AbstractFormatterFactoryEditor">
-          <Format subtype="1" type="0"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="99"/>
-        <Property name="name" type="java.lang.String" value="DX" noResource="true"/>
-      </Properties>
-      <Events>
-        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
-        <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="actorIntPropertyChange"/>
-      </Events>
-    </Component>
     <Component class="javax.swing.JLabel" name="jLabel21">
       <Properties>
         <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
@@ -869,19 +732,6 @@
         </Property>
         <Property name="text" type="java.lang.String" value="Will:"/>
       </Properties>
-    </Component>
-    <Component class="javax.swing.JFormattedTextField" name="will">
-      <Properties>
-        <Property name="formatterFactory" type="javax.swing.JFormattedTextField$AbstractFormatterFactory" editor="org.netbeans.modules.form.editors.AbstractFormatterFactoryEditor">
-          <Format subtype="1" type="0"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="99"/>
-        <Property name="name" type="java.lang.String" value="Will" noResource="true"/>
-      </Properties>
-      <Events>
-        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
-        <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="actorIntPropertyChange"/>
-      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel22">
       <Properties>
@@ -893,19 +743,6 @@
         <Property name="text" type="java.lang.String" value="IQ:"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JFormattedTextField" name="iq">
-      <Properties>
-        <Property name="formatterFactory" type="javax.swing.JFormattedTextField$AbstractFormatterFactory" editor="org.netbeans.modules.form.editors.AbstractFormatterFactoryEditor">
-          <Format subtype="1" type="0"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="99"/>
-        <Property name="name" type="java.lang.String" value="IQ" noResource="true"/>
-      </Properties>
-      <Events>
-        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
-        <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="actorIntPropertyChange"/>
-      </Events>
-    </Component>
     <Component class="javax.swing.JLabel" name="jLabel23">
       <Properties>
         <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
@@ -915,19 +752,6 @@
         </Property>
         <Property name="text" type="java.lang.String" value="Per:"/>
       </Properties>
-    </Component>
-    <Component class="javax.swing.JFormattedTextField" name="per">
-      <Properties>
-        <Property name="formatterFactory" type="javax.swing.JFormattedTextField$AbstractFormatterFactory" editor="org.netbeans.modules.form.editors.AbstractFormatterFactoryEditor">
-          <Format subtype="1" type="0"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="99"/>
-        <Property name="name" type="java.lang.String" value="Per" noResource="true"/>
-      </Properties>
-      <Events>
-        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
-        <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="actorIntPropertyChange"/>
-      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel24">
       <Properties>
@@ -949,20 +773,6 @@
         <Property name="text" type="java.lang.String" value="Speed:"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JFormattedTextField" name="speed">
-      <Properties>
-        <Property name="formatterFactory" type="javax.swing.JFormattedTextField$AbstractFormatterFactory" editor="org.netbeans.modules.form.editors.AbstractFormatterFactoryEditor">
-          <Format format="#0.00" subtype="-1" type="0"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="99"/>
-        <Property name="toolTipText" type="java.lang.String" value=""/>
-        <Property name="name" type="java.lang.String" value="Speed" noResource="true"/>
-      </Properties>
-      <Events>
-        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
-        <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="actorFloatPropertyChange"/>
-      </Events>
-    </Component>
     <Component class="javax.swing.JLabel" name="jLabel26">
       <Properties>
         <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
@@ -972,19 +782,6 @@
         </Property>
         <Property name="text" type="java.lang.String" value="SM:"/>
       </Properties>
-    </Component>
-    <Component class="javax.swing.JFormattedTextField" name="sm">
-      <Properties>
-        <Property name="formatterFactory" type="javax.swing.JFormattedTextField$AbstractFormatterFactory" editor="org.netbeans.modules.form.editors.AbstractFormatterFactoryEditor">
-          <Format subtype="1" type="0"/>
-        </Property>
-        <Property name="text" type="java.lang.String" value="99"/>
-        <Property name="name" type="java.lang.String" value="SM" noResource="true"/>
-      </Properties>
-      <Events>
-        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
-        <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="actorIntPropertyChange"/>
-      </Events>
     </Component>
     <Container class="javax.swing.JPanel" name="traits">
       <Properties>
@@ -1132,7 +929,7 @@
       <Layout>
         <DimensionLayout dim="0">
           <Group type="103" groupAlignment="0" attributes="0">
-              <Component id="jScrollPane6" alignment="0" pref="0" max="32767" attributes="0"/>
+              <Component id="jScrollPane6" alignment="0" pref="211" max="32767" attributes="0"/>
               <Component id="jToolBar5" alignment="0" max="32767" attributes="0"/>
           </Group>
         </DimensionLayout>
@@ -1209,14 +1006,214 @@
         </Container>
       </SubComponents>
     </Container>
-    <Component class="javax.swing.JTextField" name="dr">
+    <Component class="gurpsinittool.app.textfield.ParsingField" name="st">
       <Properties>
-        <Property name="text" type="java.lang.String" value="99"/>
-        <Property name="name" type="java.lang.String" value="DR" noResource="true"/>
+        <Property name="name" type="java.lang.String" value="ST" noResource="true"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        </Property>
       </Properties>
       <Events>
         <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
-        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="drFocusLost"/>
+        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusLost"/>
+      </Events>
+    </Component>
+    <Component class="gurpsinittool.app.textfield.ParsingField" name="dr">
+      <Properties>
+        <Property name="name" type="java.lang.String" value="DR" noResource="true"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.DRParser()" type="code"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
+        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusLost"/>
+      </Events>
+    </Component>
+    <Component class="gurpsinittool.app.textfield.ParsingField" name="dx">
+      <Properties>
+        <Property name="name" type="java.lang.String" value="DX" noResource="true"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
+        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusLost"/>
+      </Events>
+    </Component>
+    <Component class="gurpsinittool.app.textfield.ParsingField" name="iq">
+      <Properties>
+        <Property name="name" type="java.lang.String" value="IQ" noResource="true"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
+        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusLost"/>
+      </Events>
+    </Component>
+    <Component class="gurpsinittool.app.textfield.ParsingField" name="ht">
+      <Properties>
+        <Property name="name" type="java.lang.String" value="HT" noResource="true"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
+        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusLost"/>
+      </Events>
+    </Component>
+    <Component class="gurpsinittool.app.textfield.ParsingField" name="hp">
+      <Properties>
+        <Property name="name" type="java.lang.String" value="HP" noResource="true"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
+        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusLost"/>
+      </Events>
+    </Component>
+    <Component class="gurpsinittool.app.textfield.ParsingField" name="will">
+      <Properties>
+        <Property name="name" type="java.lang.String" value="Will" noResource="true"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
+        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusLost"/>
+      </Events>
+    </Component>
+    <Component class="gurpsinittool.app.textfield.ParsingField" name="per">
+      <Properties>
+        <Property name="name" type="java.lang.String" value="Per" noResource="true"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
+        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusLost"/>
+      </Events>
+    </Component>
+    <Component class="gurpsinittool.app.textfield.ParsingField" name="fp">
+      <Properties>
+        <Property name="name" type="java.lang.String" value="FP" noResource="true"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
+        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusLost"/>
+      </Events>
+    </Component>
+    <Component class="gurpsinittool.app.textfield.ParsingField" name="speed">
+      <Properties>
+        <Property name="name" type="java.lang.String" value="Speed" noResource="true"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.FloatParser()" type="code"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
+        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusLost"/>
+      </Events>
+    </Component>
+    <Component class="gurpsinittool.app.textfield.ParsingField" name="sm">
+      <Properties>
+        <Property name="name" type="java.lang.String" value="SM" noResource="true"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
+        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusLost"/>
+      </Events>
+    </Component>
+    <Component class="gurpsinittool.app.textfield.ParsingField" name="move">
+      <Properties>
+        <Property name="name" type="java.lang.String" value="Move" noResource="true"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
+        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusLost"/>
+      </Events>
+    </Component>
+    <Component class="gurpsinittool.app.textfield.ParsingField" name="dodge">
+      <Properties>
+        <Property name="name" type="java.lang.String" value="Dodge" noResource="true"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
+        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusLost"/>
+      </Events>
+    </Component>
+    <Component class="gurpsinittool.app.textfield.ParsingField" name="parry">
+      <Properties>
+        <Property name="name" type="java.lang.String" value="Parry" noResource="true"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
+        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusLost"/>
+      </Events>
+    </Component>
+    <Component class="gurpsinittool.app.textfield.ParsingField" name="block">
+      <Properties>
+        <Property name="name" type="java.lang.String" value="Block" noResource="true"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
+        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusLost"/>
+      </Events>
+    </Component>
+    <Component class="gurpsinittool.app.textfield.ParsingField" name="fatigue">
+      <Properties>
+        <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+          <Color blue="dc" green="dc" red="ff" type="rgb"/>
+        </Property>
+        <Property name="name" type="java.lang.String" value="Fatigue" noResource="true"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
+        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusLost"/>
+      </Events>
+    </Component>
+    <Component class="gurpsinittool.app.textfield.ParsingField" name="injury">
+      <Properties>
+        <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+          <Color blue="dc" green="dc" red="ff" type="rgb"/>
+        </Property>
+        <Property name="name" type="java.lang.String" value="Injury" noResource="true"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="focusGained" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusGained"/>
+        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="fieldFocusLost"/>
       </Events>
     </Component>
   </SubComponents>

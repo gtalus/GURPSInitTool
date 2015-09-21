@@ -142,8 +142,8 @@ public class Defense {
      * @param actor
      */
     private void checkLocation(Actor actor) {
-      	if (actor.hasTrait("IT")) {
-    		ArrayList<String> tolerances = actor.getTraitValueArray("IT");
+      	if (actor.hasTrait("Injury Tolerance")) {
+    		ArrayList<String> tolerances = actor.getTraitValueArray("Injury Tolerance");
     		// No Blood - nothing currently (also Diffuse and Homogenous)
     		// No Brain
     		if (tolerances.contains("No Brain") || tolerances.contains("Diffuse") || tolerances.contains("Homogenous")) {
@@ -192,7 +192,7 @@ public class Defense {
     	int ShieldDR = actor.getTraitValueInt(BasicTrait.Shield_DR);
     	int ShieldHP = actor.getTraitValueInt(BasicTrait.Shield_HP);
     	int HP = actor.getTraitValueInt(BasicTrait.HP);
-    	ArrayList<String> tolerances = actor.getTraitValueArray("IT"); // Empty array if actor does not have this trait
+    	ArrayList<String> tolerances = actor.getTraitValueArray("Injury Tolerance"); // Empty array if actor does not have this trait
     	switch (result) {
     	case CritSuccess:
     	case Success:

@@ -5,6 +5,7 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.regex.Pattern;
@@ -14,9 +15,12 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JRootPane;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.tree.TreePath;
@@ -35,9 +39,11 @@ public class SearchSupport {
 	private JToolBar searchBar;
 	private JTextField searchField;
 	private boolean incrementalSearchInProgress = false;
+	private JRootPane rootPane;
 	private InitTable table;
 	private int searchStartingTableIndex;
-
+	private Pattern pattern;
+	
 	private enum SearchMode {Table, Tree}
 	private SearchMode mode;
 
@@ -50,24 +56,26 @@ public class SearchSupport {
 	//Actions
 	public Action actionNextMatch;
 	public Action actionPrevMatch;
+	public Action actionSearchFocus;
 	
-	public SearchSupport(InitTable table) {
+	public SearchSupport(JRootPane rootPane, InitTable table) {
 		mode = SearchMode.Table;
+		this.rootPane = rootPane;
 		this.table = table;
 		initComponents();
 	}
 	
-	public SearchSupport(GroupTree tree, InitTable table) {
+	public SearchSupport(JRootPane rootPane, GroupTree tree, InitTable table) {
+		this(rootPane,table);
 		mode = SearchMode.Tree;
-		this.table = table;
 		this.groupTree = tree;
-		initComponents();
 	}
 	
 	private void initComponents() {
 		 // The top tool bar (search)
 		searchBar = new JToolBar();
         JLabel searchLabel = new JLabel("Search: ");
+        searchLabel.setToolTipText("Search combatant names (F3)");
         //MiscUtil.setLabelBold(searchLabel);
         searchBar.add(searchLabel);
         searchField = new JTextField();
@@ -84,7 +92,7 @@ public class SearchSupport {
     	    	processTextChanges(e);
     	    }
     	    private void processTextChanges(DocumentEvent e) {
-    	    	incrementalSearch(false, false);
+    	    	incrementalSearch();
     	    }
 		});
         searchField.addFocusListener(new FocusListener() {
@@ -92,6 +100,7 @@ public class SearchSupport {
 			public void focusLost(FocusEvent e) {
 				incrementalSearchInProgress = false;
 				searchField.setForeground(Color.gray);
+				searchField.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
 				MiscUtil.setTextFieldFontStyle(searchField, Font.ITALIC);
 			}
 			@Override
@@ -109,13 +118,22 @@ public class SearchSupport {
         //searchField.setBorder(searchBorder);
         searchBar.add(searchField);
         // Next Actor (first button)
-        actionPrevMatch = new GAction("Search Up", "Find previous match", new ImageIcon(GITApp.class.getResource("/resources/images/bullet_arrow_up.png"))) {
-			public void actionPerformed(ActionEvent arg0) { incrementalSearch(true, true); }        	
+        actionPrevMatch = new GAction("Search Up", "Find previous match (Ctrl+Shift+G)", new ImageIcon(GITApp.class.getResource("/resources/images/bullet_arrow_up.png"))) {
+			public void actionPerformed(ActionEvent arg0) { searchNext(true); }        	
         };
-        actionNextMatch = new GAction("Search Down", "Find next match", new ImageIcon(GITApp.class.getResource("/resources/images/bullet_arrow_down.png"))) {
-			public void actionPerformed(ActionEvent arg0) { incrementalSearch(true, false); }        	
+        actionNextMatch = new GAction("Search Down", "Find next match (Ctrl+G)", new ImageIcon(GITApp.class.getResource("/resources/images/bullet_arrow_down.png"))) {
+			public void actionPerformed(ActionEvent arg0) { searchNext(false); }        	
         };
-        
+        actionSearchFocus = new GAction("Search", "Search (F3)", null) {
+ 			public void actionPerformed(ActionEvent arg0) { searchField.requestFocusInWindow(); }        	
+         };
+        rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control G"), "SearchNext"); 
+        rootPane.getActionMap().put("SearchNext", actionNextMatch); 
+        rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control shift G"), "SearchPrev"); 
+        rootPane.getActionMap().put("SearchPrev", actionPrevMatch); 
+        rootPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("F3"), "SearchFocus"); 
+        rootPane.getActionMap().put("SearchFocus", actionSearchFocus); 
+
         searchBar.add(MiscUtil.noTextButton(actionPrevMatch));
         searchBar.add(MiscUtil.noTextButton(actionNextMatch));
 	}
@@ -158,41 +176,74 @@ public class SearchSupport {
 	}
 	
 	/**
-	 * Perform incremental search
-	 * @param next - force moving to the next match
-	 * @param reverse - search backwards
+	 * Perform next/previous search
+	 * @param reverse - search in reverse
 	 */
-	private void incrementalSearch(boolean next, boolean reverse) {
-		String searchText = searchField.getText();
-		if (searchText.equals("")) return; // Don't process blank search
-		System.out.println("SearchSupport: incrementalSearch: searching for text '"+ searchText + "'");
-		Pattern pattern = Pattern.compile(searchText,Pattern.CASE_INSENSITIVE | Pattern.LITERAL);
+	private void searchNext(boolean reverse) {
+		if (!updatePattern()) return;
 
+		setStartingLocation();
+		generateSearchNodeList(); // For tree mode
+		
+		if (performSearch(true, reverse)) {
+			setStartingLocation();
+			return;
+		}
+		
+		searchField.setBorder(BorderFactory.createLineBorder(Color.red));	
+		if (DEBUG) { System.out.println("SearchSupport: incrementalSearch: nothing found"); }
+	}
+	
+	/**
+	 * Perform incremental search
+	 */
+	private void incrementalSearch() {
+		if (!updatePattern()) return;
+		
 		// what is our starting location?
-		if (!incrementalSearchInProgress || next) { // set to current location
+		if (!incrementalSearchInProgress) { // set to current location
 			setStartingLocation();
 			generateSearchNodeList(); // For tree mode
 			incrementalSearchInProgress = true;
 		}
 		
+		if (performSearch(false, false))
+			return;
+		
+		searchField.setBorder(BorderFactory.createLineBorder(Color.red));	
+		if (DEBUG) { System.out.println("SearchSupport: incrementalSearch: nothing found"); }
+	}
+	
+	private boolean updatePattern() {
+		String searchText = searchField.getText();
+		if (searchText.equals("")) {
+			searchField.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+			return false; // Don't process blank search
+		}
+		System.out.println("SearchSupport: incrementalSearch: searching for text '"+ searchText + "'");
+		pattern = Pattern.compile(searchText,Pattern.CASE_INSENSITIVE | Pattern.LITERAL);
+		return true;
+	}
+	
+	private boolean performSearch(boolean next, boolean reverse) {
 		// Now do the search
 		switch (mode) {
 		case Tree:
 			// Check we have a valid node to start
 			if (searchStartingNode == null) {
 				System.err.println("SearchSupport: incrementalSearch: currentNode is null!");
-				return;
+				return false;
 			} 
 			// Now move through the list
 			int startingNodeIndex = searchNodeList.indexOf(searchStartingNode);
 			if (startingNodeIndex == -1) {
 				System.err.println("SearchSupport: incrementalSearch: startingNodeIndex is invalid!");
-				return;
+				return false;
 			}
 			int i = startingNodeIndex;
 			// First do partial search of startingNode
 			if (searchStartingNode.isLeaf() && searchLeafNode(searchStartingNode, searchStartingTableIndex, -1, next, reverse, pattern))
-				return; 
+				return true; 
 			GroupTreeNode currentNode;
 			do {
 				if (reverse) {
@@ -205,24 +256,22 @@ public class SearchSupport {
 				if (i == startingNodeIndex) break;
 				currentNode = searchNodeList.get(i);
 				if (currentNode.isLeaf() && searchLeafNode(currentNode, -1, -1, false, reverse, pattern))
-					return;
+					return true;
 			} while (true);
 			// Finally do second half of partial search of the startingNode
 			if (searchStartingNode.isLeaf() && searchLeafNode(searchStartingNode, -1, searchStartingTableIndex, false, reverse, pattern))
-				return; 
+				return true; 
 			break;
 		case Table:
 			// Search starting at the current index
 			if (searchTable(searchStartingTableIndex, -1, next, reverse, pattern))
-				return; 
+				return true; 
 			// Finally do second half of partial search of the startingNode
 			if (searchTable(-1, searchStartingTableIndex, false, reverse, pattern))
-				return; 
+				return true; 
 			break;
 		}
-		
-		searchField.setBorder(BorderFactory.createLineBorder(Color.red));	
-		if (DEBUG) { System.out.println("SearchSupport: incrementalSearch: nothing found"); }
+		return false;
 	}
 	
 	/**

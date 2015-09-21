@@ -3,10 +3,9 @@ package gurpsinittool.data;
 import gurpsinittool.data.HitLocations.HitLocation;
 import gurpsinittool.util.DieRoller;
 
+import java.text.ParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import com.sun.org.apache.xerces.internal.impl.xpath.regex.ParseException;
 
 public class Damage {
 

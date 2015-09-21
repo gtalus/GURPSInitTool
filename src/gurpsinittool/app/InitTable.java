@@ -15,8 +15,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -52,19 +50,19 @@ import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import gurpsinittool.app.InitTableModel.columns;
+import gurpsinittool.app.textfield.ParsingField;
+import gurpsinittool.app.textfield.ParsingFieldParser;
+import gurpsinittool.app.textfield.ParsingFieldParserFactory;
 import gurpsinittool.data.*;
 //import gurpsinittool.test.RandomData;
 import gurpsinittool.data.ActorBase.ActorStatus;
 import gurpsinittool.data.ActorBase.ActorType;
 import gurpsinittool.data.ActorBase.BasicTrait;
 import gurpsinittool.util.MiscUtil;
+import sun.swing.table.DefaultTableCellHeaderRenderer;
 
+@SuppressWarnings("serial")
 public class InitTable extends BasicTable {
-	
-	/**
-	 * Default Serial UID
-	 */
-	private static final long serialVersionUID = 1L;
 
 	private static final boolean DEBUG = false;
 
@@ -167,11 +165,12 @@ public class InitTable extends BasicTable {
 	private void initialize() {
 		 //InitTable initTable = new InitTable(new ActorTableModel());
         setDefaultRenderer(Object.class, new InitTableCellRenderer());
-        setDefaultRenderer(Float.class, new InitTableCellRenderer());
-        setDefaultRenderer(Integer.class, new InitTableCellRenderer());
+       //setDefaultRenderer(Float.class, new InitTableCellRenderer());
+        //setDefaultRenderer(Integer.class, new InitTableCellRenderer());
         setDefaultEditor(String.class, new InitTableStringCellEditor());
-        setDefaultEditor(Float.class, new InitTableFloatCellEditor());
-        setDefaultEditor(Integer.class, new InitTableIntegerCellEditor());
+        //setDefaultEditor(Float.class, new InitTableFloatCellEditor());
+        //setDefaultEditor(Integer.class, new InitTableIntegerCellEditor());
+        
         setTransferHandler(new InitTableTransferHandler("name"));
         setPreferredScrollableViewportSize(new Dimension(800, 270));
         setFillsViewportHeight(true);
@@ -189,11 +188,25 @@ public class InitTable extends BasicTable {
         for (Actor.ActorStatus a : Actor.ActorStatus.values()) {
         	initTableStateEditor.addItem(a);
         }
-        getColumnModel().getColumn(InitTableModel.columns.Status.ordinal()).setCellEditor(new InitTableStatusListCellEditor());
-        //getColumnModel().getColumn(InitTableModel.columns.Type.ordinal()).setCellEditor(new InitTableTypeListCellEditor());
+        getColumnModel().getColumn(InitTableModel.columns.Name.ordinal()).setCellEditor(new InitTableStringCellEditor());
+        
+        getColumnModel().getColumn(InitTableModel.columns.Speed.ordinal()).setCellEditor(new InitTableCellEditor(ParsingFieldParserFactory.FloatParser()));
+        getColumnModel().getColumn(InitTableModel.columns.Move.ordinal()).setCellEditor(new InitTableCellEditor(ParsingFieldParserFactory.IntegerParser()));
+        getColumnModel().getColumn(InitTableModel.columns.HT.ordinal()).setCellEditor(new InitTableCellEditor(ParsingFieldParserFactory.IntegerParser()));
+        getColumnModel().getColumn(InitTableModel.columns.HP.ordinal()).setCellEditor(new InitTableCellEditor(ParsingFieldParserFactory.IntegerParser()));
+        getColumnModel().getColumn(InitTableModel.columns.Injury.ordinal()).setCellEditor(new InitTableCellEditor(ParsingFieldParserFactory.IntegerParser()));
+        getColumnModel().getColumn(InitTableModel.columns.FP.ordinal()).setCellEditor(new InitTableCellEditor(ParsingFieldParserFactory.IntegerParser()));
+        getColumnModel().getColumn(InitTableModel.columns.Fatigue.ordinal()).setCellEditor(new InitTableCellEditor(ParsingFieldParserFactory.IntegerParser()));
+
         getColumnModel().getColumn(InitTableModel.columns.Injury.ordinal()).setCellEditor(new InitTableDamageCellEditor());
         getColumnModel().getColumn(InitTableModel.columns.Fatigue.ordinal()).setCellEditor(new InitTableDamageCellEditor());
 
+        getColumnModel().getColumn(InitTableModel.columns.Status.ordinal()).setCellEditor(new InitTableStatusListCellEditor());
+        //getColumnModel().getColumn(InitTableModel.columns.Type.ordinal()).setCellEditor(new InitTableTypeListCellEditor());
+        
+        
+        getTableHeader().setDefaultRenderer(new InitTableHeaderRenderer(getTableHeader().getDefaultRenderer()));
+        
 		// Table popup menu
         popupMenu = new JPopupMenu();
         coordinatedStatusMenuItems = new HashMap<ActorStatus, Action>();
@@ -203,7 +216,7 @@ public class InitTable extends BasicTable {
         menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusDisabled, ActorStatus.Disabled));
         menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusDisarmed, ActorStatus.Disarmed));
         menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusWaiting, ActorStatus.Waiting));
-       menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusMentalStun, ActorStatus.StunMental));
+        menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusMentalStun, ActorStatus.StunMental));
         menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusPhysicalStun, ActorStatus.StunPhys));
         menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusRecoveringStun, ActorStatus.StunRecovr));
         menuFile.add(createCoordinatedStatusMenuItem(gameMaster.actionCoordinateSelectedStatusUnconscious, ActorStatus.Unconscious));
@@ -273,7 +286,7 @@ public class InitTable extends BasicTable {
 	 */
 	public Actor getSelectedActor() {
 		int index = getSelectedRow();
-		if (index < 0)
+		if (index < 0 || index >= tableModel.getRowCount() )
 			return null;
 		return tableModel.getActor(index);
 	}
@@ -342,12 +355,8 @@ public class InitTable extends BasicTable {
 	 * @param actor
 	 */
 	private static void formatComponentColor(JComponent c, Actor a, boolean isSelected, InitTableModel.columns col) {
-		
-		// Red foreground for these columns:
-		if (col == columns.Injury || col == columns.Fatigue)
-			c.setForeground(new Color(220,0,0));
-		else
-			c.setForeground(new Color(0,0,0));
+
+		c.setForeground(Color.black);
 		
 		if (isSelected) {
 			switch (a.getType()) {
@@ -391,15 +400,15 @@ public class InitTable extends BasicTable {
 		if (a.hasStatus(ActorStatus.Unconscious)
 				|| a.hasStatus(ActorStatus.Disabled)
 				|| a.hasStatus(ActorStatus.Dead)) {
-			c.setForeground(new Color(128,128,128));
+			c.setForeground(Color.gray);
 		}
 	}
    
 	private void formatEditField(JTextField c, boolean isSelected, int row, int col) {
 		tableModel.getActor(row);
 		if (row == getRowCount() -1) {
-			c.setBackground(new Color(255,255,255));
-			c.setForeground(new Color(128,128,128));
+			c.setBackground(Color.white);
+			c.setForeground(Color.gray);
 			c.setHorizontalAlignment(SwingConstants.LEFT);
 			return;
 		}
@@ -409,7 +418,31 @@ public class InitTable extends BasicTable {
 					
 		formatComponentColor((JComponent)c, a, isSelected, columns);
 		formatComponentAlignment(c, a);
-		c.setBorder(new LineBorder(new Color(255,255,255)));
+		c.setBorder(new LineBorder(Color.white));
+	}
+	
+	/**
+	 * Renderer to deal with all the customizations based on Actor state/type/etc.
+	 * Assumes that the table model being used is an ActorTableModel.
+	 * @author dsmall
+	 *
+	 */
+	class InitTableHeaderRenderer implements TableCellRenderer {
+		private TableCellRenderer base;
+		
+		public InitTableHeaderRenderer (TableCellRenderer base) {
+			this.base = base;
+		}
+		@Override
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+			
+			JLabel c = (JLabel) base.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+			InitTableModel.columns col = InitTableModel.columns.valueOf(table.getColumnName(column));
+			if (col == columns.Injury || col == columns.Fatigue) {
+				c.setForeground(Color.red);
+			}		
+			return c;
+		}
 	}
 	
 	/**
@@ -420,21 +453,16 @@ public class InitTable extends BasicTable {
 	 */
 	class InitTableCellRenderer extends DefaultTableCellRenderer {
 
-		/**
-		 * This class is not really serializable, I think.
-		 */
-		private static final long serialVersionUID = 1L;
-
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 			
 			JLabel c = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 			InitTableModel.columns col = InitTableModel.columns.valueOf(table.getColumnName(column));
+			c.setIcon(new ImageIcon()); // Clear out any icon
 			if (row == table.getRowCount() -1) {
-				c.setBackground(new Color(255,255,255));
-				c.setForeground(new Color(128,128,128));
+				c.setBackground(Color.white);
+				c.setForeground(Color.gray);
 				c.setHorizontalAlignment(SwingConstants.LEFT);
-				c.setIcon(new ImageIcon());
 				if (col == columns.Name)
 					c.setText("new...");
 				else if (col == columns.Status)
@@ -442,51 +470,87 @@ public class InitTable extends BasicTable {
 				return c;
 			}
 			
-			// Custom rendering for various columns
-			//ActorTableModel.columns col = ActorTableModel.columns.values()[column];
+			// Basic Formatting
 			Actor a = ((InitTableModel)table.getModel()).getActor(row);
-			int Injury = a.getTraitValueInt(BasicTrait.Injury);
-			int Fatigue = a.getTraitValueInt(BasicTrait.Fatigue);
-			int HP = a.getTraitValueInt(BasicTrait.HP);
-			int FP = a.getTraitValueInt(BasicTrait.FP);
-			if (col == columns.Act && (gameMaster.getActiveActor() == row)) {
-				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/go.png"), "Current Actor"));  
-			}
-			else if ((col == columns.Move /*|| col == columns.Dodge*/) && (Injury > 2*HP/3 && Fatigue > 2*FP/3)) {
-				int currentValue = Integer.parseInt(c.getText());
-				int newValue = (int) Math.ceil((double)currentValue/4);
-				//c.setText("<html>" + c.getText() + " <strong>(" + newValue + ")</strong></html>");
-				MiscUtil.setLabelBold(c);
-				c.setText(newValue + " (" + c.getText() + ")");
-				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/exclamation.png"), "Greatly reduced state"));
-			}
-			else if ((col == columns.Move /*|| col == columns.Dodge*/) && (Injury > 2*HP/3 || Fatigue > 2*FP/3)) {
-				int currentValue = Integer.parseInt(c.getText());
-				int newValue = (int) Math.ceil((double)currentValue/2);
-				//c.setText("<html>" + c.getText() + " <strong>(" + newValue + ")</strong></html>");
-				MiscUtil.setLabelBold(c);
-				c.setText(newValue + " (" + c.getText() + ")");
-				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png"), "Reduced state"));
-			}
-			else if (col == columns.HT && Injury >= HP) {
-				int penalty = (int) (-1*(Math.floor((double)Injury/HP)-1));
-				if (penalty < 0) {
-					//c.setText("<html>" + c.getText() + " <strong>(" + penalty + ")</strong></html>");
-					MiscUtil.setLabelBold(c);
-					c.setText(c.getText() + " [" + penalty + "]");
-				}
-				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png"), "Must check to stay conscious"));
-			}
-			else if (col == columns.Status) { // comma separated, ordered by enum order
-				c.setText(a.getStatusesString());
-				c.setIcon(new ImageIcon());
-			}
-			else {
-				c.setIcon(new ImageIcon());
-			}
-			
 			formatComponentColor((JComponent)c, a, isSelected, col);
 			formatComponentAlignment(c, a, col);
+			if (col == columns.Act && (gameMaster.getActiveActor() == row)) {
+				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/go.png"), "Current Actor"));  
+			} else if (col == columns.Status) {
+				c.setText(a.getStatusesString());
+			}			
+
+			// Check parsing: at some point may want to create 'ParsingComponent' which has label and textfield versions
+			if (col == columns.Speed) {				
+				if (!ParsingFieldParserFactory.FloatParser().parseIsValid(c.getText()))
+					c.setForeground(Color.red);
+			} else if (col == columns.Move || col == columns.HT || col == columns.HP || col == columns.Injury || col == columns.FP || col == columns.Fatigue) {
+				if (!ParsingFieldParserFactory.IntegerParser().parseIsValid(c.getText()))
+					c.setForeground(Color.red);
+			}
+			
+			// Special formatting
+			// Custom rendering for various columns
+			if (col == columns.Move) {				
+				int Injury = a.getTraitValueInt(BasicTrait.Injury);
+				int Fatigue = a.getTraitValueInt(BasicTrait.Fatigue);
+				int HP = a.getTraitValueInt(BasicTrait.HP);
+				int FP = a.getTraitValueInt(BasicTrait.FP);
+				
+				if (Injury > 2*HP/3 || Fatigue > 2*FP/3) {					
+					int currentValue = a.getTraitValueInt(BasicTrait.Move);
+					int newValue;
+					if (Injury > 2*HP/3 && Fatigue > 2*FP/3) {
+						newValue = (int) Math.ceil((double)currentValue/4);
+						c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/exclamation.png"), "Greatly reduced state"));
+					} else {
+						newValue = (int) Math.ceil((double)currentValue/2);
+						c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png"), "Reduced state"));
+					}
+					c.setText(newValue + " (" + c.getText() + ")");
+					MiscUtil.setLabelBold(c);
+				}
+			} else if (col == columns.HT) {
+				int Injury = a.getTraitValueInt(BasicTrait.Injury);
+				int HP = a.getTraitValueInt(BasicTrait.HP);
+				HP = Math.max(HP, 1); // Minimum HP = 1 for calc purposes
+				if (Injury >= HP) {
+					int penalty = (int) (-1*(Math.floor((double)Injury/HP)-1));
+					if (penalty < 0) {
+						MiscUtil.setLabelBold(c);
+						c.setText(c.getText() + " [" + penalty + "]");
+					}
+					c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png"), "Must check to stay conscious"));
+				}
+			}
+						
+			return c;
+		}
+	}
+	
+	/**
+	 * Inner class to provide CellEditor functionality
+	 * Allow modification of the text cell editor
+	 * @author dsmall
+	 */
+	class InitTableCellEditor extends DefaultCellEditor {
+		
+		/**
+		 * Super does not define default constructor, so must define one.
+		 * @param comboBox
+		 */
+		public InitTableCellEditor(ParsingFieldParser parser) {
+			super(new ParsingField(parser));
+		}
+		
+		@Override
+		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+			ParsingField c = (ParsingField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
+			if (isSelected)
+			    c.selectAll();
+			
+			formatEditField(c, isSelected, row, column);
+			c.refreshForeground();
 			return c;
 		}
 	}
@@ -497,11 +561,6 @@ public class InitTable extends BasicTable {
 	 * @author dsmall
 	 */
 	class InitTableStringCellEditor extends DefaultCellEditor implements FocusListener {
-
-		/**
-		 * Default serial UID
-		 */
-		private static final long serialVersionUID = 1L;
 		
 		// The original actor name that the editor started with
 		private String actorName;
@@ -552,112 +611,6 @@ public class InitTable extends BasicTable {
 		}
 		
 	}
-
-	/**
-	 * Renderer to deal with all the customizations based on Actor state/type/etc.
-	 * Assumes that the table model being used is an ActorTableModel.
-	 * @author dsmall
-	 *
-	 */
-	class InitTableIntegerCellEditor extends DefaultCellEditor {
-
-		/**
-		 * Default serial UID
-		 */
-		private static final long serialVersionUID = 1L;
-
-		/**
-		 * Super does not define default constructor, so must define one.
-		 * @param comboBox
-		 */
-		public InitTableIntegerCellEditor() {
-			super(new JTextField());
-		}
-		
-		//Make sure the value remains an Integer.
-		@Override
-	    public Object getCellEditorValue() {
-	        JTextField tf = (JTextField)getComponent();
-	        try {
-	        	Integer value = new Integer(tf.getText());
-	        	return value;
-	        } catch (NumberFormatException e) {
-	        	return 0;
-	        }
-	    }
-
-		// Do a final check to make sure everything is ok.
-	    public boolean stopCellEditing() {
-	        JTextField tf = (JTextField)getComponent();
-	        String text = tf.getText();
-	        try {
-	        	new Integer(text);
-	        	tf.setText(text);
-	        	return super.stopCellEditing();
-	        } catch (NumberFormatException e) {
-	        	tf.setBorder(new LineBorder(new Color(220,0,0)));
-	        	
-	        	return false;
-	        }
-	    }
-	    
-		@Override
-		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-			JTextField c = (JTextField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
-			if (isSelected)
-			    c.selectAll();
-			
-			formatEditField(c, isSelected, row, column);
-			return c;
-		}
-	}
-	
-	/**
-	 * Renderer to deal with all the customizations based on Actor state/type/etc.
-	 * Assumes that the table model being used is an ActorTableModel.
-	 * @author dsmall
-	 *
-	 */
-	class InitTableFloatCellEditor extends DefaultCellEditor {
-		private static final long serialVersionUID = 1L;
-		public InitTableFloatCellEditor() {	super(new JTextField()); }
-		
-		//Make sure the value remains an Integer.
-		@Override
-	    public Object getCellEditorValue() {
-	        JTextField tf = (JTextField)getComponent();
-	        try {
-	        	Float value = new Float(tf.getText());
-	        	return value;
-	        } catch (NumberFormatException e) {
-	        	return 0;
-	        }
-	    }
-
-		// Do a final check to make sure everything is ok.
-	    public boolean stopCellEditing() {
-	        JTextField tf = (JTextField)getComponent();
-	        String text = tf.getText();
-	        try {
-	        	new Float(text);
-	        	tf.setText(text);
-	        	return super.stopCellEditing();
-	        } catch (NumberFormatException e) {
-	        	tf.setBorder(new LineBorder(new Color(220,0,0)));
-	        	return false;
-	        }
-	    }
-	    
-		@Override
-		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-			JTextField c = (JTextField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
-			if (isSelected)
-			    c.selectAll();
-			
-			formatEditField(c, isSelected, row, column);
-			return c;
-		}
-	}
 	
 	/**
 	 * Inner class to provide CellEditor functionality
@@ -665,17 +618,15 @@ public class InitTable extends BasicTable {
 	 * @author dsmall
 	 */
 	class InitTableDamageCellEditor extends DefaultCellEditor {
-	
-		/**
-		 * Default serial UID
-		 */
-		private static final long serialVersionUID = 1L;
+		ParsingField tf;
+		
 		private static final boolean DEBUG = true;
 		
 		public InitTableDamageCellEditor() {
-			super(new JTextField());
+			super(new ParsingField());
 			DamageDocumentFilter df = new DamageDocumentFilter();
-			JTextField tf = (JTextField)getComponent();
+			tf = (ParsingField)getComponent();
+			tf.setParser(new DamageFieldParser());
 			tf.addFocusListener(df);
 			((AbstractDocument) tf.getDocument()).setDocumentFilter(df);
 		}
@@ -683,49 +634,57 @@ public class InitTable extends BasicTable {
 		//Make sure the value remains an Integer.
 		@Override
 	    public Object getCellEditorValue() {
-	        JTextField tf = (JTextField)getComponent();
-	        try {
-	        	Integer value = new Integer(tf.getText());
-	        	return value;
-	        } catch (NumberFormatException e) {
-	        	return 0;
-	        }
-	    }
-	
-		// Parse through the value, and perform any operations. Do a final check to make sure everything is ok.
-		// Keep track of all the intermediate damage steps
-	    public boolean stopCellEditing() {
-	        JTextField tf = (JTextField)getComponent();
-	        String text = tf.getText();
-	        Pattern pattern = Pattern.compile("^(-?\\d+)([\\+-])(\\d+)(.*)$");
-	        Matcher matcher = pattern.matcher(text);
-	        while (matcher.matches()) {
-	        	Integer first = new Integer(matcher.group(1));
-	        	String operator = matcher.group(2);
-	        	Integer second = new Integer(matcher.group(3));
-	        	Integer result;
-	        	if (operator.equals("+")) { result = first + second; }
-	        	else { result = first - second; }
-	        	text = matcher.group(4);
-	        	if (DEBUG) { System.out.println("InitTableDamageCellEditor: Calculating damage: " + first + " : " + operator + " : " + second + " = " + result + " (" + text + ")."); }
-	        	text = result + text;
-	        	matcher = pattern.matcher(text);
-	        }
-	        try {
-	        	new Integer(text);
-	        	tf.setText(text);
-	        	return super.stopCellEditing();
-	        } catch (NumberFormatException e) {
-	        	tf.setBorder(new LineBorder(new Color(220,0,0)));
-	        	return false;
-	        }
+			return tf.getParsedValue();	     
 	    }
 	    
 		@Override
 		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-			JTextField c = (JTextField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
-			formatEditField(c, isSelected, row, column);
-			return c;
+			tf = (ParsingField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
+			formatEditField(tf, isSelected, row, column);
+			tf.refreshForeground();
+			return tf;
+		}
+		
+		private class DamageFieldParser extends ParsingFieldParser {
+			Pattern pattern = Pattern.compile("^\\s*(-?\\d+)\\s*([\\+-])\\s*(-?\\d+)([\\s+-].*)?$");
+			
+			@Override
+			public boolean parseIsValid(String text) {
+				String result = internalParse(text);
+				try {
+		        	new Integer(result);
+		        	return true;
+		        } catch (NumberFormatException e) {
+		        	return false;
+		        }
+			}
+
+			@Override
+			public Object parseText(String text) {	
+				return internalParse(text);
+			}	
+			
+			// Operates by reference, modifies working string and reports success
+			private String internalParse(String working) {
+				working = working.trim();
+				Matcher matcher = pattern.matcher(working);
+				while (matcher.matches()) {
+					Integer first = new Integer(matcher.group(1));
+					String operator = matcher.group(2);
+					Integer second = new Integer(matcher.group(3));
+					if (operator.equals("+")) { first += second; }
+					else { first -= second; }
+					// Check if we need to continue
+					String extra = matcher.group(4);
+					if (extra != null) {
+						working = first.toString() + extra;
+						matcher = pattern.matcher(working);
+					} else {
+						return first.toString();
+					}					
+				}
+				return working;				
+			}
 		}
 		
 		private class DamageDocumentFilter extends DocumentFilter implements FocusListener {
@@ -745,16 +704,16 @@ public class InitTable extends BasicTable {
 			public void insertString(FilterBypass fb, int offs, String str, javax.swing.text.AttributeSet a) throws BadLocationException {
 				System.out.println("InitTableDamageCellEditor: DamageDocumentFilter: Insert:" + str + ".");
 				
-				if (str.matches("[\\d\\+-]+")) {
+				//if (str.matches("[\\d\\+-]+")) {
 					super.insertString(fb, offs, str, a);
-				}
+				//}
 			}
 			
 			@Override
 			public void replace(FilterBypass fb, int offs, int length, String str, javax.swing.text.AttributeSet a) throws BadLocationException {
 				System.out.println("InitTableDamageCellEditor: DamageDocumentFilter: Replace: '" + str + "', Offs=" + offs + ", Length=" + length + ".");
 				
-				if (str.matches("[\\d\\+-]+")) {
+				//if (str.matches("[\\d\\+-]+")) {
 					if (hasFocus || firstEdit || (length > 0)) {
 						firstEdit = false;
 						startingNew = true;
@@ -769,7 +728,7 @@ public class InitTable extends BasicTable {
 						startingNew = false;
 						super.replace(fb, offs, 0, str, a);
 					}
-				}
+				//}
 			}
 	
 			@Override
@@ -793,11 +752,6 @@ public class InitTable extends BasicTable {
 	 *
 	 */
 	class InitTableStatusListCellEditor extends AbstractCellEditor implements TableCellEditor, ActionListener, FocusListener, ComponentListener  {
-
-		/**
-		 * Default serial UID
-		 */
-		private static final long serialVersionUID = 1L;
 
 		JList<ActorStatus> list;
 		JScrollPane pane;
@@ -929,11 +883,6 @@ public class InitTable extends BasicTable {
 	 *
 	 */
 	class InitTableTypeListCellEditor extends AbstractCellEditor implements TableCellEditor, ActionListener, MouseListener, FocusListener, ComponentListener  {
-
-		/**
-		 * Default serial UID
-		 */
-		private static final long serialVersionUID = 1L;
 
 		JList<ActorType> list;
 		JScrollPane pane;

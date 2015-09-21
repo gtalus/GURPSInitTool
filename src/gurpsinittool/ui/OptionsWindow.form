@@ -30,7 +30,7 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Component id="combatAutomationPanel" alignment="0" max="32767" attributes="0"/>
           <Group type="102" alignment="1" attributes="0">
-              <EmptySpace min="0" pref="89" max="32767" attributes="0"/>
+              <EmptySpace min="0" pref="66" max="32767" attributes="0"/>
               <Component id="okButton" min="-2" pref="59" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="applyButton" min="-2" max="-2" attributes="0"/>
@@ -167,19 +167,32 @@
       <Layout>
         <DimensionLayout dim="0">
           <Group type="103" groupAlignment="0" attributes="0">
-              <Group type="102" alignment="0" attributes="0">
-                  <Component id="log_statuschanges" min="-2" max="-2" attributes="0"/>
+              <Group type="102" attributes="0">
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Component id="log_statuschanges" min="-2" max="-2" attributes="0"/>
+                      <Component id="log_defensedetails" min="-2" max="-2" attributes="0"/>
+                  </Group>
                   <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
         <DimensionLayout dim="1">
           <Group type="103" groupAlignment="0" attributes="0">
-              <Component id="log_statuschanges" min="-2" max="-2" attributes="0"/>
+              <Group type="102" alignment="0" attributes="0">
+                  <Component id="log_statuschanges" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="log_defensedetails" min="-2" max="-2" attributes="0"/>
+              </Group>
           </Group>
         </DimensionLayout>
       </Layout>
       <SubComponents>
+        <Component class="javax.swing.JCheckBox" name="log_defensedetails">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Defense details"/>
+            <Property name="toolTipText" type="java.lang.String" value="Log defense details (retreat/EE/side/etc.)"/>
+          </Properties>
+        </Component>
         <Component class="javax.swing.JCheckBox" name="log_statuschanges">
           <Properties>
             <Property name="text" type="java.lang.String" value="Verbose Status Changes"/>

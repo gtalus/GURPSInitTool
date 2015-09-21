@@ -1,11 +1,19 @@
 package gurpsinittool.app;
 
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
+
+import javax.swing.DefaultCellEditor;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 
+import gurpsinittool.app.InitTableModel.columns;
+import gurpsinittool.app.textfield.ParsingField;
+import gurpsinittool.app.textfield.ParsingFieldParser;
+import gurpsinittool.app.textfield.ParsingFieldParserFactory;
 import gurpsinittool.data.*;
 import gurpsinittool.util.MiscUtil;
 
@@ -158,6 +166,33 @@ public class AttackTableModel extends AbstractTableModel {
     }
  
 	/**
+	 * Inner class to provide CellEditor functionality
+	 * Allow modification of the text cell editor
+	 * @author dsmall
+	 */
+	public class AttackTableCellEditor extends DefaultCellEditor {
+		
+		/**
+		 * Super does not define default constructor, so must define one.
+		 * @param comboBox
+		 */
+		public AttackTableCellEditor(ParsingFieldParser parser) {
+			super(new ParsingField(parser));
+		}
+		
+		@Override
+		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+			ParsingField c = (ParsingField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
+			if (isSelected)
+			    c.selectAll();
+//			if (table.getRowSorter().convertRowIndexToModel(row) == currentActor.getDefaultAttack()) {
+//				MiscUtil.setTextFieldFontStyle(c, Font.BOLD);
+//			}
+			return c;
+		}
+	}
+	
+	/**
 	 * Renderer to deal with all the customizations based on Actor state/type/etc.
 	 * Assumes that the table model being used is an ActorTableModel.
 	 * @author dsmall
@@ -165,17 +200,19 @@ public class AttackTableModel extends AbstractTableModel {
 	 */
 	public class AttackTableCellRenderer extends DefaultTableCellRenderer {
 
-		/**
-		 * This class is not really serializable, I think.
-		 */
-		private static final long serialVersionUID = 1L;
-
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 			JLabel c = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 			if (table.getRowSorter().convertRowIndexToModel(row) == currentActor.getDefaultAttack()) {
 				MiscUtil.setLabelBold(c);
 			}
+			// Check parsing: at some point may want to create 'ParsingComponent' which has label and textfield versions
+			AttackTableModel.columns col = AttackTableModel.columns.valueOf(table.getColumnName(column));
+			if (col == columns.Damage) {
+				if (!ParsingFieldParserFactory.DamageParser().parseIsValid(c.getText()))
+					c.setForeground(Color.red);
+			}
+			
 			return c;
 		}
 	}

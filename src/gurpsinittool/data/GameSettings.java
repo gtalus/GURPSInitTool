@@ -11,4 +11,5 @@ public class GameSettings  {
 	
 	// Interface / Logging
 	public boolean LOG_STATUSCHANGES = false; // Log all status changes
+	public boolean LOG_DEFENSEDETAILS = false; // Log defense details (retreat/EE/side/etc.)
 }

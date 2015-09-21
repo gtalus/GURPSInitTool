@@ -6,7 +6,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.regex.Pattern;
 
+import javax.swing.event.UndoableEditListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.undo.AbstractUndoableEdit;
+import javax.swing.undo.UndoableEditSupport;
 
 import gurpsinittool.data.*;
 import gurpsinittool.data.ActorBase.ActorStatus;
@@ -23,11 +26,12 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 	private static final long serialVersionUID = 1L;
 
 	private static final boolean DEBUG = true;
+	private UndoableEditSupport undoSupport = new UndoableEditSupport();
 
 	// Removed: Dodge, type
 	// TODO: consolidate HP/Damage, FP/Fatigue
 	private String[] columnNames = {"Act", "Name", "Speed", "Move", "HT", "HP", "Injury", "FP", "Fatigue", "Status"};
-	private Class<?>[] columnClasses = {String.class, String.class, Float.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, String.class};
+	private Class<?>[] columnClasses = {String.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class};
 	public enum columns {Act, Name, Speed, Move, HT, HP, Injury, FP, Fatigue, Status};
 	private static int numColumns = 10;
 	
@@ -66,6 +70,8 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 		Actor actor = new Actor(newActor);
 		actor.addPropertyChangeListener(this);
 		actorList.add(actorList.size(),actor);
+		if (actorList.size() > 1) // Don't do this for the first row
+			undoSupport.postEdit(new AddActorEdit(actorList.get(actorList.size()-2), actorList.size()-2));
 		setDirty();
     	fireTableRowsInserted(actorList.size()-1,actorList.size()-1);
 	}
@@ -136,21 +142,21 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 		case Name:
 			return actor.getTraitValue(BasicTrait.Name);
 		case Speed:
-			return Float.parseFloat(actor.getTraitValue(BasicTrait.Speed));
+			return actor.getTraitValue(BasicTrait.Speed);
 		case Move:
-			return actor.getTraitValueInt(BasicTrait.Move);
+			return actor.getTraitValue(BasicTrait.Move);
 		//case Dodge:
 		//	return actor.getTraitValueInt(BasicTrait.Dodge);
 		case HT:
-			return actor.getTraitValueInt(BasicTrait.HT);
+			return actor.getTraitValue(BasicTrait.HT);
 		case HP:
-			return actor.getTraitValueInt(BasicTrait.HP);
+			return actor.getTraitValue(BasicTrait.HP);
 		case Injury:
-			return actor.getTraitValueInt(BasicTrait.Injury);
+			return actor.getTraitValue(BasicTrait.Injury);
 		case FP:
-			return actor.getTraitValueInt(BasicTrait.FP);
+			return actor.getTraitValue(BasicTrait.FP);
 		case Fatigue:
-			return actor.getTraitValueInt(BasicTrait.Fatigue);
+			return actor.getTraitValue(BasicTrait.Fatigue);
 		case Status:
 			return actor.getAllStatuses();
 		//case Type:
@@ -189,28 +195,28 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 			a.setTrait(BasicTrait.Name, (String) value);
 			break;
 		case Speed:
-			a.setTrait(BasicTrait.Speed, String.valueOf((Float) value));
+			a.setTrait(BasicTrait.Speed, (String) value);
 			break;
 		case Move:
-			a.setTrait(BasicTrait.Move, String.valueOf((Integer) value));
+			a.setTrait(BasicTrait.Move, (String) value);
 			break;
 		//case Dodge:
 		//	a.setTrait(BasicTrait.Dodge, String.valueOf((Integer) value));
 		//	break;
 		case HT:
-			a.setTrait(BasicTrait.HT, String.valueOf((Integer) value));
+			a.setTrait(BasicTrait.HT, (String) value);
 			break;
 		case HP:
-			a.setTrait(BasicTrait.HP, String.valueOf((Integer) value));
+			a.setTrait(BasicTrait.HP, (String) value);
 			break;
 		case Injury:
-			a.setTrait(BasicTrait.Injury, String.valueOf((Integer) value));
+			a.setTrait(BasicTrait.Injury, (String) value);
 			break;
 		case FP:
-			a.setTrait(BasicTrait.FP, String.valueOf((Integer) value));
+			a.setTrait(BasicTrait.FP, (String) value);
 			break;
 		case Fatigue:
-			a.setTrait(BasicTrait.Fatigue, String.valueOf((Integer) value));
+			a.setTrait(BasicTrait.Fatigue, (String) value);
 			break;
 		case Status:
 			a.setAllStatuses((HashSet<ActorStatus>) value);
@@ -338,4 +344,31 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 					fireTableRowsUpdated(newValue, newValue);
 		}
 	}
+	
+	public void addUndoableEditListener(UndoableEditListener listener) {
+		undoSupport.addUndoableEditListener(listener);
+	}
+	public void removeUndoableEditListener(UndoableEditListener listener) {
+		undoSupport.removeUndoableEditListener(listener);
+	}
+	
+    private class AddActorEdit extends AbstractUndoableEdit {
+    	private Actor actor;
+    	private int index;
+    	public AddActorEdit(Actor actor, int index) {
+    		this.actor = actor;
+    		this.index = index;
+    	}
+    	public String getPresentationName() { return "Add"; }
+    	
+    	public void undo() {
+			super.undo();
+    		removeActor(index);
+    	}
+    	
+    	public void redo() {
+			super.redo();
+    		addActor(actor, index);
+    	}        	
+    }
 }

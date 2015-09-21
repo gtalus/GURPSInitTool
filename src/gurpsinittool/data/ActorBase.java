@@ -8,8 +8,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 import gurpsinittool.util.EncounterLogEvent;
 import gurpsinittool.util.EncounterLogEventSource;
@@ -62,6 +64,20 @@ public class ActorBase implements Serializable {
 	// Volatile (not currently stored or changes reported)
 	protected HashMap<String, Trait> temps = new HashMap<String, Trait>();
 	 
+	// Trait Aliases
+	// Trait name points to ';' separated list of aliases
+	// Program should always use the base name for all checks/get/etc
+	protected static final Map<String, String> traitAliases;
+	static {
+		Map<String, String> aMap = new HashMap<String, String>();
+		aMap.put("Combat Reflexes", "CR");
+		aMap.put("High Pain Threshold", "HPT");
+		aMap.put("Low Pain Threshold", "LPT");
+		aMap.put("Injury Tolerance", "IT");
+		aMap.put("Immunity to Metabolic Hazards", "IMH");
+		traitAliases = Collections.unmodifiableMap(aMap);
+	}
+	
     //================================================================================
     // Constructors
     //================================================================================
@@ -249,7 +265,17 @@ public class ActorBase implements Serializable {
 	
 	// Traits
 	public boolean hasTrait(String name) {
-		return traits.containsKey(name);
+		if (!traits.containsKey(name)) {
+			// Support aliases
+			if (traitAliases.containsKey(name)) {
+				for (String alias: traitAliases.get(name).split(";")) {
+					if (traits.containsKey(alias))
+						return true;
+				}
+			}
+			return false;
+		}
+		return true; 
 	}
 	public static boolean isBasicTrait(String name) {
 		for (BasicTrait b: BasicTrait.values()) {
@@ -261,11 +287,17 @@ public class ActorBase implements Serializable {
 	// Get functions
 	private Trait getTrait(String name) {
 		if (!traits.containsKey(name)) { // This is not a serious error?
+			// Support aliases
+			if (traitAliases.containsKey(name)) {
+				for (String alias: traitAliases.get(name).split(";")) {
+					if (traits.containsKey(alias))
+						return traits.get(alias);
+				}
+			}
 			System.out.println("-E- Actor:GetTrait: requested trait that does not exist: " + name);
 			return null; // Consider returning a new trait with no value? Probably not with the change support.
-		} else {
-			return traits.get(name);
-		}
+		} 
+		return traits.get(name);
 	}
 	private Trait getTrait(BasicTrait trait) {
 		return traits.get(trait.toString());
@@ -277,11 +309,14 @@ public class ActorBase implements Serializable {
 		return getTrait(trait).value;
 	}
 	public int getTraitValueInt(BasicTrait trait) {
+		return parseIntSafe(getTrait(trait).value);	
+	}
+	private int parseIntSafe(String text) {
 		try {
-			return Integer.parseInt(getTrait(trait).value);
+			return Integer.parseInt(text);
 		} catch (NumberFormatException e) {
-			System.err.println("Actor: getValueInt: Error parsing value: " + getTrait(trait).value);
-			e.printStackTrace();
+			System.out.println("-W- Actor: parseIntSafe: Error parsing value: " + text);
+			//e.printStackTrace();
 			return 0;
 		}
 	}
@@ -307,28 +342,32 @@ public class ActorBase implements Serializable {
 		if (!trait.value.equals(value)) {
 			String oldValue = trait.value;
 			// And here is all the magic reporting!
-			if (name == "Injury") {
-				int newValue = Integer.valueOf(value);
-				newValue = Math.max(newValue, 0);
-				value = String.valueOf(newValue); // ... and back to string
-				int HP = getTraitValueInt(BasicTrait.HP);
-				int diff = getTraitValueInt(BasicTrait.Injury) - newValue;
-				if (diff < 0) {
-					setTemp("shock.next", getTempInt("shock.next") - diff);
-					logEventTypeName("took <b><font color=red>" + (-1*diff) + "</font></b> damage (now " + (HP - newValue) + " HP).");
-				} else {
-					logEventTypeName("healed <b><font color=blue>" + diff + "</font></b> (now " + (HP - newValue) + " HP).");		
-				}
-			} else if (name == "Fatigue") {
-				int newValue = Integer.valueOf(value);
-				newValue = Math.max(newValue, 0);
-				value = String.valueOf(newValue); // ... and back to string
-				int FP = getTraitValueInt(BasicTrait.FP);
-				int diff = getTraitValueInt(BasicTrait.Fatigue) - newValue;
-				if (diff < 0) {
-					logEventTypeName("lost <b>" + (-1*diff) + "</b> fatigue (now " + (FP - newValue) + " FP).");
-				} else {
-					logEventTypeName("recoverd <b>" + diff + "</b> fatigue (now " + (FP - newValue) + " FP).");		
+			if (name == "Injury" || name == "Fatigue") { 		
+				int intValue = 0;
+				try { // Enforce >= 0
+					intValue = Integer.parseInt(value);
+					intValue = Math.max(intValue, 0);
+					value = String.valueOf(intValue);
+				} catch (NumberFormatException e) {
+					System.out.println("-W- Actor: setTrait: Error parsing Injury/Fatigue value: " + value);
+				}				
+				if (name == "Injury") {  // and calculate shock				
+					int HP = getTraitValueInt(BasicTrait.HP);
+					int diff = getTraitValueInt(BasicTrait.Injury) - intValue;
+					if (diff < 0) {
+						setTemp("shock.next", getTempInt("shock.next") - diff);
+						logEventTypeName("took <b><font color=red>" + (-1*diff) + "</font></b> damage (now " + (HP - intValue) + " HP).");
+					} else {
+						logEventTypeName("healed <b><font color=blue>" + diff + "</font></b> (now " + (HP - intValue) + " HP).");		
+					}
+				} else if (name == "Fatigue") {
+					int FP = getTraitValueInt(BasicTrait.FP);
+					int diff = getTraitValueInt(BasicTrait.Fatigue) - intValue;
+					if (diff < 0) {
+						logEventTypeName("lost <b>" + (-1*diff) + "</b> fatigue (now " + (FP - intValue) + " FP).");
+					} else {
+						logEventTypeName("recoverd <b>" + diff + "</b> fatigue (now " + (FP - intValue) + " FP).");		
+					}
 				}
 			}
 			
@@ -346,10 +385,16 @@ public class ActorBase implements Serializable {
 		setTrait(name, String.valueOf(value));
 	}
 	
-	// Add
+	/**
+	 * Add a trait
+	 * @param name - the name of the trait to add
+	 * @param value - the new trait's value
+	 * @return whether the operation was successful
+	 */
+	// No alias support currently
 	public boolean addTrait(String name, String value) {
-		if (hasTrait(name)) { 
-			System.err.println("Actor.addTrait: trait already exists! " + name); 
+		if (traits.containsKey(name)) { 
+			System.out.println("-W- Actor.addTrait: trait already exists! " + name); 
 			return false;
 		}
 		Trait newTrait = new Trait(name, value);
@@ -363,11 +408,12 @@ public class ActorBase implements Serializable {
 	 * @param name - the name of the trait to remove
 	 * @return success
 	 */
+	// No alias support currently
 	public boolean removeTrait(String name) {
 		if (isBasicTrait(name)) {
 			System.out.println("-E- removeTrait: cannot remove basic traits! => " + name);
 			return false;
-		} else if (!hasTrait(name)) {
+		} else if (!traits.containsKey(name)) {
 			System.out.println("-E- removeTrait: cannot remove non-existant trait! => " + name);
 			return false;
 		} else {
@@ -384,14 +430,15 @@ public class ActorBase implements Serializable {
 	 * @param newName - the proposed new trait name
 	 * @return success
 	 */
+	// No alias support currently
 	public boolean renameTrait(String oldName, String newName) {
 		if (isBasicTrait(oldName)) {
 			System.out.println("-E- renameTrait: Cannot rename BasicTrait! oldName: " + oldName + ", newName: " + newName);
 			return false;
-		} else if (hasTrait(newName)) {
+		} else if (traits.containsKey(newName)) {
 			System.out.println("-E- renameTrait: New trait name already exists! oldName: " + oldName + ", newName: " + newName);
 			return false;
-		} else if (!hasTrait(oldName)) {
+		} else if (!traits.containsKey(oldName)) {
 			System.out.println("-E- renameTrait: Old name does not exist! oldName: " + oldName + ", newName: " + newName);
 			return false;
 		} else {

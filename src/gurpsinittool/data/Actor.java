@@ -1,5 +1,8 @@
 package gurpsinittool.data;
 
+import java.text.ParseException;
+import java.util.ArrayList;
+
 import gurpsinittool.data.Defense.DefenseResult;
 import gurpsinittool.data.Defense.DefenseType;
 import gurpsinittool.util.DieRoller;
@@ -27,7 +30,8 @@ public class Actor extends ActorBase {
 		if (settings.AUTO_SHOCK) {
 			int injury =  getTempInt("shock.next");
 			int injury_per_shock = (int) getTraitValueInt(BasicTrait.HP) / 10;
-			int LHPT = hasTrait("HPT")?0:(hasTrait("LPT")?2:1);
+			injury_per_shock = (injury_per_shock==0)?1:injury_per_shock; // Minimum 1
+			int LHPT = hasTrait("High Pain Threshold")?0:(hasTrait("Low Pain Threshold")?2:1);
 			setTemp("shock", LHPT * Math.min((int)injury/injury_per_shock,4));
 		}
 		setTemp("shock.next", 0);
@@ -58,7 +62,7 @@ public class Actor extends ActorBase {
 				removeStatus(ActorStatus.StunRecovr); // This was from last turn, so recovered this turn
 				if (hasStatus(ActorStatus.StunMental)) {
 					int recoverTarget = getTraitValueInt(BasicTrait.IQ);
-					if (hasTrait("CR")) recoverTarget += 6;
+					if (hasTrait("Combat Reflexes")) recoverTarget += 6;
 					int roll = DieRoller.roll3d6();
 					if (DieRoller.isSuccess(roll, recoverTarget)) {
 						logEventTypeName("is now recovering from Mental Stun (rolled " + roll + " against " + recoverTarget + ")"); 
@@ -112,7 +116,7 @@ public class Actor extends ActorBase {
     //================================================================================
 	public void Attack(int num) {
 		if (num < 0 || num >= attacks.size()) {
-			System.err.println("-E- Actor:Attack: invalid attack attempted: id # " +String.valueOf(num));
+			System.out.println("-W- Actor:Attack: invalid attack attempted: id # " +String.valueOf(num));
 			return;
 		}
 		Attack attack = attacks.get(num);
@@ -143,7 +147,13 @@ public class Actor extends ActorBase {
 		else 
 			hit_miss = "miss";
 		boolean isHit = DieRoller.isSuccess(roll, eff_skill);
-		Damage damage = Damage.ParseDamage(attack.Damage);
+		Damage damage;
+		try {
+			damage = Damage.ParseDamage(attack.Damage);
+		} catch (ParseException e) {
+			logEventError("Unable to parse damage string in attack '" + attack.Name + "'");
+			return;
+		}
 		if (attack.Unbalanced) {
 			setTemp("numParry", getTempInt("numParry")+1);
 		}
@@ -219,7 +229,7 @@ public class Actor extends ActorBase {
 		case None:
 			defenseDescription = "made no defense against blow.";
 		}
-		
+			
 		if (defense.result == DefenseResult.CritFailure)
 			defenseDescription = "<b><font color=red>critically</font></b> failed " + defense.type.toString().toLowerCase() + ".";
 
@@ -239,6 +249,47 @@ public class Actor extends ActorBase {
 			damageDescription += " <b>Shield damaged " + defense.shieldDamage + ".</b>";
 
 		logEventTypeName(defenseDescription + damageDescription);
+		if (settings.LOG_DEFENSEDETAILS) {
+			// Defense details: #/turn, posture, EE, retreat, side, stunned, shield, other. effective/roll
+			String details = "defense details: " + defense.type.toString() + defenseNumberReport(defense.type);
+			ArrayList<String> additional = new ArrayList<String>();
+			if (defense.position != "Standing") additional.add("position: " + defense.position);
+			if (defense.ee) additional.add("EE");
+			if (defense.retreat) additional.add("retreating");
+			if (defense.side) additional.add("side attack");
+			if (defense.stunned) additional.add("stunned");
+			if (defense.shield) additional.add("shield used");
+			if (defense.otherMod != 0) additional.add("other:" + String.valueOf(defense.otherMod));
+			if (!additional.isEmpty())
+				details += ", " + String.join(";", additional);
+			details += ", effective defense: " + String.valueOf(defense.effectiveDefense) + "/ roll: " + String.valueOf(defense.roll) + ".";
+			logEventTypeName(details);
+		}
+	}
+	
+	private String defenseNumberReport(DefenseType type) {
+		int num = 0;
+		switch (type) {
+		case Parry:
+			num = getTempInt("numParry");
+			break;
+		case Block:
+			num = getTempInt("numBlock");
+			break;
+		case Dodge:
+		case None:
+		}
+		String result = "";
+		if (num > 1) {
+			result = " (" + String.valueOf(num);
+			switch (num) {
+			case 2: result += "nd"; break;
+			case 3: result += "rd"; break;
+			default: result += "th"; break;
+			}
+			result += " this turn)";
+		}
+		return result;
 	}
 
 	private void ProcessDefenseResults(Defense defense) {
@@ -289,8 +340,8 @@ public class Actor extends ActorBase {
  				knockdownDescription = " for major wound";
  			}
 				
- 			if (hasTrait("HPT")) effHT += 3;
- 			if (hasTrait("LPT")) effHT -= 4;
+ 			if (hasTrait("High Pain Threshold")) effHT += 3;
+ 			if (hasTrait("Low Pain Threshold")) effHT -= 4;
  			int roll = DieRoller.roll3d6();
  			boolean success = DieRoller.isSuccess(roll, effHT);
  			logEventTypeName("Knockdown/Stunning check" + knockdownDescription + ": rolled " + roll + " against " + effHT + " => " + (!success?"<b>failed</b>":"succeeded"));
@@ -311,26 +362,19 @@ public class Actor extends ActorBase {
      * @return the current value of that defense
      */
     public int getCurrentDefenseValue(DefenseType type) {
-    	int Parry = getTraitValueInt(BasicTrait.Parry);
-    	int Block = getTraitValueInt(BasicTrait.Block);
-    	int Dodge = getTraitValueInt(BasicTrait.Dodge);
-    	int Injury = getTraitValueInt(BasicTrait.Injury);
-    	int Fatigue = getTraitValueInt(BasicTrait.Fatigue);
-    	int HP = getTraitValueInt(BasicTrait.HP);
-    	int FP = getTraitValueInt(BasicTrait.FP);
     	int currentDefense = 0;
     	switch (type) {
     	case Parry:
-    		currentDefense = Parry - getTempInt("numParry") * 4;
+    		currentDefense = getTraitValueInt(BasicTrait.Parry) - getTempInt("numParry") * 4;
     		break;
     	case Block:
-    		currentDefense = Block - getTempInt("numBlock") * 5;
+    		currentDefense = getTraitValueInt(BasicTrait.Block) - getTempInt("numBlock") * 5;
     		break;
     	case Dodge:
-    		currentDefense = Dodge;   
-    		if (Injury > 2*HP/3)
+    		currentDefense = getTraitValueInt(BasicTrait.Dodge);   
+    		if (getTraitValueInt(BasicTrait.Injury) > 2*getTraitValueInt(BasicTrait.HP)/3)
     			currentDefense = (int) Math.ceil(currentDefense/2.0);
-        	if (Fatigue > 2*FP/3)
+        	if (getTraitValueInt(BasicTrait.Fatigue) > 2*getTraitValueInt(BasicTrait.FP)/3)
         		currentDefense = (int) Math.ceil(currentDefense/2.0);
 		default:
 			break;

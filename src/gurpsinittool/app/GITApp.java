@@ -7,10 +7,14 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.event.UndoableEditListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.undo.AbstractUndoableEdit;
+import javax.swing.undo.UndoableEditSupport;
+
 import java.awt.BorderLayout;
 import java.awt.Desktop;
 import java.awt.Dimension;
@@ -66,10 +70,6 @@ public class GITApp extends JFrame
 	// Command mode
 	private JToggleButton commandModeButton;
 	private CommandMode commandMode;
-	
-	//private UndoManager undoManager;
-	//private JMenuItem undoMenuItem;
-	//private JMenuItem redoMenuItem;
 
 	// GameMaster logic
 	private GameMaster gameMaster;
@@ -122,6 +122,9 @@ public class GITApp extends JFrame
         GITApp mainApp = new GITApp("GURPS Initiative Tool");
         mainApp.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // previously EXIT_ON_CLOSE
         mainApp.loadProperties();
+        // Here because the defaults depend on the crit table's default location
+        mainApp.setDefaultProperties(); // TODO: figure out when we actually set the defaults
+
         mainApp.initializeActions();
         mainApp.setAccelerators();
         mainApp.addComponentsToPane();
@@ -140,17 +143,26 @@ public class GITApp extends JFrame
     private void addComponentsToPane() {
     	// Core components
     	initTable = new InitTable(gameMaster, true);
-        searchSupport = new SearchSupport(initTable);
+        searchSupport = new SearchSupport(getRootPane(), initTable);
         defenseDialog = new DefenseDialog(this);
-
+        detailsPanel = new ActorDetailsPanel_v2();
+        kit = new HTMLEditorKit();
+        logTextDocument = new HTMLDocument();        
         commandMode = new CommandMode(this, defenseDialog, searchSupport, gameMaster);
         commandMode.attachCommandMode(this);     
         
         // Game Master
         gameMaster.initTable = initTable;
+        gameMaster.detailsPanel = detailsPanel;
         gameMaster.defenseDialog = defenseDialog;
         gameMaster.addPropertyChangeListener(this);
+        initTable.getActorTableModel().addUndoableEditListener(gameMaster);
+        logTextDocument.addUndoableEditListener(gameMaster);
         
+        // Encounter Logging
+        Actor.LogEventSource.addEncounterLogEventListener(this);
+        gameMaster.LogEventSource.addEncounterLogEventListener(this);
+
         // Defense Dialog
         defenseDialog.setLocation(Integer.valueOf(propertyBag.getProperty("GITApp.defense.location.x")),
 				 Integer.valueOf(propertyBag.getProperty("GITApp.defense.location.y")));		 
@@ -163,8 +175,6 @@ public class GITApp extends JFrame
         // The group Manager
         groupManager = new GroupManager(propertyBag);
         criticalTables = new CriticalTablesDialog(this, false);
-        // Here because the defaults depend on the crit table's default location
-        setDefaultProperties(); // TODO: figure out when we actually set the defaults
         criticalTables.setLocation(Integer.valueOf(propertyBag.getProperty("GITApp.crittables.location.x")),
                 Integer.valueOf(propertyBag.getProperty("GITApp.crittables.location.y")));
         criticalTables.setSize(Integer.valueOf(propertyBag.getProperty("GITApp.crittables.size.width")),
@@ -175,15 +185,13 @@ public class GITApp extends JFrame
       
         // Encounter Log
         logTextArea = new JTextPane();
-        logTextDocument = new HTMLDocument();
-         kit = new HTMLEditorKit();
         logTextArea.setEditorKit(kit);
         logTextArea.setDocument(logTextDocument);
         logTextArea.setEditable(false);
         logTextArea.setFont(new java.awt.Font("Tahoma", 0, 11));
-
+        addLogLine("<i><font color=gray>Encounter Log</color></i>", false);
+        
         // The actor table
-        Actor.LogEventSource.addEncounterLogEventListener(this);
         initTable.getSelectionModel().addListSelectionListener(this);
         initTable.getActorTableModel().addTableModelListener(this);
         
@@ -192,7 +200,6 @@ public class GITApp extends JFrame
         JScrollPane logScrollPane = new JScrollPane(logTextArea);
         
         // The actor info pane
-        detailsPanel = new ActorDetailsPanel_v2();
         JScrollPane actorDetailsPane = new JScrollPane(detailsPanel);
         actorDetailsPane.setMinimumSize(new Dimension(detailsPanel.getPreferredSize().width+20,0));
 
@@ -256,6 +263,10 @@ public class GITApp extends JFrame
     }
     
     private void setAccelerators() {
+//        getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control Z"), "actionUndo");
+//        getRootPane().getActionMap().put("actionUndo", gameMaster.actionUndo);
+//        getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control Y"), "actionRedo");
+//        getRootPane().getActionMap().put("actionRedo", gameMaster.actionRedo);
         getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control N"), "actionNextActor");
         getRootPane().getActionMap().put("actionNextActor", gameMaster.actionNextActor);
         getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control E"), "actionEndRound");
@@ -286,17 +297,14 @@ public class GITApp extends JFrame
         JMenu menuFile = new JMenu("Edit");
         menuFile.setMnemonic(KeyEvent.VK_E);
         
-//        undoMenuItem = new JMenuItem("Undo", KeyEvent.VK_U);
-//        undoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK));
-//        undoMenuItem.getAccessibleContext().setAccessibleDescription("Undo the last reversible action");
-//        undoMenuItem.addActionListener(this);
-//        menuFile.add(undoMenuItem);
-//        redoMenuItem = new JMenuItem("Redo", KeyEvent.VK_R);
-//        redoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, ActionEvent.CTRL_MASK));
-//        redoMenuItem.getAccessibleContext().setAccessibleDescription("Redo the last undone action");
-//        redoMenuItem.addActionListener(this);
-//        menuFile.add(redoMenuItem);
-        JMenuItem menuItem = new JMenuItem(new DefaultEditorKit.CutAction());
+        JMenuItem menuItem = new JMenuItem(gameMaster.actionUndo);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK));
+        menuFile.add(menuItem);
+        menuItem = new JMenuItem(gameMaster.actionRedo);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, ActionEvent.CTRL_MASK));
+        menuFile.add(menuItem);
+            
+        menuItem = new JMenuItem(new DefaultEditorKit.CutAction());
         menuItem.setText("Cut");
         menuItem.setMnemonic(KeyEvent.VK_T);
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK));
@@ -398,8 +406,7 @@ public class GITApp extends JFrame
         getContentPane().add(toolbar, BorderLayout.PAGE_START);
     }
 
-    protected void addLogLine(String line, boolean addRound) {
-    	if (gameMaster.getRound() <= 0) return; // Don't print log messages before round 0
+    protected void addLogLine(String line, boolean addRound) {    	
     	try {
     		String round = addRound?"Round " + gameMaster.getRound() + ": ":"";
     		kit.insertHTML(logTextDocument, logTextDocument.getLength(), round + line, 0, 0, null);
@@ -410,7 +417,7 @@ public class GITApp extends JFrame
     		System.out.println("-E- addLogLine: IOException trying to add line: " + line);
     		e.printStackTrace();
     	}
-    	// Move cursor to the end.
+    	// Move cursor to the end
     	logTextArea.select(logTextDocument.getLength(), logTextDocument.getLength());
     }
 
@@ -476,7 +483,7 @@ public class GITApp extends JFrame
 		 if (!propertyBag.containsKey("GITApp.Manager.visible")) {
 			 propertyBag.setProperty("GITApp.Manager.visible", "false"); }
 		 if (!propertyBag.containsKey("GITApp.splitHorizontal.dividerLocation")) {
-			 propertyBag.setProperty("GITApp.splitHorizontal.dividerLocation", "460"); }
+			 propertyBag.setProperty("GITApp.splitHorizontal.dividerLocation", "580"); }
 		 if (!propertyBag.containsKey("GITApp.splitVertical.dividerLocation")) {
 			 propertyBag.setProperty("GITApp.splitVertical.dividerLocation", "200"); }
 
@@ -485,9 +492,9 @@ public class GITApp extends JFrame
 		 if (!propertyBag.containsKey("GITApp.location.y")) {
 			 propertyBag.setProperty("GITApp.location.y", "400"); }
 		 if (!propertyBag.containsKey("GITApp.size.width")) {
-			 propertyBag.setProperty("GITApp.size.width", "760"); }
+			 propertyBag.setProperty("GITApp.size.width", "850"); }
 		 if (!propertyBag.containsKey("GITApp.size.height")) {
-			 propertyBag.setProperty("GITApp.size.height", "480"); }
+			 propertyBag.setProperty("GITApp.size.height", "550"); }
 	     // TODO: this is a hack of the property bag system: fix!
 		 if (!propertyBag.containsKey("GITApp.defense.location.x")) {
 			 propertyBag.setProperty("GITApp.defense.location.x", "200"); }
@@ -499,9 +506,9 @@ public class GITApp extends JFrame
 		 if (!propertyBag.containsKey("GITApp.crittables.location.y")) {
 			 propertyBag.setProperty("GITApp.crittables.location.y", "175"); }
 		 if (!propertyBag.containsKey("GITApp.crittables.size.width")) {
-			 propertyBag.setProperty("GITApp.crittables.size.width",  String.valueOf(criticalTables.getPreferredSize().width)); }
+			 propertyBag.setProperty("GITApp.crittables.size.width",  String.valueOf(new CriticalTablesDialog(this, false).getPreferredSize().width)); }
 		 if (!propertyBag.containsKey("GITApp.crittables.size.height")) {
-			 propertyBag.setProperty("GITApp.crittables.size.height",  String.valueOf(criticalTables.getPreferredSize().height)); }
+			 propertyBag.setProperty("GITApp.crittables.size.height",  String.valueOf(new CriticalTablesDialog(this, false).getPreferredSize().height)); }
 	 }
 	 
 	 /**
@@ -557,41 +564,33 @@ public class GITApp extends JFrame
 		 JOptionPane.showMessageDialog(this, ep, "About GURPS Initiative Tool", JOptionPane.INFORMATION_MESSAGE);
 	 }
 
-//	 /**
-//	  * This method is called after each undoable operation
-//	  * in order to refresh the presentation state of the
-//	  * undo/redo GUI
-//	  */
-//	  public void refreshUndoRedo() {
-//	     // refresh undo
-//		 undoMenuItem.setText(undoManager.getUndoPresentationName());
-//		 undoMenuItem.setEnabled(undoManager.canUndo());
-//
-//	     // refresh redo
-//	     redoMenuItem.setText(undoManager.getRedoPresentationName());
-//	     redoMenuItem.setEnabled(undoManager.canRedo());
-//	  }
-
-//	 /**
-//	  * Accessor method for undoManager
-//	  */
-//	 public UndoManager getUndoManager() {
-//		 return undoManager;
-//	 }
-
 	 @Override
-	 public void encounterLogMessageSent(EncounterLogEvent evt) {
-		 addLogLine(evt.logMsg, true);
+	 public void encounterLogMessageSent(EncounterLogEvent evt) {		 
+		 if (gameMaster.getRound() <= 0)
+			 return; // Ignore log messages before the encounter has started
+		 if (GameMaster.class.isInstance(evt.getSource()))
+			 addLogLine(evt.logMsg, false);
+		 else 
+			 addLogLine(evt.logMsg, true);
 	 }
 
 	@Override
 	public void tableChanged(TableModelEvent e) {
+		switch (e.getType()) {
+		case TableModelEvent.INSERT:
+			if (DEBUG) System.out.println ("GitApp: tableChanged: type=INSERT");
+		case TableModelEvent.DELETE:
+			if (DEBUG) System.out.println ("GitApp: tableChanged: type=DELETE");
+		case TableModelEvent.UPDATE:
+			if (DEBUG) System.out.println ("GitApp: tableChanged: type=UPDATE");
+		}
 		detailsPanel.setActor(initTable.getSelectedActor());
 	}
 
 	@Override
 	public void valueChanged(ListSelectionEvent e) {
 		if (!e.getValueIsAdjusting()) {
+			if (DEBUG) System.out.println ("GitApp: valueChanged: table list selection event");
 			detailsPanel.setActor(initTable.getSelectedActor());
 		}
 	}
@@ -632,12 +631,7 @@ public class GITApp extends JFrame
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		if (e.getPropertyName().equals("Round")) {
-			int oldValue = (Integer) e.getOldValue();
-			int newValue = (Integer) e.getNewValue();
-			
 			refreshRoundText();
-			if (oldValue != newValue && newValue != 0)
-				addLogLine("<b>** Round " + roundCounter.getText() + " **</b>", false);
 		}
 	}
 }

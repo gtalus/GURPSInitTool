@@ -238,7 +238,7 @@ public class DefenseDialog extends javax.swing.JDialog {
 
         shieldCheckBox.setSelected(true);
         shieldCheckBox.setText("Shield");
-        shieldCheckBox.setToolTipText("");
+        shieldCheckBox.setToolTipText("Using Shield (Ctrl+I)");
         shieldCheckBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 checkItemStateChanged(evt);
@@ -247,6 +247,7 @@ public class DefenseDialog extends javax.swing.JDialog {
 
         buttonGroup1.add(blockButton);
         blockButton.setText("Block");
+        blockButton.setToolTipText("Block (Ctrl+B)");
         blockButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radioButtonActionPerformed(evt);
@@ -264,6 +265,7 @@ public class DefenseDialog extends javax.swing.JDialog {
         buttonGroup1.add(parryButton);
         parryButton.setSelected(true);
         parryButton.setText("Parry");
+        parryButton.setToolTipText("Parry (Ctrl+P)");
         parryButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radioButtonActionPerformed(evt);
@@ -279,6 +281,7 @@ public class DefenseDialog extends javax.swing.JDialog {
         });
 
         retreatCheck.setText("Retreat");
+        retreatCheck.setToolTipText("Retreat (Ctrl+R)");
         retreatCheck.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 checkItemStateChanged(evt);
@@ -290,6 +293,7 @@ public class DefenseDialog extends javax.swing.JDialog {
 
         buttonGroup1.add(dodgeButton);
         dodgeButton.setText("Dodge");
+        dodgeButton.setToolTipText("Dodge (Ctrl+G)");
         dodgeButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radioButtonActionPerformed(evt);
@@ -297,6 +301,7 @@ public class DefenseDialog extends javax.swing.JDialog {
         });
 
         eeCheck.setText("Extra Effort");
+        eeCheck.setToolTipText("Use Extra Effort (Ctrl+E)");
         eeCheck.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 checkItemStateChanged(evt);
@@ -304,6 +309,7 @@ public class DefenseDialog extends javax.swing.JDialog {
         });
 
         sideCheck.setText("Side Attack");
+        sideCheck.setToolTipText("Attack is from a side hex (Ctrl+S)");
         sideCheck.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 checkItemStateChanged(evt);
@@ -314,7 +320,8 @@ public class DefenseDialog extends javax.swing.JDialog {
         jLabel7.setText("<HTML>Effective<br>Defense</HTML>");
 
         effectiveDefense.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
-        effectiveDefense.setText("97");
+        effectiveDefense.setText("0");
+        effectiveDefense.setToolTipText("");
 
         name.setEditable(false);
         name.setBackground(new java.awt.Color(236, 233, 216));
@@ -339,6 +346,7 @@ public class DefenseDialog extends javax.swing.JDialog {
         rollTextField.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(java.text.NumberFormat.getIntegerInstance())));
         rollTextField.setText("98");
 
+        otherSpinner.setToolTipText("Other modifiers, deceptive attack, etc. (Ctrl+D / Ctrl+Shift+D)");
         otherSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 otherSpinnerStateChanged(evt);
@@ -362,6 +370,7 @@ public class DefenseDialog extends javax.swing.JDialog {
 
         buttonGroup1.add(noneButton);
         noneButton.setText("None");
+        noneButton.setToolTipText("No Defense (Ctrl+N)");
         noneButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 radioButtonActionPerformed(evt);
@@ -372,7 +381,7 @@ public class DefenseDialog extends javax.swing.JDialog {
         jLabel3.setText("Defense Type:");
 
         stunnedCheck.setText("Stunned");
-        stunnedCheck.setToolTipText("");
+        stunnedCheck.setToolTipText("Defender is stunned (Ctrl+T)");
         stunnedCheck.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 checkItemStateChanged(evt);
