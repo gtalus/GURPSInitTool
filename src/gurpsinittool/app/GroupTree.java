@@ -1,5 +1,6 @@
 package gurpsinittool.app;
 
+import gurpsinittool.data.ActorBase.ActorType;
 import gurpsinittool.util.CleanFileChangeEventSource;
 import gurpsinittool.util.FileChangeEventListener;
 
@@ -14,22 +15,31 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
+import javax.swing.event.CellEditorListener;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
+import javax.swing.event.UndoableEditListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellEditor;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+import javax.swing.undo.AbstractUndoableEdit;
+import javax.swing.undo.UndoableEditSupport;
 
 public class GroupTree extends JTree 
 	implements ActionListener {
 
 	// Default SVUID
 	private static final long serialVersionUID = 1L;
+	private UndoableEditSupport mUes = new UndoableEditSupport();
+	protected CleanFileChangeEventSource mCfces = new CleanFileChangeEventSource(this);
 
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	
 	private DefaultMutableTreeNode rootNode;
 	private DefaultTreeModel treeModel;
@@ -39,12 +49,9 @@ public class GroupTree extends JTree
 	private JPopupMenu popupMenu;
 	
 	public GroupTree(InitTable groupTable) {
-		super(new DefaultTreeModel(new GroupTreeNode("Groups",true)));
-		
-		//this.treeModel = (DefaultTreeModel) super.treeModel;
-		//this.rootNode = (DefaultMutableTreeNode) treeModel.getRoot();
+		super();
+		setNewModel();
 		this.groupTable = groupTable;
-		//this.actorPanel = actorPanel;
 		
 		// Add some default nodes
 //		GroupTreeNode PC_group = new GroupTreeNode("PC Groups",true);
@@ -89,20 +96,31 @@ public class GroupTree extends JTree
         popupMenu.add(createMenuItem("Delete", KeyEvent.VK_DELETE));
         popupMenu.add(createMenuItem("Rename", KeyEvent.VK_R));
         MousePopupListener popupListener = new MousePopupListener();
-        addMouseListener(popupListener);
+        addMouseListener(popupListener);        
 	}
+	
+    /**
+     * Convenience method to create menu items for the table's menus.
+     * @param text - Text of the menu item
+     * @return
+     */
+    private JMenuItem createMenuItem(String text, int mnemonic) {
+    	JMenuItem menuItem = new JMenuItem(text, mnemonic);
+    	menuItem.addActionListener(this);
+    	return menuItem;
+    }
 	
 	public void actionPerformed(ActionEvent e) {
     	if (DEBUG) { System.out.println("GroupTree: actionPerformed: Received action command " + e.getActionCommand()); }
     	if ("New Folder".equals(e.getActionCommand())) { // Add folder
-			DefaultMutableTreeNode newFolder = addFolder("New Folder...");
+			DefaultMutableTreeNode newFolder = addNode("New Folder...", false);
 			TreePath folderPath = new TreePath(newFolder.getPath());
 			selectionModel.setSelectionPath(folderPath);
 	    	if (DEBUG) { System.out.println("GroupTree: actionPerformed: Added new node. User object " + newFolder.getUserObject().getClass()); }
 	    	startEditingAtPath(folderPath);	
     	}
 		else if ("New Group".equals(e.getActionCommand())) { // Add group
-			DefaultMutableTreeNode newGroup = addGroup("New Group...");
+			DefaultMutableTreeNode newGroup = addNode("New Group...", true);
 			TreePath groupPath = new TreePath(newGroup.getPath());
 			selectionModel.setSelectionPath(groupPath);
 	    	if (DEBUG) { System.out.println("GroupTree: actionPerformed: Added new node. User object " + newGroup.getUserObject().getClass()); }
@@ -117,50 +135,39 @@ public class GroupTree extends JTree
 		}
 		else if ("Rename".equals(e.getActionCommand())) { // Delete selected rows
 			if (isSelectionEmpty()) return;
-			startEditingAtPath(getSelectionPath());
+			startEditingAtPath(getSelectionPath());		
 		}
 	}
 	  
+
+    public InitTable getGroupTable() {
+    	return groupTable;
+    }
+    
 	/**
 	 * Add a group to the tree. Current selection is used as parent, or the root node.
 	 * @param name : The name of the new group
 	 * @return The newly created group
 	 */
-	public GroupTreeNode addGroup(String name) {
-		GroupTreeNode newGroup = new GroupTreeNode(name,false);
-	    insertObjectAtSelection(newGroup);
-	    scrollPathToVisible(new TreePath(newGroup.getPath()));
-    	
-	    return newGroup;
+	public GroupTreeNode addNode(String name, boolean leaf) {
+		GroupTreeNode newNode = new GroupTreeNode(name,leaf);
+	    insertObjectAtSelection(newNode);
+	    scrollPathToVisible(new TreePath(newNode.getPath()));
+	    mUes.postEdit(new NodeEdit(newNode, true));
+	    return newNode;
 	}
 	
 	/**
-	 * Add a folder to the tree. Current selection is used as parent, or the root node.
-	 * @param name : The name of the new folder
-	 * @return The newly created folder
+	 * Add a group to the tree. Current selection is used as parent, or the root node.
+	 * @param name : The name of the new group
+	 * @return The newly created group
 	 */
-	public GroupTreeNode addFolder(String name) {
-		GroupTreeNode newFolder = new GroupTreeNode(name,true);
-	    insertObjectAtSelection(newFolder);
-	    scrollPathToVisible(new TreePath(newFolder.getPath()));
-    	
-	    return newFolder;
+	public void insertNode(GroupTreeNode node, GroupTreeNode parentNode, int position) {
+		treeModel.insertNodeInto(node, parentNode, position);
+	    mUes.postEdit(new NodeEdit(node, true));
 	}
 
-    /**
-     * Convenience method to create menu items for the table's menus.
-     * @param text - Text of the menu item
-     * @return
-     */
-    private JMenuItem createMenuItem(String text, int mnemonic) {
-    	JMenuItem menuItem = new JMenuItem(text, mnemonic);
-    	menuItem.addActionListener(this);
-    	return menuItem;
-    }
-    
-    public InitTable getGroupTable() {
-    	return groupTable;
-    }
+
     
     /**
      * Determine where a new node should be placed, based on the current selection
@@ -179,7 +186,7 @@ public class GroupTree extends JTree
     		GroupTreeNode node = (GroupTreeNode) selectionPath.getLastPathComponent();
         	if (DEBUG) { System.out.println("GroupTree: insertObjectAtSelection: Inserting child. Selection is node: " + node.toString()); }
    		
-    		if (node.isFolder()) { // insert after last child node
+    		if (!node.isLeaf()) { // insert after last child node
     			treeModel.insertNodeInto(child, node, node.getChildCount());
     		}
     		else { // Insert after current selection
@@ -195,64 +202,141 @@ public class GroupTree extends JTree
     public void removeCurrentNode() {
         TreePath currentSelection = getSelectionPath();
         if (currentSelection != null) {
-            DefaultMutableTreeNode currentNode = (DefaultMutableTreeNode) (currentSelection.getLastPathComponent());
-            MutableTreeNode parent = (MutableTreeNode)(currentNode.getParent());
-            if (parent != null) {
-                treeModel.removeNodeFromParent(currentNode);
-    	    	setDirty();
-                return;
-            }
+            GroupTreeNode currentNode = (GroupTreeNode) (currentSelection.getLastPathComponent());
+            removeNode(currentNode);
+           
+        } 
+    }
+    
+    /**
+     * Remove the currently selected node
+     */
+    public void removeNode(GroupTreeNode node) {
+    	MutableTreeNode parent = (MutableTreeNode)(node.getParent());
+    	if (parent != null) {
+    		mUes.postEdit(new NodeEdit(node, false));
+    		treeModel.removeNodeFromParent(node);
+    		setDirty();
+    		return;
         } 
     }
      
-	protected CleanFileChangeEventSource cleanFileChangeEventSource = new CleanFileChangeEventSource(this);
+    public GroupTreeModel setNewModel() {
+    	GroupTreeModel model = new GroupTreeModel(new GroupTreeNode("Groups",false));
+    	setModel(model);
+    	return model;
+    }
+    
+ 	@Override
+ 	public void setModel(TreeModel newModel) {
+ 		if (treeModel != null && !GroupTreeModel.class.isInstance(newModel)) { // Allow if model is null (as in constructor)
+ 			System.err.println("-E- GroupTree: setModel: model must be a GroupTreeModel!");
+ 			//return;
+ 		}
+ 		super.setModel(newModel);
+ 		this.treeModel = (DefaultTreeModel) newModel;
+ 		this.rootNode = (DefaultMutableTreeNode) treeModel.getRoot();
+ 		treeModel.addTreeModelListener(new GroupTreeModelListener());
+ 	}
 	   
+ 	// Clean file change support
     /**
      * Method to get the clean status of the groupTree
      * @return whether the group tree has had changes since the last checkpoint
      */
     public boolean isClean() {
-    	return cleanFileChangeEventSource.isClean();
-    }
-    
+    	return mCfces.isClean();
+    }    
     /**
      * Set the status of the groupTree as clean. Should be called after saving the file.
      */
     public void setClean() {
-    	cleanFileChangeEventSource.setClean();
-    }
-    
+    	mCfces.setClean();
+    }   
     /**
      * Set the status of the groupTree as dirty. Should be called after making any changes.
      */
     public void setDirty() {
-    	cleanFileChangeEventSource.setDirty();
-    }
-    
+    	mCfces.setDirty();
+    }    
 	/**
 	 * Add an event listener for FileChangeEvents
 	 * @param listener - the listener to add
 	 */
 	public void addFileChangeEventListener(FileChangeEventListener listener) {
-		cleanFileChangeEventSource.addFileChangeEventListener(listener);
-	}
-	
+		mCfces.addFileChangeEventListener(listener);
+	}	
 	/**
 	 * Remove an event listener for FileChangeEvents
 	 * @param listener - the listener to remove
 	 */
 	public void removeFileChangeEventListener(FileChangeEventListener listener) {
-		cleanFileChangeEventSource.removeFileChangeEventListener(listener);
+		mCfces.removeFileChangeEventListener(listener);
 	}
-    
-    @Override
-    public void setModel(TreeModel newModel) {
-    	super.setModel(newModel);
-    	this.treeModel = (DefaultTreeModel) newModel;
-    	this.rootNode = (DefaultMutableTreeNode) treeModel.getRoot();
-		treeModel.addTreeModelListener(new GroupTreeModelListener());
-   }
 
+	// Undoable Edit support
+	public void addUndoableEditListener(UndoableEditListener listener) {
+		mUes.addUndoableEditListener(listener);
+	}
+	public void removeUndoableEditListener(UndoableEditListener listener) {
+		mUes.removeUndoableEditListener(listener);
+	}
+    private class NodeEdit extends AbstractUndoableEdit {
+		private static final long serialVersionUID = 1L;
+		private GroupTreeNode node;
+    	private GroupTreeNode parent;
+    	private int index;
+    	boolean isInsert;
+    	public NodeEdit(GroupTreeNode node, boolean isInsert) { // Insert
+    		this.node = node;
+    		parent = (GroupTreeNode) node.getParent();
+    		index = parent.getIndex(node);
+    		this.isInsert = isInsert;
+    	}
+    	public String getPresentationName() { return "Tree"; }    	
+    	public void undo() {
+			super.undo();
+			if (isInsert) {
+				treeModel.removeNodeFromParent(node);
+				setDirty();
+			} else {
+				treeModel.insertNodeInto(node, parent, index);
+				scrollPathToVisible(new TreePath(node.getPath()));
+			}
+    	}    	
+    	public void redo() {
+    		super.redo();
+			if (isInsert) {
+				treeModel.insertNodeInto(node, parent, index);
+				scrollPathToVisible(new TreePath(node.getPath()));
+			} else {
+				treeModel.removeNodeFromParent(node);
+				setDirty();
+			}
+    	}        	
+    }
+    private class NodeRenameEdit extends AbstractUndoableEdit {
+		private static final long serialVersionUID = 1L;
+		private GroupTreeNode node;
+    	private String oldName;
+    	private String newName;
+    	public NodeRenameEdit(GroupTreeNode node, String oldName, String newName) {
+    		this.node = node;
+    		this.oldName = oldName;
+    		this.newName = newName;
+    	}
+    	public String getPresentationName() { return "Rename"; }    	
+    	public void undo() {
+			super.undo();
+			node.setUserObject(oldName);
+			treeModel.nodeChanged(node);
+    	}    	
+    	public void redo() {
+    		super.redo();
+    		node.setUserObject(newName);
+			treeModel.nodeChanged(node);
+    	}        	
+    }
     /**
      * An Inner class to monitor the treeModel changes
      */
@@ -297,5 +381,25 @@ public class GroupTree extends JTree
 	   			popupMenu.show(e.getComponent(), e.getX(), e.getY());
 	        }
 	    }
+	}
+	
+	protected class GroupTreeModel extends DefaultTreeModel {
+
+		public GroupTreeModel(TreeNode root) {
+			super(root);
+		}
+		
+		public void valueForPathChanged(TreePath path, Object userObj) {
+			// here
+			System.out.println("HERE: node name chaged!");
+			GroupTreeNode node = (GroupTreeNode) path.getLastPathComponent();
+			String oldName = (String) node.getUserObject();
+			String newName = (String) userObj;
+			if (oldName.equals(newName))
+				return;
+			mUes.postEdit(new NodeRenameEdit(node, oldName, newName));
+			super.valueForPathChanged(path, userObj);
+		}
+		
 	}
 }

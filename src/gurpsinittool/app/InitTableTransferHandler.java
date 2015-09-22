@@ -70,7 +70,7 @@ public class InitTableTransferHandler extends TransferHandler {
         }
           
         // Do in-process & in-table import: everything is done for you.
-    	if (DEBUG) { System.out.println("InitTreeTransferHandler.importData: Getting transferable data for InitTable import..."); }
+    	if (DEBUG) { System.out.println("InitTableTransferHandler.importData: Getting transferable data for InitTable import..."); }
     	Transferable t = support.getTransferable();
         Actor[] actorRows;
         try {
@@ -83,19 +83,17 @@ public class InitTableTransferHandler extends TransferHandler {
         		actorRows = (Actor[]) t.getTransferData(initTableActorFlavor); // Don't really care which flavor it is
         	}
         } catch (UnsupportedFlavorException e) {
-    		System.err.println("InitTreeTransferHandler.importData: -E- Unsupported Flavor Exception");
+    		System.err.println("InitTableTransferHandler.importData: -E- Unsupported Flavor Exception");
         	return false;
         } catch (IOException e) {
-    		System.err.println("InitTreeTransferHandler.importData: -E- IO Exception: " + e.toString());
+    		System.err.println("InitTableTransferHandler.importData: -E- IO Exception: " + e.toString());
         	return false;
         }
         
-    	if (DEBUG) { System.out.println("InitTreeTransferHandler.importData:  Transferable data retrieved."); }
+    	if (DEBUG) { System.out.println("InitTableTransferHandler.importData:  Transferable data retrieved."); }
 
         InitTable table = (InitTable) support.getComponent();
-        GameMaster gameMaster = table.getGameMaster();
-        //InitTableModel tableModel = table.getActorTableModel();
-        
+        GameMaster gameMaster = table.getGameMaster();        
 
         // needed to preserve actor order
         JTable.DropLocation dl = (JTable.DropLocation) support.getDropLocation();
@@ -103,19 +101,19 @@ public class InitTableTransferHandler extends TransferHandler {
         int row = dl.getRow(); 
         // Don't try to put items after the 'new' row
         if (row >= table.getRowCount()) { row = table.getRowCount() - 1; }
-
+        gameMaster.startCompoundEdit();
         for (int i = actorRows.length-1; i >= 0; i--) { // Actors added to same 'row', so go from bottom up to preserve order
-        	if (DEBUG) { System.out.println("InitTreeTransferHandler.importData: Adding actor # " + i + " @ row: " + row); }
+        	if (DEBUG) { System.out.println("InitTableTransferHandler.importData: Adding actor # " + i + " @ row: " + row); }
         	gameMaster.addActor(actorRows[i], row);
-            //tableModel.addActor(actorRows[i], row);
             table.getSelectionModel().addSelectionInterval(row, row);
         }
-        
+        if (support.getDropAction() != MOVE)
+        	gameMaster.endCompoundEdit("Copy");
         if (DEBUG) {
-			System.out.println("InitTreeTransferHandler.importData: Getting import data request: " + row + " String " + dl.toString());
+			System.out.println("InitTableTransferHandler.importData: Getting import data request: " + row + " String " + dl.toString());
 			DataFlavor[] flavors = support.getDataFlavors();
 			for (int i = 0; i < flavors.length; i++) {
-				System.out.println("InitTreeTransferHandler.importData: Debug flavor: " + flavors[i].toString());
+				System.out.println("InitTableTransferHandler.importData: Debug flavor: " + flavors[i].toString());
 			}
 		}
         
@@ -142,7 +140,7 @@ public class InitTableTransferHandler extends TransferHandler {
 		java.util.Arrays.sort(rows);
 		InitTableModel tableModel = table.getActorTableModel();
 		Actor[] actorRows = tableModel.getActors(rows);
-		if (DEBUG) { System.out.println("InitTreeTransferHandler.createTransferable: creating new TransferableActor"); }
+		if (DEBUG) { System.out.println("InitTableTransferHandler.createTransferable: creating new TransferableActor"); }
 		return new TransferableActor(actorRows, table.isInitTable());
 	}
 	
@@ -163,13 +161,13 @@ public class InitTableTransferHandler extends TransferHandler {
 	        	return;
 	        }
 	        for (int i = 0; i < actors.length; i++) {
-	        	if (DEBUG) { System.out.println("InitTreeTransferHandler.exportDone: After move, deleting actor " + actors[i].getTraitValue(BasicTrait.Name) + "..."); }
-	        	//table.getActorTableModel().removeActor(actors[i]);
+	        	if (DEBUG) { System.out.println("InitTableTransferHandler.exportDone: After move, deleting actor " + actors[i].getTraitValue(BasicTrait.Name) + "..."); }
 	        	gameMaster.removeActor(actors[i]);
 	        }
+	        gameMaster.endCompoundEdit("Move");
 		}
 		if (DEBUG) {
-			System.out.println("InitTreeTransferHandler.exportDone: done: " + action);
+			System.out.println("InitTableTransferHandler.exportDone: done: " + action);
 		}
 	}
 	

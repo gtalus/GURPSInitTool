@@ -107,6 +107,7 @@ public class AttackTableModel extends AbstractTableModel {
 		case Unbalanced:
 			a.Unbalanced = (Boolean) value;
 		}
+		currentActor.setAttack(a, row);
 		// Update the entire row, since changing state or type may affect formatting for all cells in the row.
 		fireTableRowsUpdated(row, row);
     }
@@ -133,7 +134,7 @@ public class AttackTableModel extends AbstractTableModel {
     public void addAttack() {
     	if (currentActor != null) {
     		currentActor.addAttack(new Attack());
-    		fireTableRowsInserted(getRowCount()-1, getRowCount()-1);
+    		//fireTableRowsInserted(getRowCount()-1, getRowCount()-1);
     	}
     }
 
@@ -146,7 +147,7 @@ public class AttackTableModel extends AbstractTableModel {
 				if (DEBUG) { System.out.println("AttackTableModel: Deleting row: " + rows[i]); }   			
 				currentActor.removeAttack(rows[i]); // Just remove the rows indicated: not all instances of clones	
 			}
-    		fireTableRowsDeleted(rows[0], rows[rows.length-1]);
+    		//fireTableRowsDeleted(rows[0], rows[rows.length-1]);
     	}
     }
     
@@ -161,8 +162,8 @@ public class AttackTableModel extends AbstractTableModel {
     	}
     	int oldDefault = currentActor.getDefaultAttack();
     	currentActor.setDefaultAttack(row);
-    	fireTableRowsUpdated(oldDefault, oldDefault);
-    	fireTableRowsUpdated(row, row);
+    	//fireTableRowsUpdated(oldDefault, oldDefault);
+    	//fireTableRowsUpdated(row, row);
     }
  
 	/**
@@ -207,12 +208,11 @@ public class AttackTableModel extends AbstractTableModel {
 				MiscUtil.setLabelBold(c);
 			}
 			// Check parsing: at some point may want to create 'ParsingComponent' which has label and textfield versions
-			AttackTableModel.columns col = AttackTableModel.columns.valueOf(table.getColumnName(column));
-			if (col == columns.Damage) {
-				if (!ParsingFieldParserFactory.DamageParser().parseIsValid(c.getText()))
-					c.setForeground(Color.red);
-			}
-			
+			AttackTableModel.columns col = AttackTableModel.columns.valueOf(table.getColumnName(column));		
+			if (col == columns.Damage && !ParsingFieldParserFactory.DamageParser().parseIsValid(c.getText()))
+				c.setForeground(Color.red);
+			else
+				c.setForeground(Color.black);
 			return c;
 		}
 	}

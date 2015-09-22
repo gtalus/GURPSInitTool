@@ -76,7 +76,7 @@ public class InitTable extends BasicTable {
 	 * Default Constructor
 	 */
 	public InitTable(GameMaster gameMaster, boolean isInitTable) {
-		super(new InitTableModel());
+		super(new InitTableModel(gameMaster));
 		putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
 		this.gameMaster = gameMaster;
 		this.isInitTable = isInitTable;
@@ -292,7 +292,7 @@ public class InitTable extends BasicTable {
 	}
 	
 	@Override
-	public int[] getSelectedRows() {
+	public int[] getSelectedRows() { // Exclude last row if selected
 		int[] rows = super.getSelectedRows();
 		if (rows.length > 0 && rows[rows.length-1] == getRowCount() -1) {
 			if (rows.length == 1)

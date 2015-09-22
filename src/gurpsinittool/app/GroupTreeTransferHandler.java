@@ -13,7 +13,6 @@ import javax.swing.DropMode;
 import javax.swing.JComponent;
 import javax.swing.JTree;
 import javax.swing.TransferHandler;
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
 public class GroupTreeTransferHandler extends TransferHandler {
@@ -58,7 +57,7 @@ public class GroupTreeTransferHandler extends TransferHandler {
 				|| support.isDataFlavorSupported(InitTableTransferHandler.groupTableActorFlavor)){
 			parent.setDropMode(DropMode.ON);
 			support.setDropAction(COPY);
-			if (!parentNode.isFolder()) { return true; }
+			if (parentNode.isLeaf()) { return true; }
 		}
 		
 		return false;
@@ -73,7 +72,6 @@ public class GroupTreeTransferHandler extends TransferHandler {
         }
         
         GroupTree tree = (GroupTree) support.getComponent();
-        DefaultTreeModel treeModel = (DefaultTreeModel) tree.getModel();
         JTree.DropLocation dl = (JTree.DropLocation) support.getDropLocation();
         TreePath insertPath = dl.getPath();
         int insertIndex = dl.getChildIndex();  
@@ -118,21 +116,22 @@ public class GroupTreeTransferHandler extends TransferHandler {
 			        	}
 			        }
 		 		}
+		 		tree.getGroupTable().getGameMaster().startCompoundEdit();
 			}
        
 			if (DEBUG) { System.out.println("GroupTreeTransferHandler.importData: Inserting node " + transferPath.toString() + " @ " + insertIndex); }
 			// Detect whether to insert at end, or in the middle of the list
 	 		if (insertIndex >= 0) {
-				treeModel.insertNodeInto(transferNode, parentNode, insertIndex);
+	 			tree.insertNode(transferNode, parentNode, insertIndex);
 			}
 			else {
-				treeModel.insertNodeInto(transferNode, parentNode, parentNode.getChildCount());
+				tree.insertNode(transferNode, parentNode, parentNode.getChildCount());
 			}
 	 		if (action == MOVE)
 	 			tree.setSelectionPath(new TreePath(transferNode.getPath())); // Select the newly moved group
  		}
  		else { // Get actors 
-	    	if (parentNode.isFolder()) { System.out.println("GroupTreeTransferHandler.importData: -E- attempting to drop rows on folder!"); return false; }
+	    	if (!parentNode.isLeaf()) { System.out.println("GroupTreeTransferHandler.importData: -E- attempting to drop rows on folder!"); return false; }
 			Actor[] actorRows;
  			if (DEBUG) { System.out.println("GroupTreeTransferHandler.importData: Retrieving actor data..."); }
 			try {
@@ -154,7 +153,6 @@ public class GroupTreeTransferHandler extends TransferHandler {
 	        	InitTableModel model = parent.getGroupTable().getActorTableModel();
 	        	for (int i = actorRows.length-1; i >= 0; i--) { // Actors added from bottom up, excluding new row
 		        	if (DEBUG) { System.out.println("GroupTreeTransferHandler.importData: Adding actor through ActorTableModel # " + i); }
-		        	//model.addActor(actorRows[i], model.getRowCount()-1);
 		        	gameMaster.addActor(actorRows[i], model.getRowCount()-1);
 		        }	        	
 	        }
@@ -191,7 +189,6 @@ public class GroupTreeTransferHandler extends TransferHandler {
 	protected void exportDone(JComponent source, Transferable data, int action) {
 		if (DEBUG) { System.out.println("GroupTreeTransferHandler.exportDone: starting action " + action); }
     	GroupTree tree = (GroupTree) source;
-    	DefaultTreeModel treeModel = (DefaultTreeModel) tree.getModel();
     	GroupTreeNode transferNode;
     	try {
     		transferNode = (GroupTreeNode) data.getTransferData(actorGroupFlavor);
@@ -205,7 +202,8 @@ public class GroupTreeTransferHandler extends TransferHandler {
         TreePath transferPath = new TreePath(transferNode.getPath());
  		if (action == MOVE) {
     		if (DEBUG) { System.out.println("GroupTreeTransferHandler:  Removing path that was transfered: " + transferPath.toString()); }
-	        treeModel.removeNodeFromParent(transferNode);
+	        tree.removeNode(transferNode);
+	 		tree.getGroupTable().getGameMaster().endCompoundEdit("Move");
         }
  		else if (action == COPY) {
  			tree.setSelectionPath(transferPath); // Select the previously copied node

@@ -25,8 +25,8 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private static final boolean DEBUG = true;
-	private UndoableEditSupport undoSupport = new UndoableEditSupport();
+	private static final boolean DEBUG = false;
+	private UndoableEditSupport mUes = new UndoableEditSupport();
 
 	// Removed: Dodge, type
 	// TODO: consolidate HP/Damage, FP/Fatigue
@@ -38,9 +38,13 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 	Actor newActor = new Actor();
 	private ArrayList<Actor> actorList = new ArrayList<Actor>();	
 	
-	public InitTableModel() {
+	private GameMaster gameMaster;
+	
+	public InitTableModel(GameMaster gameMaster) {
+		this.gameMaster = gameMaster;
 		// This is a special row which allows new actors to be added.
 		addNewActor();
+		
 	}
 	
 	/**
@@ -49,33 +53,69 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 	 * @param destRow : the index of the slot to insert into (pushes current actor down one)
 	 */
 	public void addActor(Actor actor, int destRow) {
-		System.out.println("table model.addActor: start: " + actor.getTraitValue(BasicTrait.Name));
-		//Actor addedActor = new Actor(source);
-		actor.addPropertyChangeListener(this);
+		if (DEBUG) System.out.println("table model.addActor: start: " + actor.getTraitValue(BasicTrait.Name));
 		if (destRow > actorList.size()-1) // Don't put anything after the 'new' row
 			destRow = actorList.size()-1;
 		else if (destRow < 0) // Don't try to put stuff before the beginning!
 			destRow = 0;
-			
-		actorList.add(destRow, actor);
-		setDirty();
-		fireTableRowsInserted(destRow,destRow);
-		System.out.println("table model.addActor: done");
+		
+		mUes.postEdit(new AddActorEdit(actor, destRow));
+		addActorToList(actorList, actor, destRow);
 	}
-	
 	/**
-	 * Add the newActor to the list (used when editing the previous newActor)
+	 * Internal method to make undo/redo easier with multiple actorLists that may not be currently loaded
+	 * @param list
+	 * @param actor
+	 * @param position
+	 */
+	private void addActorToList(ArrayList<Actor> list, Actor actor, int position) {
+		list.add(position, actor);	
+		if (list.equals(actorList)) { // If this is the currently loaded actor list
+			actor.addPropertyChangeListener(this);
+			actor.addEncounterLogEventListener(gameMaster);
+			actor.addUndoableEditListener(gameMaster);
+			setDirty();
+			fireTableRowsInserted(position,position);
+		}		
+	}
+	/**
+	 * Add the newActor to the end of the list (used when editing the previous newActor)
+	 * Does most of what addActorToList does, with the exception of adding the GameMaster to the UndoEditListener
 	 */
 	private void addNewActor() {
 		Actor actor = new Actor(newActor);
 		actor.addPropertyChangeListener(this);
 		actorList.add(actorList.size(),actor);
-		if (actorList.size() > 1) // Don't do this for the first row
-			undoSupport.postEdit(new AddActorEdit(actorList.get(actorList.size()-2), actorList.size()-2));
 		setDirty();
     	fireTableRowsInserted(actorList.size()-1,actorList.size()-1);
 	}
-
+	
+	/**
+	 * Remove an actor from the table (only the specific row)
+	 * @param row : the actor to remove
+	 */
+	public void removeActor(int row) {
+		Actor actor = getActor(row);
+		
+		mUes.postEdit(new RemoveActorEdit(actor, row));
+		removeActorFromList(actorList, actor, row);
+	}
+	/**
+	 * Internal method to make undo/redo easier with multiple actorLists that may not be currently loaded
+	 * @param list
+	 * @param actor
+	 * @param position
+	 */
+	private void removeActorFromList(ArrayList<Actor> list, Actor actor, int position) {
+		list.remove(position);	
+		if (list.equals(actorList)) { // If this is the currently loaded actor list
+			actor.removePropertyChangeListener(this);
+			actor.removeUndoableEditListener(gameMaster);
+			actor.removeEncounterLogEventListener(gameMaster);
+			setDirty();
+			fireTableRowsDeleted(position,position);
+		}		
+	}
 	/**
 	 * Get the actor in a particular row.
 	 * @param row - table row
@@ -238,18 +278,7 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
         }
     }
 
-	/**
-	 * Remove an actor from the table (only the specific row)
-	 * @param row : the actor to remove
-	 */
-	public void removeActor(int row) {
-		Actor actor = getActor(row);
-		actor.removePropertyChangeListener(this);
-		actorList.remove(row);
-		setDirty();
-		fireTableRowsDeleted(row, row);
-	}
-	
+
 	/**
 	 * Set the list of actors to the ArrayList<Actor> specified. Redraw table.
 	 * @param actorList : the new ArrayList<Actor> to use as the base for the ActorTableModel
@@ -257,6 +286,8 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 	public void setActorList(ArrayList<Actor> actorList) {
 		for(Actor a: this.actorList) {
 			a.removePropertyChangeListener(this);
+			a.removeUndoableEditListener(gameMaster);
+			a.removeEncounterLogEventListener(gameMaster);
 		}
 		fireTableRowsDeleted(0, getRowCount()); // remove current selection
 		
@@ -265,8 +296,14 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 			//addNewActor(); This is an empty table, so it has NO ACTORS! EMPTY!
 		} else { 
 			this.actorList = actorList;
-			for(Actor a: this.actorList)
+			for (int i = 0; i < this.actorList.size(); i++) {
+				Actor a = this.actorList.get(i);
 				a.addPropertyChangeListener(this);
+				if (i < this.actorList.size()-1) {
+					a.addUndoableEditListener(gameMaster);
+					a.addEncounterLogEventListener(gameMaster);
+				}
+			}
 		}
 		fireTableDataChanged();
 	}
@@ -326,15 +363,18 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 		if(Actor.class.isInstance(e.getSource())) {
 			setDirty();
 			Actor actor = (Actor)e.getSource();
-			System.out.println("InitTableModel: propertyChange: got notification from actor " + actor.getTraitValue(BasicTrait.Name));
+			if (DEBUG) System.out.println("InitTableModel: propertyChange: got notification from actor " + actor.getTraitValue(BasicTrait.Name));
 			int [] rows = getActorRows(actor);
 			for (int i=0; i < rows.length; i++) {
-				if (rows[i] == getRowCount() -1) { // changed last row
-					addNewActor();
+				if (rows[i] == getRowCount() -1) { // changed last row, send request for a new Actor to the game master
+					addNewActor(); // Add a new 'newActor' to the end of the list
+					actor.addUndoableEditListener(gameMaster);
+					actor.addEncounterLogEventListener(gameMaster);
+					mUes.postEdit(new AddActorEdit(actorList.get(actorList.size()-2), actorList.size()-2));
 				}
 				fireTableRowsUpdated(rows[i], rows[i]);
 			}
-			System.out.println("InitTableModel: propertyChange: done with actor " + actor.getTraitValue(BasicTrait.Name));
+			if (DEBUG) System.out.println("InitTableModel: propertyChange: done with actor " + actor.getTraitValue(BasicTrait.Name));
 		} else if (e.getPropertyName().equals("ActiveActor")) {
 				int oldValue = (Integer) e.getOldValue();
 				int newValue = (Integer) e.getNewValue();
@@ -345,30 +385,54 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 		}
 	}
 	
+	// Undo/Redo suport
 	public void addUndoableEditListener(UndoableEditListener listener) {
-		undoSupport.addUndoableEditListener(listener);
+		mUes.addUndoableEditListener(listener);
 	}
 	public void removeUndoableEditListener(UndoableEditListener listener) {
-		undoSupport.removeUndoableEditListener(listener);
+		mUes.removeUndoableEditListener(listener);
 	}
 	
     private class AddActorEdit extends AbstractUndoableEdit {
     	private Actor actor;
     	private int index;
+    	private ArrayList<Actor> list;
     	public AddActorEdit(Actor actor, int index) {
     		this.actor = actor;
     		this.index = index;
+    		list = actorList; // Keep track of what the current list was
     	}
     	public String getPresentationName() { return "Add"; }
     	
     	public void undo() {
 			super.undo();
-    		removeActor(index);
-    	}
-    	
+			removeActorFromList(list, actor, index);
+    	}    	
     	public void redo() {
-			super.redo();
-    		addActor(actor, index);
+			super.redo();			
+			addActorToList(list, actor, index);
+    	}        	
+    }   
+    
+    private class RemoveActorEdit extends AbstractUndoableEdit {
+    	private Actor actor;
+    	private int index;
+    	private ArrayList<Actor> list;
+    	public RemoveActorEdit(Actor actor, int index) {
+    		this.actor = actor;
+    		this.index = index;
+    		list = actorList; // Keep track of what the current list was
+    	}
+    	public String getPresentationName() { return "Delete"; }
+    	
+    	public void undo() {
+			super.undo();
+			addActorToList(list, actor, index);
+    	}    	
+    	public void redo() {
+    		super.redo();
+    		removeActorFromList(list, actor, index);
     	}        	
     }
+    
 }

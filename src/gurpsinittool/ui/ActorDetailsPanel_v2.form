@@ -102,7 +102,7 @@
                                       <Component id="move" min="-2" pref="30" max="-2" attributes="0"/>
                                   </Group>
                               </Group>
-                              <EmptySpace min="0" pref="38" max="32767" attributes="0"/>
+                              <EmptySpace min="0" pref="10" max="32767" attributes="0"/>
                           </Group>
                       </Group>
                   </Group>
@@ -668,8 +668,8 @@
         <Component class="gurpsinittool.app.textfield.ParsingField" name="shield_db">
           <Properties>
             <Property name="name" type="java.lang.String" value="Shield_DB" noResource="true"/>
-            <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-              <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+            <Property name="parser" type="gurpsinittool.app.textfield.ParsingFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="ParsingFieldParserFactory.IntegerParser()" type="code"/>
             </Property>
           </Properties>
           <Events>
@@ -680,8 +680,8 @@
         <Component class="gurpsinittool.app.textfield.ParsingField" name="shield_dr">
           <Properties>
             <Property name="name" type="java.lang.String" value="Shield_DR" noResource="true"/>
-            <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-              <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+            <Property name="parser" type="gurpsinittool.app.textfield.ParsingFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="ParsingFieldParserFactory.IntegerParser()" type="code"/>
             </Property>
           </Properties>
           <Events>
@@ -692,8 +692,8 @@
         <Component class="gurpsinittool.app.textfield.ParsingField" name="shield_hp">
           <Properties>
             <Property name="name" type="java.lang.String" value="Shield_HP" noResource="true"/>
-            <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-              <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+            <Property name="parser" type="gurpsinittool.app.textfield.ParsingFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="ParsingFieldParserFactory.IntegerParser()" type="code"/>
             </Property>
           </Properties>
           <Events>
@@ -929,7 +929,7 @@
       <Layout>
         <DimensionLayout dim="0">
           <Group type="103" groupAlignment="0" attributes="0">
-              <Component id="jScrollPane6" alignment="0" pref="211" max="32767" attributes="0"/>
+              <Component id="jScrollPane6" alignment="0" pref="183" max="32767" attributes="0"/>
               <Component id="jToolBar5" alignment="0" max="32767" attributes="0"/>
           </Group>
         </DimensionLayout>
@@ -1009,8 +1009,8 @@
     <Component class="gurpsinittool.app.textfield.ParsingField" name="st">
       <Properties>
         <Property name="name" type="java.lang.String" value="ST" noResource="true"/>
-        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ParsingFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="ParsingFieldParserFactory.IntegerParser()" type="code"/>
         </Property>
       </Properties>
       <Events>
@@ -1021,8 +1021,8 @@
     <Component class="gurpsinittool.app.textfield.ParsingField" name="dr">
       <Properties>
         <Property name="name" type="java.lang.String" value="DR" noResource="true"/>
-        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.DRParser()" type="code"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ParsingFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="ParsingFieldParserFactory.DRParser()" type="code"/>
         </Property>
       </Properties>
       <Events>
@@ -1033,8 +1033,8 @@
     <Component class="gurpsinittool.app.textfield.ParsingField" name="dx">
       <Properties>
         <Property name="name" type="java.lang.String" value="DX" noResource="true"/>
-        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ParsingFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="ParsingFieldParserFactory.IntegerParser()" type="code"/>
         </Property>
       </Properties>
       <Events>
@@ -1045,8 +1045,8 @@
     <Component class="gurpsinittool.app.textfield.ParsingField" name="iq">
       <Properties>
         <Property name="name" type="java.lang.String" value="IQ" noResource="true"/>
-        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ParsingFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="ParsingFieldParserFactory.IntegerParser()" type="code"/>
         </Property>
       </Properties>
       <Events>
@@ -1057,8 +1057,8 @@
     <Component class="gurpsinittool.app.textfield.ParsingField" name="ht">
       <Properties>
         <Property name="name" type="java.lang.String" value="HT" noResource="true"/>
-        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ParsingFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="ParsingFieldParserFactory.IntegerParser()" type="code"/>
         </Property>
       </Properties>
       <Events>
@@ -1069,8 +1069,8 @@
     <Component class="gurpsinittool.app.textfield.ParsingField" name="hp">
       <Properties>
         <Property name="name" type="java.lang.String" value="HP" noResource="true"/>
-        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ParsingFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="ParsingFieldParserFactory.IntegerParser()" type="code"/>
         </Property>
       </Properties>
       <Events>
@@ -1081,8 +1081,8 @@
     <Component class="gurpsinittool.app.textfield.ParsingField" name="will">
       <Properties>
         <Property name="name" type="java.lang.String" value="Will" noResource="true"/>
-        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ParsingFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="ParsingFieldParserFactory.IntegerParser()" type="code"/>
         </Property>
       </Properties>
       <Events>
@@ -1093,8 +1093,8 @@
     <Component class="gurpsinittool.app.textfield.ParsingField" name="per">
       <Properties>
         <Property name="name" type="java.lang.String" value="Per" noResource="true"/>
-        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ParsingFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="ParsingFieldParserFactory.IntegerParser()" type="code"/>
         </Property>
       </Properties>
       <Events>
@@ -1105,8 +1105,8 @@
     <Component class="gurpsinittool.app.textfield.ParsingField" name="fp">
       <Properties>
         <Property name="name" type="java.lang.String" value="FP" noResource="true"/>
-        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ParsingFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="ParsingFieldParserFactory.IntegerParser()" type="code"/>
         </Property>
       </Properties>
       <Events>
@@ -1117,8 +1117,8 @@
     <Component class="gurpsinittool.app.textfield.ParsingField" name="speed">
       <Properties>
         <Property name="name" type="java.lang.String" value="Speed" noResource="true"/>
-        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.FloatParser()" type="code"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ParsingFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="ParsingFieldParserFactory.FloatParser()" type="code"/>
         </Property>
       </Properties>
       <Events>
@@ -1129,8 +1129,8 @@
     <Component class="gurpsinittool.app.textfield.ParsingField" name="sm">
       <Properties>
         <Property name="name" type="java.lang.String" value="SM" noResource="true"/>
-        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ParsingFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="ParsingFieldParserFactory.IntegerParser()" type="code"/>
         </Property>
       </Properties>
       <Events>
@@ -1141,8 +1141,8 @@
     <Component class="gurpsinittool.app.textfield.ParsingField" name="move">
       <Properties>
         <Property name="name" type="java.lang.String" value="Move" noResource="true"/>
-        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ParsingFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="ParsingFieldParserFactory.IntegerParser()" type="code"/>
         </Property>
       </Properties>
       <Events>
@@ -1153,8 +1153,8 @@
     <Component class="gurpsinittool.app.textfield.ParsingField" name="dodge">
       <Properties>
         <Property name="name" type="java.lang.String" value="Dodge" noResource="true"/>
-        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ParsingFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="ParsingFieldParserFactory.IntegerParser()" type="code"/>
         </Property>
       </Properties>
       <Events>
@@ -1165,8 +1165,8 @@
     <Component class="gurpsinittool.app.textfield.ParsingField" name="parry">
       <Properties>
         <Property name="name" type="java.lang.String" value="Parry" noResource="true"/>
-        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ParsingFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="ParsingFieldParserFactory.IntegerParser()" type="code"/>
         </Property>
       </Properties>
       <Events>
@@ -1177,8 +1177,8 @@
     <Component class="gurpsinittool.app.textfield.ParsingField" name="block">
       <Properties>
         <Property name="name" type="java.lang.String" value="Block" noResource="true"/>
-        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ParsingFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="ParsingFieldParserFactory.IntegerParser()" type="code"/>
         </Property>
       </Properties>
       <Events>
@@ -1192,8 +1192,8 @@
           <Color blue="dc" green="dc" red="ff" type="rgb"/>
         </Property>
         <Property name="name" type="java.lang.String" value="Fatigue" noResource="true"/>
-        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ParsingFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="ParsingFieldParserFactory.IntegerParser()" type="code"/>
         </Property>
       </Properties>
       <Events>
@@ -1207,8 +1207,8 @@
           <Color blue="dc" green="dc" red="ff" type="rgb"/>
         </Property>
         <Property name="name" type="java.lang.String" value="Injury" noResource="true"/>
-        <Property name="parser" type="gurpsinittool.app.textfield.ActorFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-          <Connection code="gurpsinittool.app.textfield.ParsingFieldParserFactory.IntegerParser()" type="code"/>
+        <Property name="parser" type="gurpsinittool.app.textfield.ParsingFieldParser" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+          <Connection code="ParsingFieldParserFactory.IntegerParser()" type="code"/>
         </Property>
       </Properties>
       <Events>

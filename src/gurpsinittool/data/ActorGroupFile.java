@@ -14,6 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 
 import gurpsinittool.app.GroupTree;
 import gurpsinittool.app.GroupTreeNode;
@@ -50,7 +51,7 @@ public class ActorGroupFile {
 			return;
 		}
 		
-		DefaultTreeModel treeModel = new DefaultTreeModel(new GroupTreeNode("Groups",true));
+		DefaultTreeModel treeModel = groupTree.setNewModel();//new DefaultTreeModel(new GroupTreeNode("Groups",false));
 		// Start reading the file contents
   		if (DEBUG) { System.out.println("ActorGroupFile: Reading input file: " + openFile.getPath()); }   	
 		try {
@@ -98,8 +99,9 @@ public class ActorGroupFile {
 			return;
 		}
 		
-		// Set Tree model
-	    groupTree.setModel(treeModel);
+		// Signal structure changed
+		treeModel.nodeStructureChanged((TreeNode) treeModel.getRoot());
+	    //groupTree.setModel(treeModel);
 	}
 	
 	/**
@@ -126,7 +128,7 @@ public class ActorGroupFile {
 			else {
 				GroupTreeNode node = (GroupTreeNode) currentNodes.get(0).getChildAt(currentPositions.get(0));
 				currentPositions.set(0, currentPositions.get(0)+1); // Increment position
-				if (node.isFolder()) { // GroupFolder
+				if (!node.isLeaf()) { // GroupFolder
 					buffer.append("<GroupFolder name=\"" + node.toString() + "\">\n");
 					currentNodes.add(0, node);
 					currentPositions.add(0,0);
@@ -261,13 +263,15 @@ public class ActorGroupFile {
 			while( (line = input.readLine()) != null) {
 				if ((matcher = startFolder.matcher(line)).matches()) {
 					String name = matcher.group(1);
-					GroupTreeNode newNode = new GroupTreeNode(name, true);
+					if (DEBUG) { System.out.println("ActorGroupFile: Found start of folder. Name: " + name); }   
+					GroupTreeNode newNode = new GroupTreeNode(name, false);
 					currentNode.add(newNode);
 					currentNode = newNode;
 				}
 				else if ((matcher = startGroup.matcher(line)).matches()) {
 					String name = matcher.group(1);
-					GroupTreeNode newNode = new GroupTreeNode(name, false);
+					if (DEBUG) { System.out.println("ActorGroupFile: Found start of group. Name: " + name); }  
+					GroupTreeNode newNode = new GroupTreeNode(name, true);
 					currentNode.add(newNode);
 					currentNode = newNode;
 				}
@@ -373,13 +377,13 @@ public class ActorGroupFile {
 			while( (line = input.readLine()) != null) {
 				if ((matcher = startFolder.matcher(line)).matches()) {
 					String name = matcher.group(1);
-					GroupTreeNode newNode = new GroupTreeNode(name, true);
+					GroupTreeNode newNode = new GroupTreeNode(name, false);
 					currentNode.add(newNode);
 					currentNode = newNode;
 				}
 				else if ((matcher = startGroup.matcher(line)).matches()) {
 					String name = matcher.group(1);
-					GroupTreeNode newNode = new GroupTreeNode(name, false);
+					GroupTreeNode newNode = new GroupTreeNode(name, true);
 					currentNode.add(newNode);
 					currentNode = newNode;
 				}
@@ -472,13 +476,13 @@ public class ActorGroupFile {
 			while( (line = input.readLine()) != null) {
 				if ((matcher = startFolder.matcher(line)).matches()) {
 					String name = matcher.group(1);
-					GroupTreeNode newNode = new GroupTreeNode(name, true);
+					GroupTreeNode newNode = new GroupTreeNode(name, false);
 					currentNode.add(newNode);
 					currentNode = newNode;
 				}
 				else if ((matcher = startGroup.matcher(line)).matches()) {
 					String name = matcher.group(1);
-					GroupTreeNode newNode = new GroupTreeNode(name, false);
+					GroupTreeNode newNode = new GroupTreeNode(name, true);
 					currentNode.add(newNode);
 					currentNode = newNode;
 				}
@@ -570,13 +574,13 @@ public class ActorGroupFile {
 			while( (line = input.readLine()) != null) {
 				if ((matcher = startFolder.matcher(line)).matches()) {
 					String name = matcher.group(1);
-					GroupTreeNode newNode = new GroupTreeNode(name, true);
+					GroupTreeNode newNode = new GroupTreeNode(name, false);
 					currentNode.add(newNode);
 					currentNode = newNode;
 				}
 				else if ((matcher = startGroup.matcher(line)).matches()) {
 					String name = matcher.group(1);
-					GroupTreeNode newNode = new GroupTreeNode(name, false);
+					GroupTreeNode newNode = new GroupTreeNode(name, true);
 					currentNode.add(newNode);
 					currentNode = newNode;
 				}
@@ -661,13 +665,13 @@ public class ActorGroupFile {
 			while( (line = input.readLine()) != null) {
 				if ((matcher = startFolder.matcher(line)).matches()) {
 					String name = matcher.group(1);
-					GroupTreeNode newNode = new GroupTreeNode(name, true);
+					GroupTreeNode newNode = new GroupTreeNode(name, false);
 					currentNode.add(newNode);
 					currentNode = newNode;
 				}
 				else if ((matcher = startGroup.matcher(line)).matches()) {
 					String name = matcher.group(1);
-					GroupTreeNode newNode = new GroupTreeNode(name, false);
+					GroupTreeNode newNode = new GroupTreeNode(name, true);
 					currentNode.add(newNode);
 					currentNode = newNode;
 				}
@@ -748,13 +752,13 @@ public class ActorGroupFile {
 			while( (line = input.readLine()) != null) {
 				if ((matcher = startFolder.matcher(line)).matches()) {
 					String name = matcher.group(1);
-					GroupTreeNode newNode = new GroupTreeNode(name, true);
+					GroupTreeNode newNode = new GroupTreeNode(name, false);
 					currentNode.add(newNode);
 					currentNode = newNode;
 				}
 				else if ((matcher = startGroup.matcher(line)).matches()) {
 					String name = matcher.group(1);
-					GroupTreeNode newNode = new GroupTreeNode(name, false);
+					GroupTreeNode newNode = new GroupTreeNode(name, true);
 					currentNode.add(newNode);
 					currentNode = newNode;
 				}

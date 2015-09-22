@@ -51,8 +51,9 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	// Default SVUID
 	private static final long serialVersionUID = 1L;
 
-	private static final boolean DEBUG = false;
+	private static final boolean DEBUG = true;
 	
+	private boolean isInit; // Whether we are attached to the init Table, or just the group table
 	private int actorLoading = 0; // Block for property updates while in the middle of an update
 	private Actor actor;
 	private AttackTableModel attackTableModel;
@@ -143,7 +144,8 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     
 
     /** Creates new form ActorDetailsPanel */
-    public ActorDetailsPanel_v2() {
+    public ActorDetailsPanel_v2(boolean isInit) {
+    	this.isInit = isInit;
     	attackTableModel = new AttackTableModel();
     	traitTableModel = new TraitTableModel(false);
     	tempTableModel = new TraitTableModel(true);
@@ -627,7 +629,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         tempPanel.setLayout(tempPanelLayout);
         tempPanelLayout.setHorizontalGroup(
             tempPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 211, Short.MAX_VALUE)
+            .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 183, Short.MAX_VALUE)
             .addComponent(jToolBar5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         tempPanelLayout.setVerticalGroup(
@@ -899,7 +901,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                                         .addComponent(jLabel24)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(move, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                .addGap(0, 38, Short.MAX_VALUE))))
+                                .addGap(0, 10, Short.MAX_VALUE))))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(12, 12, 12)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -1127,8 +1129,10 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 
     private void execute_attackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_execute_attackActionPerformed
     	int modelRow = attacksTable.getRowSorter().convertRowIndexToModel(attacksTable.getSelectedRow());
-    	//gameMaster.new AttackNumAction(modelRow).actionPerformed(null);
+    	if (modelRow == -1) return;
+    	stopCellEditing(attacksTable);
     	actor.Attack(modelRow);
+       	//gameMaster.new AttackNumAction(modelRow).actionPerformed(null);
     }//GEN-LAST:event_execute_attackActionPerformed
 
     private void resizeTempTableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resizeTempTableActionPerformed
@@ -1254,7 +1258,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     	add_attack.setEnabled(true);
        	remove_attack.setEnabled(true);
       	default_attack.setEnabled(true);
-      	execute_attack.setEnabled(true);
+      	if (isInit) execute_attack.setEnabled(true);
       	resizeAttackTable.setEnabled(true);
       	add_trait.setEnabled(true);
        	remove_trait.setEnabled(true);
@@ -1290,7 +1294,6 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     	        comp = renderer.getTableCellRendererComponent(table, table.getValueAt(j, i), false, false, j, i);
     	        width = Math.max(width, comp.getPreferredSize().width);
     	    }
-    	    
        	    column.setPreferredWidth(width);
     	}
     	//this.resizeAndRepaint();
@@ -1301,7 +1304,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
      * Refresh the actor in the display, discarding any potential edits
      */
     protected void refreshActor () {
-    	if (actorLoading != 0) return;
+    	if (actorLoading != 0 || actor == null) return;
 		actorLoading++; // turn off property updates
 	    
 		refreshActorField(name);
@@ -1330,7 +1333,12 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	    refreshActorField(shield_dr);
 	    refreshActorField(shield_hp);	 
 	    refreshActorField(notes);
-	             
+	    attackTableModel.setActor(actor);
+	    traitTableModel.setActor(actor);
+	    //tempTableModel.setActor(actor);
+	    resizeTableInPanel(attacks, attacksTable, attackTableModel);
+	    resizeTableInPanel(traits, traitsTable, traitTableModel);
+	    //resizeTableInPanel(tempPanel, tempTable, tempTableModel);
 		actorLoading--; // turn property updates back on
 	}
 	
@@ -1402,7 +1410,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 			System.out.println("-W-: ActorDetailsPanel:setActor: actor in the middle of change/loading (" + actorLoading + ")");
 			return;
 		}
-		System.out.println("ActorDetails: setActor w/ new actor! " + 
+		if (DEBUG) System.out.println("ActorDetails: setActor w/ new actor! " + 
 				((actor==null)?"[null]":"'"+actor.getTraitValue(BasicTrait.Name)+"'") + " => " +
 				((newActor==null)?"[null]":"'"+newActor.getTraitValue(BasicTrait.Name)+"'"));
 		if (actor != null) {
@@ -1435,9 +1443,9 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	 * flush any edits in progress
 	 */
 	public void flushEdits() {
-		flushFieldEdits();
 		stopCellEditing(attacksTable);
 		stopCellEditing(traitsTable);
+		flushFieldEdits();
 	}
 	
 	/**
@@ -1467,7 +1475,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	public void propertyChange(PropertyChangeEvent e) {
 		// TODO: add some intelligence to this? Will need to create component map which allows 
 		// a 'getComponentByName(String name)' type function to operate
-		System.out.println("ActorDetailsPanel: received actor property changed notification!");
+		if (DEBUG) System.out.println("ActorDetailsPanel: received actor property changed notification!");
 		refreshActor();	
 	} 
 

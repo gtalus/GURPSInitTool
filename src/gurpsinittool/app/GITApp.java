@@ -38,14 +38,14 @@ import gurpsinittool.data.Actor;
 import gurpsinittool.data.GameMaster;
 import gurpsinittool.ui.*;
 import gurpsinittool.util.EncounterLogEvent;
-import gurpsinittool.util.EncounterLogEventListener;
+import gurpsinittool.util.EncounterLogListener;
 import gurpsinittool.util.GAction;
 import gurpsinittool.util.MiscUtil;
 import gurpsinittool.util.SearchSupport;
 
 @SuppressWarnings("serial")
 public class GITApp extends JFrame 
-	implements PropertyChangeListener, EncounterLogEventListener, ListSelectionListener, TableModelListener {
+	implements PropertyChangeListener, EncounterLogListener, ListSelectionListener, TableModelListener {
 	
 	public static final String version = "1.4.0";
 	private static final boolean DEBUG = false;
@@ -119,6 +119,7 @@ public class GITApp extends JFrame
      */
     private static void createAndShowGUI() {
         //Create and set up the window.
+    	System.out.println("Starting GURPS Initiative Tool");
         GITApp mainApp = new GITApp("GURPS Initiative Tool");
         mainApp.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // previously EXIT_ON_CLOSE
         mainApp.loadProperties();
@@ -133,6 +134,8 @@ public class GITApp extends JFrame
         if (Boolean.valueOf(mainApp.propertyBag.getProperty("GITApp.Manager.visible"))) {
         	mainApp.groupManager.setVisible(true); }
         mainApp.setVisible(true);
+    	System.out.println("Tool Started");
+
     }
     
     private GITApp(String name) {
@@ -145,9 +148,8 @@ public class GITApp extends JFrame
     	initTable = new InitTable(gameMaster, true);
         searchSupport = new SearchSupport(getRootPane(), initTable);
         defenseDialog = new DefenseDialog(this);
-        detailsPanel = new ActorDetailsPanel_v2();
+        detailsPanel = new ActorDetailsPanel_v2(true);
         kit = new HTMLEditorKit();
-        logTextDocument = new HTMLDocument();        
         commandMode = new CommandMode(this, defenseDialog, searchSupport, gameMaster);
         commandMode.attachCommandMode(this);     
         
@@ -157,11 +159,17 @@ public class GITApp extends JFrame
         gameMaster.defenseDialog = defenseDialog;
         gameMaster.addPropertyChangeListener(this);
         initTable.getActorTableModel().addUndoableEditListener(gameMaster);
-        logTextDocument.addUndoableEditListener(gameMaster);
         
         // Encounter Logging
-        Actor.LogEventSource.addEncounterLogEventListener(this);
-        gameMaster.LogEventSource.addEncounterLogEventListener(this);
+        logTextDocument = new HTMLDocument();
+        logTextArea = new JTextPane();
+        logTextArea.setEditorKit(kit);
+        logTextArea.setDocument(logTextDocument);
+        logTextArea.setEditable(false);
+        logTextArea.setFont(new java.awt.Font("Tahoma", 0, 11));
+        addLogLine("<i><font color=gray>Encounter Log</color></i>");
+        logTextDocument.addUndoableEditListener(gameMaster);
+        gameMaster.addEncounterLogEventListener(this);
 
         // Defense Dialog
         defenseDialog.setLocation(Integer.valueOf(propertyBag.getProperty("GITApp.defense.location.x")),
@@ -182,15 +190,7 @@ public class GITApp extends JFrame
         
         addMenuBar();
         addToolBar();
-      
-        // Encounter Log
-        logTextArea = new JTextPane();
-        logTextArea.setEditorKit(kit);
-        logTextArea.setDocument(logTextDocument);
-        logTextArea.setEditable(false);
-        logTextArea.setFont(new java.awt.Font("Tahoma", 0, 11));
-        addLogLine("<i><font color=gray>Encounter Log</color></i>", false);
-        
+             
         // The actor table
         initTable.getSelectionModel().addListSelectionListener(this);
         initTable.getActorTableModel().addTableModelListener(this);
@@ -406,21 +406,6 @@ public class GITApp extends JFrame
         getContentPane().add(toolbar, BorderLayout.PAGE_START);
     }
 
-    protected void addLogLine(String line, boolean addRound) {    	
-    	try {
-    		String round = addRound?"Round " + gameMaster.getRound() + ": ":"";
-    		kit.insertHTML(logTextDocument, logTextDocument.getLength(), round + line, 0, 0, null);
-    	} catch (BadLocationException e) {
-    		System.out.println("-E- addLogLine: BadLocationException trying to add line: " + line);
-    		e.printStackTrace();
-    	} catch (IOException e) {
-    		System.out.println("-E- addLogLine: IOException trying to add line: " + line);
-    		e.printStackTrace();
-    	}
-    	// Move cursor to the end
-    	logTextArea.select(logTextDocument.getLength(), logTextDocument.getLength());
-    }
-
     private void refreshRoundText() {
     	roundCounter.setText(String.valueOf(gameMaster.getRound()));
     	int minimumWidth = roundCounter.getMinimumSize().width/10 * 10;
@@ -495,7 +480,6 @@ public class GITApp extends JFrame
 			 propertyBag.setProperty("GITApp.size.width", "850"); }
 		 if (!propertyBag.containsKey("GITApp.size.height")) {
 			 propertyBag.setProperty("GITApp.size.height", "550"); }
-	     // TODO: this is a hack of the property bag system: fix!
 		 if (!propertyBag.containsKey("GITApp.defense.location.x")) {
 			 propertyBag.setProperty("GITApp.defense.location.x", "200"); }
 		 if (!propertyBag.containsKey("GITApp.defense.location.y")) {
@@ -564,14 +548,24 @@ public class GITApp extends JFrame
 		 JOptionPane.showMessageDialog(this, ep, "About GURPS Initiative Tool", JOptionPane.INFORMATION_MESSAGE);
 	 }
 
+	 // Log support
+	 protected void addLogLine(String line) {    	
+		 try {
+			 kit.insertHTML(logTextDocument, logTextDocument.getLength(), line, 0, 0, null);
+		 } catch (BadLocationException e) {
+			 System.out.println("-E- addLogLine: BadLocationException trying to add line: " + line);
+			 e.printStackTrace();
+		 } catch (IOException e) {
+			 System.out.println("-E- addLogLine: IOException trying to add line: " + line);
+			 e.printStackTrace();
+		 }
+		 // Move cursor to the end
+		 logTextArea.select(logTextDocument.getLength(), logTextDocument.getLength());
+	 }
+
 	 @Override
 	 public void encounterLogMessageSent(EncounterLogEvent evt) {		 
-		 if (gameMaster.getRound() <= 0)
-			 return; // Ignore log messages before the encounter has started
-		 if (GameMaster.class.isInstance(evt.getSource()))
-			 addLogLine(evt.logMsg, false);
-		 else 
-			 addLogLine(evt.logMsg, true);
+		 addLogLine(evt.logMsg);
 	 }
 
 	@Override

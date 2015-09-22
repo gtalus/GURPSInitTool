@@ -10,6 +10,7 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.Properties;
 import javax.swing.Box;
+import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -28,6 +29,7 @@ import javax.swing.event.TableModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.text.DefaultEditorKit;
 import javax.swing.tree.DefaultTreeModel;
 import gurpsinittool.data.ActorGroupFile;
 import gurpsinittool.data.GameMaster;
@@ -42,7 +44,7 @@ public class GroupManager extends JFrame
 	// Default SVUID
 	private static final long serialVersionUID = 1L;
 
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 
 	private JSplitPane jSplitPaneVertical;
 	private JSplitPane jSplitPaneHorizontal;
@@ -73,7 +75,7 @@ public class GroupManager extends JFrame
 		
 		// Create core components
 		gameMaster = new GameMaster();
-		actorDetailsPanel = new ActorDetailsPanel_v2();
+		actorDetailsPanel = new ActorDetailsPanel_v2(false);
 		groupTable = new InitTable(gameMaster, false);
 		groupTree = new GroupTree(groupTable);
 		searchSupport = new SearchSupport(getRootPane(), groupTree, groupTable);
@@ -81,7 +83,9 @@ public class GroupManager extends JFrame
 		// Initialize GameMaster
 		gameMaster.initTable = groupTable;
 		gameMaster.detailsPanel = actorDetailsPanel;
-		
+		groupTable.getActorTableModel().addUndoableEditListener(gameMaster);
+        groupTree.addUndoableEditListener(gameMaster);
+        
         // Create and set up the window.	
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         
@@ -114,6 +118,36 @@ public class GroupManager extends JFrame
         menuItem.addActionListener(this);
         jMenu.add(menuItem);
         jMenuBar.add(jMenu);
+        
+        jMenu = new JMenu("Edit");
+        jMenu.setMnemonic(KeyEvent.VK_E);
+        menuItem = new JMenuItem(gameMaster.actionUndo);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK));
+        jMenu.add(menuItem);
+        menuItem = new JMenuItem(gameMaster.actionRedo);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, ActionEvent.CTRL_MASK));
+        jMenu.add(menuItem);
+           
+        menuItem = new JMenuItem(new DefaultEditorKit.CutAction());
+        menuItem.setText("Cut");
+        menuItem.setMnemonic(KeyEvent.VK_T);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK));
+        menuItem.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/cut.png"), "Cut"));
+        jMenu.add(menuItem);
+        menuItem = new JMenuItem(new DefaultEditorKit.CopyAction());
+        menuItem.setText("Copy");
+        menuItem.setMnemonic(KeyEvent.VK_C);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK));
+        menuItem.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/page_copy.png"), "Copy"));
+        jMenu.add(menuItem);
+        menuItem = new JMenuItem(new DefaultEditorKit.PasteAction());
+        menuItem.setText("Paste");
+        menuItem.setMnemonic(KeyEvent.VK_V);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, ActionEvent.CTRL_MASK));
+        menuItem.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/paste_plain.png"), "Paste"));
+        jMenu.add(menuItem);        
+        jMenuBar.add(jMenu);
+        
         jMenu = new JMenu("View");
         jMenu.setMnemonic(KeyEvent.VK_V);
         menuItem = new JCheckBoxMenuItem("Auto-fit columns");
@@ -220,7 +254,7 @@ public class GroupManager extends JFrame
 		if (groupTree.getLastSelectedPathComponent() != null) {
 			if (DEBUG) { System.out.println("GroupManager: valueChanged: Current Selection: " + groupTree.getLastSelectedPathComponent().toString()); }
 			GroupTreeNode node = (GroupTreeNode) groupTree.getLastSelectedPathComponent();
-			if (!node.isFolder()) {
+			if (node.isLeaf()) {
 				tableModel.setActorList(node.getActorList());
 				groupTable.setVisible(true);
 			}
@@ -261,7 +295,7 @@ public class GroupManager extends JFrame
 	 */
 	public void newGroupFile() {
 		if (DEBUG) { System.out.println("GroupManager: newGroupFile: Creating new group list"); }
-    	groupTree.setModel(new DefaultTreeModel(new GroupTreeNode("Groups",true)));
+    	groupTree.setNewModel();
     	saveAsFile = null;
     	groupTree.setClean();
 		groupTable.getActorTableModel().setClean();

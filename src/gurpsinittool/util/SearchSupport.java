@@ -79,6 +79,7 @@ public class SearchSupport {
         //MiscUtil.setLabelBold(searchLabel);
         searchBar.add(searchLabel);
         searchField = new JTextField();
+        searchField.setToolTipText("Search combatant names (F3)");
         searchField.setColumns(20);
         searchField.setMaximumSize(searchField.getPreferredSize());
         searchField.getDocument().addDocumentListener(new DocumentListener() {

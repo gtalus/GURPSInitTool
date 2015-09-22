@@ -38,4 +38,8 @@ public class Attack implements Serializable {
 		Damage = damage;
 		Unbalanced = unbalanced;
 	}
+
+	public Attack(Attack attack) {
+		this(attack.Name, attack.Skill, attack.Damage, attack.Unbalanced);
+	}
 }

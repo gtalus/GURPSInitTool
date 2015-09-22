@@ -2,6 +2,8 @@ package gurpsinittool.data;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 
 import gurpsinittool.data.Defense.DefenseResult;
 import gurpsinittool.data.Defense.DefenseType;
@@ -50,10 +52,7 @@ public class Actor extends ActorBase {
 				String details = "(HT: " + HT + ", penalty: " + penalty + ", roll: " + result + ")";
 				if (DieRoller.isFailure(result, HT+penalty)) {
 					logEventTypeName("<b><font color=red>failed</font></b> consciousness roll " + details);
-					clearStatuses(); // Clear other status' (Attacking/whatever)
-					addStatus(ActorStatus.Unconscious);
-					setPosture(ActorStatus.Prone);
-					addStatus(ActorStatus.Disarmed);
+					setAllStatuses(new HashSet<ActorStatus>(Arrays.asList(ActorStatus.Unconscious, ActorStatus.Prone, ActorStatus.Disarmed)));
 				} else {
 					logEventTypeName("passed consciousness roll " + details);
 				}
@@ -183,10 +182,12 @@ public class Actor extends ActorBase {
     // Defense Support
     //================================================================================
 	public String Defend(Defense defense) {
+		startCompoundEdit();			
 		RecordDefenseAttempt(defense);
 		LogDefenseResults(defense);
 		ProcessDefenseResults(defense);
 		KnockdownStunningCheck(defense);
+		endCompoundEdit("Defend");
 		return "";
 	}
 	

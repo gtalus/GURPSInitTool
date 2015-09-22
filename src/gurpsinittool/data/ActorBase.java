@@ -13,16 +13,24 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import javax.swing.event.UndoableEditListener;
+import javax.swing.undo.AbstractUndoableEdit;
+import javax.swing.undo.UndoableEditSupport;
+
+import gurpsinittool.data.ActorBase.HackStartCompound;
 import gurpsinittool.util.EncounterLogEvent;
-import gurpsinittool.util.EncounterLogEventSource;
+import gurpsinittool.util.EncounterLogListener;
+import gurpsinittool.util.EncounterLogSupport;
 
 public class ActorBase implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
-	public static final EncounterLogEventSource LogEventSource = new EncounterLogEventSource(); // where to send log messages
 	public static GameSettings settings; // Settings which determine game behavior, including automation
 
+	private transient EncounterLogSupport mEls = new EncounterLogSupport(this); // where to send log messages
 	private transient PropertyChangeSupport mPcs = new PropertyChangeSupport(this); // Change reporting, don't serialize!
+	protected transient UndoableEditSupport mUes = new UndoableEditSupport(); // Undo/Redo reporting 
+	private transient boolean undoRedoInProgress = false; // Suppress undoableEdit creation while true
 	
 	public enum ActorStatus {Attacking, Disarmed, StunPhys, StunMental, StunRecovr, Kneeling, Prone, Waiting, Disabled, Unconscious, Dead};
 	private HashSet<ActorStatus> statuses;
@@ -142,7 +150,10 @@ public class ActorBase implements Serializable {
 		// default implementation
 		in.defaultReadObject();
 		// Re-constitute transient properties
+		mEls = new EncounterLogSupport(this);
 		mPcs = new PropertyChangeSupport(this);
+		mUes = new UndoableEditSupport(this);
+		undoRedoInProgress = false;
 	}
 	
     //================================================================================
@@ -155,9 +166,13 @@ public class ActorBase implements Serializable {
 	}
 	public void addStatus(ActorStatus status) {
 		if (!statuses.contains(status)) {
+			HashSet<ActorStatus> oldValue = new HashSet<ActorStatus>(statuses);
 			statuses.add(status);
-			if (settings.LOG_STATUSCHANGES) logEventTypeName("added status <b>" + status + "</b>, now has [" + getStatusesString() + "]");
 			mPcs.firePropertyChange("Status", null, status);
+			startCompoundEdit();
+			if (settings.LOG_STATUSCHANGES) logEventTypeName("added status <b>" + status + "</b>, now has [" + getStatusesString() + "]");
+			mUes.postEdit(new StatusEdit(oldValue, new HashSet<ActorStatus>(statuses)));
+			endCompoundEdit("Status");
 		}
 	}
 	public HashSet<ActorStatus> getAllStatuses() {
@@ -165,26 +180,32 @@ public class ActorBase implements Serializable {
 	}
 	public void setAllStatuses(HashSet<ActorStatus> newStatuses) {
 		if (!statuses.containsAll(newStatuses) || !newStatuses.containsAll(statuses)) {
+			HashSet<ActorStatus> oldValue = new HashSet<ActorStatus>(statuses);
 			String oldStatuses = getStatusesString();
 			statuses.clear();
 			statuses.addAll(newStatuses);
-			if (settings.LOG_STATUSCHANGES) logEventTypeName("status set to <b>[" + getStatusesString() + "]</b>");
+			if (!undoRedoInProgress) {
+				startCompoundEdit();	
+				if (settings.LOG_STATUSCHANGES) logEventTypeName("status set to <b>[" + getStatusesString() + "]</b>");
+				mUes.postEdit(new StatusEdit(oldValue, new HashSet<ActorStatus>(statuses)));
+				endCompoundEdit("Status");
+			}
 			mPcs.firePropertyChange("Statuses", oldStatuses, getStatusesString());
 		}
 	}
 	public void removeStatus(ActorStatus status) {
 		if (statuses.contains(status)) {
+			HashSet<ActorStatus> oldValue = new HashSet<ActorStatus>(statuses);
 			statuses.remove(status);
+			mPcs.firePropertyChange("Status", status, null);			
+			startCompoundEdit();
 			if (settings.LOG_STATUSCHANGES) logEventTypeName("removed status <b>" + status + "</b>, now has [" + getStatusesString() + "]");
-			mPcs.firePropertyChange("Status", status, null);
+			mUes.postEdit(new StatusEdit(oldValue, new HashSet<ActorStatus>(statuses)));
+			endCompoundEdit("Status");
 		}
 	}
-	public void clearStatuses() {
-		if (statuses.size() > 0) {
-			int size = statuses.size();
-			statuses.clear();
-			mPcs.firePropertyChange("Status", size, null);
-		}
+	protected void clearStatuses() {
+		setAllStatuses(new HashSet<ActorStatus>());
 	}
 	public String getStatusesString() {
 		int[] scodes = new int[statuses.size()];
@@ -222,8 +243,13 @@ public class ActorBase implements Serializable {
 	public void setType(ActorType type) {
 		if (this.type != type) {
 			ActorType oldType = this.type;
-			logEvent("<b>" + getTraitValue(BasicTrait.Name) + "</b> type changed to <b>" + type + "</b>");
 			this.type = type;
+			if (!undoRedoInProgress) { // If this is a replay, don't do this stuff
+				startCompoundEdit();
+				logEvent("<b>" + getTraitValue(BasicTrait.Name) + "</b> type changed to <b>" + type + "</b>");
+				mUes.postEdit(new TypeEdit(oldType, type));
+				endCompoundEdit("Type");
+			}
 			mPcs.firePropertyChange("Type", oldType, type);	
 		}
 	}
@@ -240,26 +266,41 @@ public class ActorBase implements Serializable {
 			int oldDefault = defaultAttack;
 			defaultAttack = index;
 			mPcs.firePropertyChange("DefaultAttack", oldDefault, defaultAttack);
+			if (!undoRedoInProgress)
+				mUes.postEdit(new DefaultAttackEdit(oldDefault, index));
 		}
 	}
 	public int getNumAttacks() {
 		return attacks.size();
 	}
 	public Attack getAttack(int index) {
-		return attacks.get(index);
+		return new Attack(attacks.get(index));
+	}
+	public void setAttack(Attack attack, int index) {
+		if (index < attacks.size()) {
+			Attack oldAttack = attacks.get(index);
+			attacks.set(index, attack);
+			mPcs.firePropertyChange("Attacks", index, index);
+			mUes.postEdit(new AttackEdit(oldAttack, attack, index));
+		}
 	}
 	public void addAttack(Attack attack) {
 		attacks.add(attack);
 		mPcs.firePropertyChange("Attacks", attacks.size()-1 ,attacks.size());
+		mUes.postEdit(new AttackEdit(null, attack, attacks.size()-1));
 	}
 	public void removeAttack(int index) {
 		if (index < attacks.size()) {
+			startCompoundEdit();
 			if (index < defaultAttack)
-				--defaultAttack;
+				setDefaultAttack(defaultAttack-1);
 			if (index == defaultAttack)
-				defaultAttack = 0;
+				setDefaultAttack(0);
+			Attack attack = attacks.get(index);
 			attacks.remove(index);
 			mPcs.firePropertyChange("Attacks", attacks.size()+1, attacks.size());
+			mUes.postEdit(new AttackEdit(attack, null, index));
+			endCompoundEdit("Edit");
 		}
 	}
 	
@@ -331,6 +372,13 @@ public class ActorBase implements Serializable {
 	}
 	
 	// SetTrait functions
+	// Internal - without all the checking and undoable edits
+	private void _setTrait(String name, String value) {
+		Trait trait = getTrait(name);
+		String oldValue = trait.value;
+		trait.value = value;
+		mPcs.firePropertyChange("trait." + name, value, oldValue);			
+	}
 	/**
 	 * Set the value of a trait, adding if that trait does not exist
 	 * @param name - the name of the trait
@@ -340,6 +388,7 @@ public class ActorBase implements Serializable {
 		if (!hasTrait(name)) { System.err.println("Actor.setTrait: trait does not exist: " + name); return; }
 		Trait trait = getTrait(name);
 		if (!trait.value.equals(value)) {
+			startCompoundEdit();
 			String oldValue = trait.value;
 			// And here is all the magic reporting!
 			if (name == "Injury" || name == "Fatigue") { 		
@@ -371,8 +420,9 @@ public class ActorBase implements Serializable {
 				}
 			}
 			
-			trait.value = value;
-			mPcs.firePropertyChange("trait." + name, oldValue, value);
+			mUes.postEdit(new TraitEdit(name, oldValue, value));
+			endCompoundEdit("Edit");
+			_setTrait(name, value);
 		}
 	}
 	public void setTrait(BasicTrait trait, String value) {
@@ -399,6 +449,7 @@ public class ActorBase implements Serializable {
 		}
 		Trait newTrait = new Trait(name, value);
 		traits.put(name, newTrait);
+		mUes.postEdit(new TraitEdit(name, null, value));
 		mPcs.firePropertyChange("trait." + name, null, value);
 		return true;
 	}
@@ -419,6 +470,7 @@ public class ActorBase implements Serializable {
 		} else {
 			String oldValue = getTraitValue(name);
 			traits.remove(name);
+			mUes.postEdit(new TraitEdit(name, oldValue, null));
 			mPcs.firePropertyChange("trait." + name, oldValue, null);
 			return true;
 		}
@@ -443,12 +495,12 @@ public class ActorBase implements Serializable {
 			return false;
 		} else {
 			Trait trait = getTrait(oldName);
-			String value = trait.value;
 			trait.name = newName;
 			traits.remove(oldName);
-			mPcs.firePropertyChange("trait." + oldName, value, null);
 			traits.put(newName, trait);
-			mPcs.firePropertyChange("trait." + newName, null, value);
+			mPcs.firePropertyChange("traitName", oldName, newName);
+			if (!undoRedoInProgress)
+				mUes.postEdit(new TraitRenameEdit(oldName, newName));
 			return true;
 		}
 	}
@@ -468,10 +520,16 @@ public class ActorBase implements Serializable {
 	}
 	public void setTemp(String name, String value) {
 		if (hasTemp(name)) {
-			getTemp(name).value = value;
+			Trait temp = getTemp(name);
+			String oldValue = temp.value;
+			temp.value = value;
+			if (!undoRedoInProgress)
+				mUes.postEdit(new TempEdit(name, oldValue, value));
 		} else {
 			Trait newTrait = new Trait(name, value);
 			temps.put(name, newTrait);
+			if (!undoRedoInProgress)
+				mUes.postEdit(new TempEdit(name, "0", value)); // TODO: actual add/remove edit support for temps
 		}
 	}
 	public void setTemp(String name, int value) {
@@ -482,9 +540,14 @@ public class ActorBase implements Serializable {
 	}
 	
 	// Log Support
+	public void addEncounterLogEventListener(EncounterLogListener listener) {
+		mEls.addEncounterLogEventListener(listener);
+	}
+	public void removeEncounterLogEventListener(EncounterLogListener listener) {
+		mEls.removeEncounterLogEventListener(listener);
+	}
 	protected void logEvent(String text) {
-		if (LogEventSource != null)
-			LogEventSource.fireEncounterLogEvent(new EncounterLogEvent(this, text));
+		mEls.fireEncounterLogEvent(new EncounterLogEvent(this, text));
 	}
 	protected void logEventTypeName(String text) {
 		String prepend = "";
@@ -520,5 +583,211 @@ public class ActorBase implements Serializable {
     }
     public void removePropertyChangeListener(PropertyChangeListener listener) {
         mPcs.removePropertyChangeListener(listener);
+    }
+    
+    // UndoableEdit support
+	public void addUndoableEditListener(UndoableEditListener listener) {
+		mUes.addUndoableEditListener(listener);
+	}
+	public void removeUndoableEditListener(UndoableEditListener listener) {
+		mUes.removeUndoableEditListener(listener);
+	}
+	protected void startCompoundEdit() { mUes.postEdit(new HackStartCompound()); }
+	protected void endCompoundEdit(String name) {  mUes.postEdit(new HackEndCompound(name)); }
+    private class TypeEdit extends AbstractUndoableEdit {
+		private static final long serialVersionUID = 1L;
+		private ActorType oldValue;
+    	private ActorType newValue;
+    	public TypeEdit(ActorType oldValue, ActorType newValue) {
+    		this.oldValue = oldValue;
+    		this.newValue = newValue;
+    	}
+    	public String getPresentationName() { return "Type"; }    	
+    	public void undo() {
+			super.undo();
+    		// need to suppress undoable edits, but not property change, while this is happening
+			undoRedoInProgress = true;
+    		setType(oldValue);
+			undoRedoInProgress = false;
+    	}    	
+    	public void redo() {
+    		super.redo();
+			undoRedoInProgress = true;
+    		setType(newValue);  
+			undoRedoInProgress = false;
+    	}        	
+    }
+    private class StatusEdit extends AbstractUndoableEdit {
+		private static final long serialVersionUID = 1L;
+		private HashSet<ActorStatus> oldValue;
+    	private HashSet<ActorStatus> newValue;
+    	public StatusEdit(HashSet<ActorStatus> oldValue, HashSet<ActorStatus> newValue) {
+    		this.oldValue = oldValue;
+    		this.newValue = newValue;
+    	}
+    	public String getPresentationName() { return "Status"; }    	
+    	public void undo() {
+			super.undo();
+    		// need to suppress undoable edits, but not property change, while this is happening
+			undoRedoInProgress = true;
+    		setAllStatuses(oldValue);
+			undoRedoInProgress = false;
+    	}    	
+    	public void redo() {
+    		super.redo();
+			undoRedoInProgress = true;
+    		setAllStatuses(newValue);
+			undoRedoInProgress = false;
+    	}        	
+    }
+    private class TraitRenameEdit extends AbstractUndoableEdit {
+    	private String traitOldName;
+    	private String traitNewName;
+    	public TraitRenameEdit(String traitOldName, String traitNewName) {
+    		this.traitOldName = traitOldName;
+    		this.traitNewName = traitNewName;
+    	}
+    	public String getPresentationName() { return "Edit"; }    	
+    	public void undo() {
+			super.undo();
+    		undoRedoInProgress = true;
+    		renameTrait(traitNewName, traitOldName);
+    		undoRedoInProgress = false;	
+    	}    	
+    	public void redo() {
+    		super.redo();
+    		undoRedoInProgress = true;
+    		renameTrait(traitOldName, traitNewName);
+    		undoRedoInProgress = false;
+    	}        	
+    }
+    private class TraitEdit extends AbstractUndoableEdit {
+    	private String traitName;
+    	private String oldValue;
+    	private String newValue;
+    	public TraitEdit(String traitName, String oldValue, String newValue) {
+    		this.traitName = traitName;
+    		this.oldValue = oldValue;
+    		this.newValue = newValue;
+    	}
+    	public String getPresentationName() { return "Edit"; }
+    	
+    	public void undo() {
+			super.undo();
+			if (oldValue == null) { // Trait Added
+				traits.remove(traitName);
+				mPcs.firePropertyChange("trait." + traitName, newValue, null);
+			} else if (newValue == null) { //Trait removed
+				traits.put(traitName, new Trait(traitName, oldValue));
+				mPcs.firePropertyChange("trait." + traitName, null, oldValue);
+			} else // Simple edit
+				_setTrait(traitName, oldValue);		
+    	}    	
+    	public void redo() {
+    		super.redo();
+    		if (oldValue == null) { // Trait Added
+				traits.put(traitName, new Trait(traitName, newValue));
+				mPcs.firePropertyChange("trait." + traitName, null, newValue);
+			} else if (newValue == null) { //Trait removed
+				traits.remove(traitName);
+				mPcs.firePropertyChange("trait." + traitName, oldValue, null);
+			} else // Simple edit
+				_setTrait(traitName, newValue);		
+    	}        	
+    }
+    private class TempEdit extends AbstractUndoableEdit {
+    	private String tempName;
+    	private String oldValue;
+    	private String newValue;
+    	public TempEdit(String tempName, String oldValue, String newValue) {
+    		this.tempName = tempName;
+    		this.oldValue = oldValue;
+    		this.newValue = newValue;
+    	}
+    	public String getPresentationName() { return "TEMP"; }
+    	
+    	public void undo() {
+			super.undo();
+			undoRedoInProgress = true;
+			setTemp(tempName, oldValue);
+			undoRedoInProgress = false;
+    	}    	
+    	public void redo() {
+    		super.redo();
+    		undoRedoInProgress = true;
+    		setTemp(tempName, newValue);
+    		undoRedoInProgress = false;
+    	}        	
+    }
+    private class AttackEdit extends AbstractUndoableEdit {
+    	private Attack oldAttack;
+    	private Attack newAttack;
+    	private int position;
+    	public AttackEdit(Attack oldAttack, Attack newAttack, int position) {
+    		this.oldAttack = oldAttack;
+    		this.newAttack = newAttack;
+    		this.position = position;
+    	}
+    	public String getPresentationName() { return "Edit"; }
+    	
+    	public void undo() {
+			super.undo();
+			if (oldAttack == null) { // Add attack
+				attacks.remove(position);
+				mPcs.firePropertyChange("Attacks", attacks.size()+1, attacks.size());    	
+    		} else if (newAttack == null) {
+    			attacks.add(position, oldAttack);
+    			mPcs.firePropertyChange("Attacks", attacks.size()-1 ,attacks.size());
+    		} else {
+    			attacks.set(position, oldAttack);
+    			mPcs.firePropertyChange("Attacks", position, null);
+    		}
+    	}    	
+    	public void redo() {
+    		super.redo();
+    		if (oldAttack == null) { // Add attack
+    			attacks.add(position, newAttack);
+    			mPcs.firePropertyChange("Attacks", attacks.size()-1 ,attacks.size());
+    		} else if (newAttack == null) {
+    			attacks.remove(position);
+				mPcs.firePropertyChange("Attacks", attacks.size()+1, attacks.size());  
+    		} else {
+    			attacks.set(position, newAttack);
+    			mPcs.firePropertyChange("Attacks", position, null);
+    		}
+    	}        	
+    }    
+    private class DefaultAttackEdit extends AbstractUndoableEdit {
+    	private int oldValue;
+    	private int newValue;
+    	public DefaultAttackEdit(int oldValue, int newValue) {
+    		this.oldValue = oldValue;
+    		this.newValue = newValue;
+    	}
+    	public String getPresentationName() { return "Edit"; }
+    	
+    	public void undo() {
+			super.undo();
+			undoRedoInProgress = true;
+    		setDefaultAttack(oldValue);
+    		undoRedoInProgress = false;
+    	}    	
+    	public void redo() {
+    		super.redo();
+			undoRedoInProgress = true;
+    		setDefaultAttack(newValue);
+    		undoRedoInProgress = false;
+    	}        	
+    }
+    public class HackStartCompound extends AbstractUndoableEdit {
+		private static final long serialVersionUID = 1L;
+		public boolean isSignificant() { return false; }
+    }
+	public class HackEndCompound extends AbstractUndoableEdit {
+ 		private static final long serialVersionUID = 1L;
+		String display;
+    	public HackEndCompound(String display) { this.display = display; }
+    	public String getPresentationName() { return display; }
+    	public boolean isSignificant() { return false; }
     }
 }

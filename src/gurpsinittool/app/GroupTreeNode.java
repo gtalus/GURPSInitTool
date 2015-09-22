@@ -11,36 +11,27 @@ public class GroupTreeNode extends DefaultMutableTreeNode {
 	// Default SVUID
 	private static final long serialVersionUID = 1L;
 	
-	private boolean isFolder;
+	private boolean isLeaf;
 	private ArrayList<Actor> actorList;
 	
-	public GroupTreeNode(String name, boolean isFolder) {
-		super(name, isFolder);
-		this.isFolder = isFolder;
-		if (!isFolder) {
+	public GroupTreeNode(String name, boolean isLeaf) {
+		super(name, !isLeaf);
+		this.isLeaf = isLeaf;
+		if (isLeaf) {
 			actorList = new ArrayList<Actor>(Arrays.asList(new Actor()));
 		}
 	}
 	
 	@Override
 	public boolean isLeaf() {
-	    return !isFolder;
+	    return isLeaf;
 	}
 	
 	/**
 	 * Get the ArrayList<Actor> associated with the node. Returns null if none exists.
 	 */
 	public ArrayList<Actor> getActorList() {
-		if (!isFolder) { return actorList; }
+		if (isLeaf) { return actorList; }
 		else return null;
 	}
-	
-	/**
-	 * Accessor method for isFolder boolean
-	 * @return Whether this node is a folder.
-	 */
-	public boolean isFolder() {
-		return isFolder;
-	}
-
 }

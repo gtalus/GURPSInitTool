@@ -95,16 +95,17 @@ public class TraitTableModel extends AbstractTableModel {
 			String newName = (String) value;
 			if (!currentActor.renameTrait(traitName, newName)) {
 				System.out.println("TraitTableModel: setValueAt: rename failed!");
-			} else { // Also need to change the name in our array
-				displayedTraitKeys.set(row, newName);
 			}
+//			else { // Also need to change the name in our array
+//				displayedTraitKeys.set(row, newName);
+//			}
 			break;
 		case Value:
 			currentActor.setTrait(traitName, (String) value);
 			break;
 		}
 		// Update the entire row, since changing state or type may affect formatting for all cells in the row.
-		fireTableRowsUpdated(row, row);
+		//fireTableRowsUpdated(row, row);
     }
     
 	@Override
@@ -119,20 +120,38 @@ public class TraitTableModel extends AbstractTableModel {
 	 * @param actorList : the new ArrayList<Actor> to use as the base for the ActorTableModel
 	 */
 	public void setActor(Actor actor) {
+//		if (currentActor == actor) {
+//			refreshActor();
+//			return;
+//		}
 		currentActor = actor;
 		// Build displayedTraits list
 		displayedTraitKeys.clear();
+		displayedTraitKeys.addAll(getTraitNames());		
+		fireTableDataChanged();
+	}
+	
+//	public void refreshActor() {
+//		ArrayList<String> newList = getTraitNames();
+//		// what are new
+//		
+//		// what are old
+//		
+//	}
+	
+	private ArrayList<String> getTraitNames() {
+		ArrayList<String> theList = new ArrayList<String>();
 		if (currentActor != null) {
 			if (isTemp) {
-				displayedTraitKeys.addAll(actor.getAllTempNames());
+				theList.addAll(currentActor.getAllTempNames());
 			} else {
-				for (String traitName : actor.getAllTraitNames()) {
+				for (String traitName : currentActor.getAllTraitNames()) {
 					if (Actor.isBasicTrait(traitName)) continue;
-					displayedTraitKeys.add(traitName);
+					theList.add(traitName);
 				}
 			}
 		}
-		fireTableDataChanged();
+		return theList;
 	}
 
 	/**
@@ -142,13 +161,15 @@ public class TraitTableModel extends AbstractTableModel {
     	if (!isTemp && currentActor != null) {
     		// Figure out a new name
     		int num = 1;
-    		while (currentActor.hasTrait("newTrait" + String.valueOf(num))) {num++;}
+    		String prefix = "_new trait";
+    		while (currentActor.hasTrait(prefix + String.valueOf(num))) {num++;}
     		// Add the new trait
-    		String name = "newTrait" + String.valueOf(num);
-    		if (currentActor.addTrait(name, "")) {
-    			displayedTraitKeys.add(name);	
-    			fireTableRowsInserted(getRowCount()-1, getRowCount()-1);
-    		}
+    		String name = prefix + String.valueOf(num);
+//    		if (currentActor.addTrait(name, "")) {
+//    			displayedTraitKeys.add(name);	
+//    			fireTableRowsInserted(getRowCount()-1, getRowCount()-1);
+//    		}
+    		currentActor.addTrait(name, ""); // Rely on automatic refresh
     	}
     }
 
@@ -160,13 +181,14 @@ public class TraitTableModel extends AbstractTableModel {
 			for (int i = rows.length-1; i >= 0; i--) {  // Go from bottom up to preserve numbering
 				if (DEBUG) { System.out.println("TraitTableModel: Deleting row: " + rows[i]); }   	
 				String traitName = displayedTraitKeys.get(rows[i]);
-				if(currentActor.removeTrait(traitName)) {
-					displayedTraitKeys.remove(rows[i]);
-				} else {
-					System.out.println("-W- TraitTableModel: skipping trait removal due to failure in base actor");
-				}
+				currentActor.removeTrait(traitName);// rely on automatic refresh
+				//if(currentActor.removeTrait(traitName)) {
+				//	displayedTraitKeys.remove(rows[i]);
+				//} else {
+				//	System.out.println("-W- TraitTableModel: skipping trait removal due to failure in base actor");
+				//}
 			}
-    		fireTableRowsDeleted(rows[0], rows[rows.length-1]);
+    		//fireTableRowsDeleted(rows[0], rows[rows.length-1]);
     	}
     }
 }
