@@ -109,13 +109,14 @@ public class OptionsWindow extends javax.swing.JFrame {
         auto_unconsciousness = new javax.swing.JCheckBox();
         auto_knockdown = new javax.swing.JCheckBox();
         auto_stunrecovery = new javax.swing.JCheckBox();
-        auto_shock = new javax.swing.JCheckBox();
         okButton = new javax.swing.JButton();
         applyButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         log_defensedetails = new javax.swing.JCheckBox();
         log_statuschanges = new javax.swing.JCheckBox();
+        jPanel2 = new javax.swing.JPanel();
+        auto_shock = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("InitTool Settings");
@@ -134,9 +135,6 @@ public class OptionsWindow extends javax.swing.JFrame {
         auto_stunrecovery.setText("Stun Recovery");
         auto_stunrecovery.setToolTipText("Stunned NPCs check for stun recovery at the start of their turns.");
 
-        auto_shock.setText("Shock");
-        auto_shock.setToolTipText("Track and apply shock to all attack rolls");
-
         javax.swing.GroupLayout combatAutomationPanelLayout = new javax.swing.GroupLayout(combatAutomationPanel);
         combatAutomationPanel.setLayout(combatAutomationPanelLayout);
         combatAutomationPanelLayout.setHorizontalGroup(
@@ -146,9 +144,8 @@ public class OptionsWindow extends javax.swing.JFrame {
                     .addComponent(auto_attack)
                     .addComponent(auto_unconsciousness)
                     .addComponent(auto_knockdown)
-                    .addComponent(auto_stunrecovery)
-                    .addComponent(auto_shock))
-                .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(auto_stunrecovery))
+                .addGap(0, 104, Short.MAX_VALUE))
         );
         combatAutomationPanelLayout.setVerticalGroup(
             combatAutomationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -160,9 +157,7 @@ public class OptionsWindow extends javax.swing.JFrame {
                 .addComponent(auto_knockdown)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 1, Short.MAX_VALUE)
                 .addComponent(auto_stunrecovery)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(auto_shock)
-                .addContainerGap())
+                .addGap(0, 0, 0))
         );
 
         okButton.setText("OK");
@@ -212,6 +207,24 @@ public class OptionsWindow extends javax.swing.JFrame {
                 .addComponent(log_defensedetails))
         );
 
+        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Game Rules"));
+
+        auto_shock.setText("Shock");
+        auto_shock.setToolTipText("Track and apply shock to all attack rolls");
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addComponent(auto_shock)
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(auto_shock)
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -225,12 +238,15 @@ public class OptionsWindow extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(cancelButton))
             .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(combatAutomationPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(0, 0, 0)
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -321,6 +337,7 @@ public class OptionsWindow extends javax.swing.JFrame {
     private javax.swing.JButton cancelButton;
     private javax.swing.JPanel combatAutomationPanel;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private gurpsinittool.data.GameSettings localSettings;
     private javax.swing.JCheckBox log_defensedetails;
     private javax.swing.JCheckBox log_statuschanges;

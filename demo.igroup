@@ -1,0 +1,187 @@
+<GURPSActorGroupList schemaVer="5">
+<GroupFolder name="Groups">
+<GroupFolder name="Animals">
+<ActorGroup name="Canines">
+<Actor name="Dog" default_attack="0" state="[]" type="Enemy">
+<ST>10</ST>
+<Speed>5.75</Speed>
+<Dodge>8</Dodge>
+<Injury>0</Injury>
+<Shield_DB>2</Shield_DB>
+<HP>8</HP>
+<IQ>10</IQ>
+<Fatigue>0</Fatigue>
+<FP>11</FP>
+<HT>11</HT>
+<Shield_HP>20</Shield_HP>
+<DR>0</DR>
+<Name>Dog</Name>
+<DX>10</DX>
+<Move>6</Move>
+<Shield_DR>4</Shield_DR>
+<Block>9</Block>
+<SM>0</SM>
+<Will>10</Will>
+<Per>10</Per>
+<Parry>9</Parry>
+<Notes></Notes>
+</Actor>
+<Actor name="Wolf" default_attack="0" state="[]" type="Enemy">
+<Enhanced Move>1/2</Enhanced Move>
+<Dodge>9</Dodge>
+<Injury>0</Injury>
+<HP>8</HP>
+<FP>14</FP>
+<HT>11</HT>
+<DR>0</DR>
+<Name>Wolf</Name>
+<DX>12</DX>
+<Move>9</Move>
+<Shield_DR>0</Shield_DR>
+<SM>-1</SM>
+<Will>10</Will>
+<Parry>0</Parry>
+<Notes>http://www.panoptesv.com/RPGs/animalia/mammalia/eutheria/carnivora/canidae/Wolf.html
+
+Wolves live in packs of 8 to 12 closely related individuals. These cooperate in hunting in order to surround and rip apart prey that would be too formidable for a single animal. On catching sight or scent of their quarry, wolves begin the chase, running their prey to exhastion before catching it and eating it alive. Their jaws are quite powerful, capable of ripping flesh and crushing bone, and thus make short work of anything unfortunate enough to be caught by the pack. Even the skin, bones, hooves, and horns will be eaten. </Notes>
+<ST>8</ST>
+<Speed>5.75</Speed>
+<Shield_DB>0</Shield_DB>
+<IQ>4</IQ>
+<Discriminatory Smell>Acute +3</Discriminatory Smell>
+<Fatigue>0</Fatigue>
+<Shield_HP>0</Shield_HP>
+<CR></CR>
+<Block>0</Block>
+<Per>12</Per>
+<Attack name="Bite" skill="14" damage="1d-2 cut" unbalanced="false" />
+<Attack name="Crushing bite" skill="10" damage="1d cr" unbalanced="false" />
+</Actor>
+</ActorGroup>
+</GroupFolder>
+<GroupFolder name="Encounters">
+<ActorGroup name="Hinterlands #1">
+<Actor name="Wolf" default_attack="0" state="[]" type="Enemy">
+<ST>10</ST>
+<Speed>6.00</Speed>
+<Dodge>8</Dodge>
+<Injury>0</Injury>
+<Shield_DB>2</Shield_DB>
+<HP>10</HP>
+<IQ>10</IQ>
+<Fatigue>0</Fatigue>
+<FP>12</FP>
+<HT>12</HT>
+<Shield_HP>20</Shield_HP>
+<DR>0</DR>
+<Name>Wolf</Name>
+<DX>10</DX>
+<Move>6</Move>
+<Shield_DR>4</Shield_DR>
+<Block>9</Block>
+<SM>0</SM>
+<Will>10</Will>
+<Per>10</Per>
+<Parry>9</Parry>
+<Notes></Notes>
+</Actor>
+<Actor name="Dog" default_attack="0" state="[]" type="Enemy">
+<ST>10</ST>
+<Speed>5.75</Speed>
+<Dodge>8</Dodge>
+<Injury>0</Injury>
+<Shield_DB>2</Shield_DB>
+<HP>8</HP>
+<IQ>10</IQ>
+<Fatigue>0</Fatigue>
+<FP>11</FP>
+<HT>11</HT>
+<Shield_HP>20</Shield_HP>
+<DR>0</DR>
+<Name>Dog</Name>
+<DX>10</DX>
+<Move>6</Move>
+<Shield_DR>4</Shield_DR>
+<Block>9</Block>
+<SM>0</SM>
+<Will>10</Will>
+<Per>10</Per>
+<Parry>9</Parry>
+<Notes></Notes>
+</Actor>
+<Actor name="Dog" default_attack="0" state="[]" type="Enemy">
+<ST>10</ST>
+<Speed>5.75</Speed>
+<Dodge>8</Dodge>
+<Injury>0</Injury>
+<Shield_DB>2</Shield_DB>
+<HP>8</HP>
+<IQ>10</IQ>
+<Fatigue>0</Fatigue>
+<FP>11</FP>
+<HT>11</HT>
+<Shield_HP>20</Shield_HP>
+<DR>0</DR>
+<Name>Dog</Name>
+<DX>10</DX>
+<Move>6</Move>
+<Shield_DR>4</Shield_DR>
+<Block>9</Block>
+<SM>0</SM>
+<Will>10</Will>
+<Per>10</Per>
+<Parry>9</Parry>
+<Notes></Notes>
+</Actor>
+<Actor name="Dog" default_attack="0" state="[]" type="Enemy">
+<ST>10</ST>
+<Speed>5.75</Speed>
+<Dodge>8</Dodge>
+<Injury>0</Injury>
+<Shield_DB>2</Shield_DB>
+<HP>8</HP>
+<IQ>10</IQ>
+<Fatigue>0</Fatigue>
+<FP>11</FP>
+<HT>11</HT>
+<Shield_HP>20</Shield_HP>
+<DR>0</DR>
+<Name>Dog</Name>
+<DX>10</DX>
+<Move>6</Move>
+<Shield_DR>4</Shield_DR>
+<Block>9</Block>
+<SM>0</SM>
+<Will>10</Will>
+<Per>10</Per>
+<Parry>9</Parry>
+<Notes></Notes>
+</Actor>
+<Actor name="Dog" default_attack="0" state="[]" type="Enemy">
+<ST>10</ST>
+<Speed>5.75</Speed>
+<Dodge>8</Dodge>
+<Injury>0</Injury>
+<Shield_DB>2</Shield_DB>
+<HP>8</HP>
+<IQ>10</IQ>
+<Fatigue>0</Fatigue>
+<FP>11</FP>
+<HT>11</HT>
+<Shield_HP>20</Shield_HP>
+<DR>0</DR>
+<Name>Dog</Name>
+<DX>10</DX>
+<Move>6</Move>
+<Shield_DR>4</Shield_DR>
+<Block>9</Block>
+<SM>0</SM>
+<Will>10</Will>
+<Per>10</Per>
+<Parry>9</Parry>
+<Notes></Notes>
+</Actor>
+</ActorGroup>
+</GroupFolder>
+</GroupFolder>
+</GURPSActorGroupList>

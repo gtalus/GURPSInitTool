@@ -178,7 +178,8 @@ public class InitTable extends BasicTable {
         setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         setDragEnabled(true);
         setDropMode(DropMode.INSERT_ROWS);
-        this.setSurrendersFocusOnKeystroke(false);
+        this.setSurrendersFocusOnKeystroke(true); // WHY??? orig false
+        // Not doing 'asdf' ENTER, moves to next row
 
         // Freeze the 'Act' column size
         getColumnModel().getColumn(InitTableModel.columns.Act.ordinal()).setResizable(false);       
@@ -718,13 +719,14 @@ public class InitTable extends BasicTable {
 						firstEdit = false;
 						startingNew = true;
 						super.replace(fb, offs, length, str, a);
-					}
-					else if (startingNew && str.matches("\\d")) {
+					} else if (startingNew && str.matches("\\d")) {
 						startingNew = false;
 						super.replace(fb, offs, 0, "+", null);
 						super.replace(fb, offs+1, 0, str, a);
-					}
-					else {
+					} else if (startingNew && str.matches("=")) {
+						startingNew = false;
+						super.replace(fb, offs, 0, "+", null);
+					} else {
 						startingNew = false;
 						super.replace(fb, offs, 0, str, a);
 					}

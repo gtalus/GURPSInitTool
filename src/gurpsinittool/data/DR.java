@@ -43,7 +43,7 @@ public class DR {
 			return new DR(base,cr_num-base);
 		}
 		else {
-			System.out.println("-E- DR:ParseDR: unable to parse string! " + DRString);
+			//System.out.println("-W- DR:ParseDR: unable to parse string! " + DRString);
 			throw new ParseException("ParseDR: Unable to parse string: " + DRString, 0);
 		}
 	}

@@ -93,7 +93,7 @@ public class Defense {
 			if (ee) {
 				effectiveDefense += 2;
 				fatigue = 1;
-			}
+			} else { fatigue = 0; }
 			if (retreat)
 				effectiveDefense += (type == DefenseType.Dodge) ? 3 : 1;
 			if (side)
@@ -146,29 +146,29 @@ public class Defense {
     		ArrayList<String> tolerances = actor.getTraitValueArray("Injury Tolerance");
     		// No Blood - nothing currently (also Diffuse and Homogenous)
     		// No Brain
-    		if (tolerances.contains("No Brain") || tolerances.contains("Diffuse") || tolerances.contains("Homogenous")) {
+    		if (tolerances.contains("no brain") || tolerances.contains("diffuse") || tolerances.contains("homogenous")) {
     			// "a blow to the skull or eye is treated no differently than a blow to the face (except that an eye injury can still cripple that eye)"
     			// This program currently doesn't track crippling for eyes, so this is the same in every way
     			if (location.type == LocationType.Skull || location.type == LocationType.Eye)
     				location = HitLocations.getLocation(LocationType.Face);
     		}
     		// No Eyes
-    		if (tolerances.contains("No Eyes")) {
+    		if (tolerances.contains("no eyes")) {
     			if (location.type == LocationType.Eye)
     				location = HitLocations.getLocation(LocationType.Face);
     		}
     		// No Head
-    		if (tolerances.contains("No Head")) {
+    		if (tolerances.contains("no head")) {
     			if (location.type == LocationType.Face || location.type == LocationType.Skull)
     				location = HitLocations.getLocation(LocationType.Torso);
     		}
     		// No Neck
-    		if (tolerances.contains("No Neck")) {
+    		if (tolerances.contains("no neck")) {
     			if (location.type == LocationType.Neck)
     				location = HitLocations.getLocation(LocationType.Torso);
     		}
     		// No Vitals
-    		if (tolerances.contains("No Vitals") || tolerances.contains("Diffuse") || tolerances.contains("Homogenous")) {
+    		if (tolerances.contains("no vitals") || tolerances.contains("diffuse") || tolerances.contains("homogenous")) {
     			if (location.type == LocationType.Vitals || location.type == LocationType.Groin)
     				location = HitLocations.getLocation(LocationType.Torso);
     		}
@@ -207,7 +207,7 @@ public class Defense {
     		// Min damage 1 if any got through DR
     		shieldDamage = (shieldDamage <= 0 && shieldBasicDamage > 0)?1:shieldDamage; 
     		// Calculate total cover DR provided (including armor divisor)
-    		coverDR = (int) (Math.floor(ShieldDR/damage.ArmorDivisor) + Math.ceil(ShieldHP/4));
+    		coverDR = (int) (Math.floor((ShieldDR + Math.ceil(ShieldHP/4))/damage.ArmorDivisor));
     	case Failure:
     	case CritFailure:
     		// Calculate actual basic damage to the target, including any cover DR
@@ -216,14 +216,14 @@ public class Defense {
 			basicDamage = Math.max(0, basicDamage);
 			// Calculate injury to the target
 			double damageMultiplier = damage.DamageMultiplier(location);
-			if (tolerances.contains("Homogenous"))
+			if (tolerances.contains("homogenous"))
 				damageMultiplier = damage.DamageMultiplierHomogenous(location);
-			else if (tolerances.contains("Unliving"))
+			else if (tolerances.contains("unliving"))
 				damageMultiplier = damage.DamageMultiplierUnliving(location);
  			injury = (int) (basicDamage*damageMultiplier); 
     		injury = (injury <= 0 && basicDamage > 0)?1:injury; // Min damage 1 if any got through DR
     		// Diffuse
-    		if(tolerances.contains("Diffuse")) {
+    		if(tolerances.contains("diffuse")) {
     			int maxDamage = damage.DamageMaxDiffuse();
     			injury = (injury > maxDamage)?maxDamage:injury;
     		}

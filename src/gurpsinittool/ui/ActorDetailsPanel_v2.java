@@ -51,7 +51,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	// Default SVUID
 	private static final long serialVersionUID = 1L;
 
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	
 	private boolean isInit; // Whether we are attached to the init Table, or just the group table
 	private int actorLoading = 0; // Block for property updates while in the middle of an update
@@ -1128,8 +1128,8 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     }//GEN-LAST:event_add_attackActionPerformed
 
     private void execute_attackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_execute_attackActionPerformed
+    	if (attacksTable.getSelectedRow() == -1) return;
     	int modelRow = attacksTable.getRowSorter().convertRowIndexToModel(attacksTable.getSelectedRow());
-    	if (modelRow == -1) return;
     	stopCellEditing(attacksTable);
     	actor.Attack(modelRow);
        	//gameMaster.new AttackNumAction(modelRow).actionPerformed(null);
@@ -1452,7 +1452,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	 * flush any field edits
 	 */
 	protected void flushFieldEdits() {
-		Component fcomponent = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+		Component fcomponent = KeyboardFocusManager.getCurrentKeyboardFocusManager().getPermanentFocusOwner();
 		if (fcomponent != null && this.isAncestorOf(fcomponent)) {
 			if (JTextComponent.class.isInstance(fcomponent)) {
 				JTextComponent comp = (JTextComponent) fcomponent;

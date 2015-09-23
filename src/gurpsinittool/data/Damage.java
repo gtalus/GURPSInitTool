@@ -58,7 +58,7 @@ public class Damage {
 			return new Damage(DieRoller.rollDiceAdds(dice, adds), div, type, explosive);
 		}
 		else {
-			System.out.println("-E- Damage:ParseDamage: unable to parse string! " + damage);
+			//System.out.println("-W- Damage:ParseDamage: unable to parse string! " + damage);
 			throw new ParseException("ParseDamage: Unable to parse string: " + damage, 0);
 		}
 	}
@@ -102,7 +102,7 @@ public class Damage {
 		try {
 			return DamageType.valueOf(type);
 		} catch (Exception e) {
-			System.out.println("-E- ParseType: unable to parse string! " + type);
+			//System.out.println("-W- ParseType: unable to parse string! " + type);
 			throw new ParseException("ParseType: Unable to parse string: " + type, 0);
 		}
 	}	

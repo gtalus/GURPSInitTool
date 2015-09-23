@@ -363,7 +363,7 @@ public class ActorBase implements Serializable {
 	}
 	public ArrayList<String> getTraitValueArray(String name) {
 		if (hasTrait(name))
-			return new ArrayList<String>(Arrays.asList(getTrait(name).value.split("\\s*;\\s*")));
+			return new ArrayList<String>(Arrays.asList(getTrait(name).value.toLowerCase().split("\\s*;\\s*")));
 		else 
 			return new ArrayList<String>();
 	}

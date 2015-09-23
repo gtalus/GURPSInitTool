@@ -20,7 +20,7 @@ public class InitTableTransferHandler extends TransferHandler {
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 
 	// Must hack class to be different: string difference does not make unique DataFlavor
 	protected static DataFlavor initTableActorFlavor = new DataFlavor(InitTable.class, "GURPS Actor Object from init table");

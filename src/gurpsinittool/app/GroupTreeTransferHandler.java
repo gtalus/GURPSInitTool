@@ -20,7 +20,7 @@ public class GroupTreeTransferHandler extends TransferHandler {
 	// Default serialization UID
 	private static final long serialVersionUID = 1L;
 	
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	
 	private GroupTree parent;
 

@@ -101,6 +101,7 @@ public class DefenseDialog extends javax.swing.JDialog {
      */
     public DefenseDialog(java.awt.Window parent) {
         super(parent, DEFAULT_MODALITY_TYPE);
+        setTitle("Defense");
         initComponents();
         initEnterEsc();
         initLocationCombo();
@@ -747,12 +748,15 @@ public class DefenseDialog extends javax.swing.JDialog {
     	
     	// Set position
     	// TODO: make this more flexible (perhaps based off of an ENUM???!!!)
+    	postureCombo.setSelectedIndex(0);
     	if (defense.position.equals("Kneeling"))
     		postureCombo.setSelectedIndex(1);
     	if (defense.position.equals("Prone"))
     		postureCombo.setSelectedIndex(2);
     	
     	// TODO: otherMod? what would this be set to? some temp var?
+    	otherSpinner.setValue(0);
+    	locationCombo.setSelectedItem("Torso");
     	
     	rollDefense();
     	updating = false;

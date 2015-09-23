@@ -694,12 +694,10 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 		return compoundEdits.size();
 	}	
 	public void startCompoundEdit() {
-		System.out.println("HERE: start compound edit");
 		//new Exception().printStackTrace();
 		compoundEdits.push(new CompoundEdit());	
 	}	
 	public void endCompoundEdit(String display) {
-		System.out.println("HERE: end compound edit");
 		if (getCompoundLevel() == 0) {
 			System.err.println("-E- GameMaster: endCompoundEdit: compound edit not started!!");
 			new Exception().printStackTrace();
@@ -716,7 +714,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 	public void propertyChange(PropertyChangeEvent e) {
 		if (GameMaster.class.isInstance(e.getSource())) {
 			// Assume I'm the source
-			System.out.println("GameMaster: propertyChange: saw property change for Gamemaster");
+			if (DEBUG) System.out.println("GameMaster: propertyChange: saw property change for Gamemaster");
 			String propertyName = e.getPropertyName();
 			if (propertyName.equals("ActiveActor")) {
 				postUndoableEdit(new ActiveActorEdit((Integer) e.getOldValue(), (Integer) e.getNewValue()));

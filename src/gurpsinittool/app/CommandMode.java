@@ -1,12 +1,15 @@
 package gurpsinittool.app;
 
 import java.awt.AWTEvent;
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
 import java.awt.event.AWTEventListener;
 import java.awt.event.KeyEvent;
 import java.util.HashMap;
 
 import javax.swing.Action;
 import javax.swing.JFrame;
+import javax.swing.text.JTextComponent;
 
 import gurpsinittool.data.GameMaster;
 import gurpsinittool.ui.DefenseDialog;
@@ -58,6 +61,8 @@ public class CommandMode implements AWTEventListener {
 		TypedMap.put('u', gameMaster.actionStatusToggleUnconscious);
 		TypedMap.put('x', gameMaster.actionStatusToggleDead);
 		
+		//actionTagSelectedActors
+		//actionRemoveTagSelectedActors
 		TypedMap.put('t', gameMaster.actionTagActors);
 		//TypedMap.put('c', theApp.actionToggleCommandMode); // BROKEN!i
 		
@@ -115,7 +120,7 @@ public class CommandMode implements AWTEventListener {
 			
 			if (key.isControlDown() || key.isAltDown() || key.isMetaDown()) { // ignore potential accelerators and mnemonics
 				return;
-			} else if (key.getKeyCode() == KeyEvent.VK_ENTER || key.getKeyCode() == KeyEvent.VK_ESCAPE ) { // allow enter and escape
+			} else if (key.getKeyCode() == KeyEvent.VK_ENTER || key.getKeyCode() == KeyEvent.VK_ESCAPE || key.getKeyCode() == KeyEvent.VK_TAB ) { // allow special keys
 				return;
 			} else if (search.hasFocus()) {
 				if (key.getKeyChar() == '/' && key.getID()==KeyEvent.KEY_TYPED) {
@@ -133,21 +138,37 @@ public class CommandMode implements AWTEventListener {
 						key.consume();
 					}
 				}				
-			} else if(key.getID()==KeyEvent.KEY_PRESSED){ //Handle key presses
-				if (defense.isVisible()) {
-				} else if (PressedMap.containsKey(key.getKeyCode())) {
-					PressedMap.get(key.getKeyCode()).actionPerformed(null);
+			} else { // Main initiative window
+				// TODO: allow editing if text component is focused
+				Component fcomponent = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+				if (fcomponent != null && JTextComponent.class.isInstance(fcomponent) && ((JTextComponent)fcomponent).isEditable()) {
+					// Allow editing?
+				} else {
+
+					// allow -/+/=/digit edit without focus in the injury/fatigue columns
+					int tableColumnSelected = gameMaster.initTable.getColumnModel().getSelectionModel().getLeadSelectionIndex();
+					if (tableColumnSelected != -1 &&  (tableColumnSelected == InitTableModel.columns.Fatigue.ordinal() || 
+														tableColumnSelected == InitTableModel.columns.Injury.ordinal())) {
+						if (key.getKeyChar() == '-' || key.getKeyChar() == '+' || key.getKeyChar() == '=')
+							return;
+					} 
+					if(key.getID()==KeyEvent.KEY_PRESSED){ //Handle key presses
+						if (defense.isVisible()) {
+						} else if (PressedMap.containsKey(key.getKeyCode())) {
+							PressedMap.get(key.getKeyCode()).actionPerformed(null);
+						}
+						key.consume();
+					} else if (key.getID()==KeyEvent.KEY_TYPED) {
+						if (key.getKeyChar() == '/') {
+							search.requestFocus();
+						} else if (TypedMap.containsKey(key.getKeyChar())) {
+							TypedMap.get(key.getKeyChar()).actionPerformed(null);
+						} 
+						key.consume();
+					} else if (key.getID()==KeyEvent.KEY_RELEASED) {
+						key.consume();
+					}
 				}
-				key.consume();
-			} else if (key.getID()==KeyEvent.KEY_TYPED) {
-				if (key.getKeyChar() == '/') {
-					search.requestFocus();
-				} else if (TypedMap.containsKey(key.getKeyChar())) {
-					TypedMap.get(key.getKeyChar()).actionPerformed(null);
-				} 
-				key.consume();
-			} else if (key.getID()==KeyEvent.KEY_RELEASED) {
-				key.consume();
 			}
 		}
 	}
