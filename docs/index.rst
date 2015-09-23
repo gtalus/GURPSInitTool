@@ -10,21 +10,17 @@ GURPSInitTool is a combat tracking and automation tool. It tracks initiative and
 
 In addition to combat tracking, the program provides a Group Manager which can keep a library of creatures and encounters for quick access during a session.
 
-Getting Started
----------------
-
 .. toctree::
    :maxdepth: 2
+   :caption: Getting Started
 
    running
    quick_start
 
 	      
-Operation Guide
----------------
-
 .. toctree::
    :maxdepth: 2
+   :caption: Operation Guide
 
    group_manager
    combatant_edit
@@ -32,11 +28,9 @@ Operation Guide
    command_mode
 
 	      
-Additional Information
-----------------------
-
 .. toctree::
    :maxdepth: 1
+   :caption: Additional Information
 
    usage_model
    screenshots
