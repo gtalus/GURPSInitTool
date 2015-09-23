@@ -3,7 +3,10 @@
 Welcome to GURPSInitTool's documentation!
 =========================================
 
-GURPSInitTool is a combat tracking and automation tool. It tracks initiative and each combatant's status while automating common or repetitive tasks for the GM. It avoids automating the PCs and allows the GM to quickly override the NPC automations when desired. Specific automations, or all automation, can also be disabled.
+Introduction
+------------
+
+GURPSInitTool is a combat tracking and automation tool. It tracks initiative and each combatant's status while automating common or repetitive tasks for the GM. It avoids automating the PCs and allows the GM to quickly override the NPC automations when desired. Specific automations- or all automation- can also be disabled.
 
 In addition to combat tracking, the program provides a Group Manager which can keep a library of creatures and encounters for quick access during a session.
 
@@ -17,23 +20,15 @@ Getting Started
    quick_start
 
 	      
-Preparing for Combat
---------------------
-
-.. toctree::
-   :maxdepth: 1
-
-   group_manager
-   combatant_stats
-
-Running Combat
---------------
+Operation Guide
+---------------
 
 .. toctree::
    :maxdepth: 2
 
+   group_manager
+   combatant_edit
    combat
-   automation
    command_mode
 
 	      
@@ -44,35 +39,17 @@ Additional Information
    :maxdepth: 1
 
    usage_model
+   screenshots
    changelog
    tips_tricks
-   screenshots
+   
+.. tips_tricks - undo/redo & copy/paste info? Tagging. Search. logging options? critical tables, shortcuts
+   copy/paste: only for text, cannot copy/paste actor rows
+   undo/redo: separate for main window, group manager. Records all edits (but not things like changing the selection)
+
+..  todo- cross-linking
 
    
-.. Introduction
-   Quick start
-
-
-   How I use this tool
-
-   Group Manager
-
-   Command Mode
-
-   Creating & Editing actors
-   Setting up a combat
-   Running Combat
-      Defense Dialog
-   Other tools: critical tables
-
-   States - status effects
-   Special traits (HPC/CR)
-   Combat Automation
-   Logging
-   
-   Tricks & Tips
-
-
 Indices and tables
 ==================
 

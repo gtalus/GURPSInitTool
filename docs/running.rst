@@ -27,6 +27,6 @@ First, make sure Java is installed. If it is, but the program does not seem to s
    -or-
    java -jar C:/path/to/GURPSInitTool.jar
 
-If you are on a windows system and are not familiar with running such commands you may be able to use this .bat file: :download:`GURPSInitTool.bat <_static/GURPSInitTool.bat>`. Download it (right-click, then select 'Save As...') into the same directory as GURPSInitTool.jar and run it.
+If you are on a windows system and are not familiar with running such commands you may be able to use this .bat file: :download:`GURPSInitTool.bat <_static/GURPSInitTool.bat>`. Download it into the same directory as GURPSInitTool.jar and run it.
 
 

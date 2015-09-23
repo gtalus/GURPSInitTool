@@ -1,7 +1,7 @@
 Basic operation
 ===============
 
-When first starting GURPSInitiativeTool (hearafter GIT) you will see a window looking something like this:
+When first starting GURPSInitiativeTool you will see a window looking something like this:
 
 .. image:: _static/01_start_screen.png
 
@@ -16,7 +16,11 @@ Adding new combatants is done by making a change to any cell of the 'new...' row
 
 Editing combatants
 ~~~~~~~~~~~~~~~~~~
-The top selected combatant's details are shown in the right pane and both the table and the details pane can be used to edit combatants. Right-clicking on the table will bring up a menu which can be used to modify all selected rows (except for the 'Set Active' and 'Defend' items), and certain buttons on the toolbar have similar functionality. The right click menu is the only way to delete rows.
+The top selected combatant's details are shown in the right pane and both the table and the details pane can be used to edit combatants. Right-clicking on the table will bring up a menu which can be used to modify all selected rows (except for the 'Set Active' and 'Defend' items), and certain buttons on the toolbar have similar functionality.
+
+Deleting combatants
+~~~~~~~~~~~~~~~~~~~
+The right click menu is the only way to delete rows.
 
 .. image:: _static/02_right_click.png
 
@@ -26,7 +30,7 @@ Initiative ordering is controlled by dragging and dropping rows. You can also us
    
 Running Combat
 ---------------
-Once you are satisfied with the list of combatants combat is started by clicking any of the round control buttons on the toolbar where the round number is also displayed (by default at the top-left). Note that Disabled, Waiting, Unconscious, or Dead combatants are automatically skipped.
+Once you are satisfied with the list of combatants, combat is started by clicking any of the round control buttons on the toolbar where the round number is also displayed (by default at the top-left). Note that Disabled, Waiting, Unconscious, or Dead combatants are automatically skipped.
 
 Automation
 ~~~~~~~~~~
@@ -51,7 +55,3 @@ After Combat
 Once an encounter is completed, you can use the 'Reset' function from the right-click menu to clear out any injury, fatigue, and statuses from the selected rows. The 'Reset round counter' button just to the right of the round counter in the toolbar will reset the counter to 0.
 
 It is currently not possible to save an encounter directly, but the log can be copied to an external program and the combatants can be dragged to the Group Manager where they can be saved. This can be useful if you want to keep track of injury for major characters or if an encounter is still in-progress when a session ends.
-
-.. Set active effects
-
-.. Besides the usual GURPS stats, there are two additional pieces of information for each combatant: its Type and Status. Types are PC, Ally, Neutral, Enemy, or Special and are color-coded in the main table as well as elsewhere. The Type also impacts what automations are applied to this creature - PCs and the Special type are not automated while the others are.
