@@ -48,11 +48,14 @@ Defense dialog
 .. image:: _static/24_defense_shield.png
 
 Defense results log
+
 .. image:: _static/23_defense_log.png
 
 Table editing and status formatting
+
 .. image:: _static/30_table_status_display.png
 
 Attacks and Traits detail
+
 .. image:: _static/31_attacks_traits.png
 
