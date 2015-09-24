@@ -47,7 +47,7 @@ import gurpsinittool.util.SearchSupport;
 public class GITApp extends JFrame 
 	implements PropertyChangeListener, EncounterLogListener, ListSelectionListener, TableModelListener {
 	
-	public static final String version = "1.4.0";
+	public static final String version = "1.5.0";
 	private static final boolean DEBUG = false;
 	
 	private InitTable initTable;
