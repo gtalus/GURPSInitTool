@@ -10,6 +10,7 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.Properties;
 import javax.swing.Box;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
@@ -22,6 +23,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
@@ -73,6 +75,12 @@ public class GroupManager extends JFrame
 		this.propertyBag = propertyBag;
 		setDefaultProperties();
 		
+		 // Set some UI options:
+        UIManager.put("Tree.leafIcon", new ImageIcon(GITApp.class.getResource("/resources/images/bullet_black.png")));
+        UIManager.put("Tree.closedIcon", new ImageIcon(GITApp.class.getResource("/resources/images/folder.png")));
+        UIManager.put("Tree.openIcon", new ImageIcon(GITApp.class.getResource("/resources/images/folder.png")));
+        
+        
 		// Create core components
 		gameMaster = new GameMaster();
 		actorDetailsPanel = new ActorDetailsPanel_v2(false);
@@ -202,6 +210,7 @@ public class GroupManager extends JFrame
         setSize(Integer.valueOf(propertyBag.getProperty("Manager.size.width")),
         		Integer.valueOf(propertyBag.getProperty("Manager.size.height")));
 
+       
         // Auto-load a group file if requested:
         if (propertyBag.containsKey("Manager.currentLoadedFile")) {
         	saveAsFile = new File(propertyBag.getProperty("Manager.currentLoadedFile"));

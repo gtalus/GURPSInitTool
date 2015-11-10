@@ -1,0 +1,105 @@
+<GURPSActorGroupList schemaVer="5">
+<GroupFolder name="Groups">
+<ActorGroup name="current">
+<Actor name="Jack" default_attack="0" state="[]" type="PC">
+<ST>10</ST>
+<Speed>5.75</Speed>
+<Dodge>8</Dodge>
+<Injury>0</Injury>
+<Shield_DB>2</Shield_DB>
+<HP>10</HP>
+<IQ>10</IQ>
+<Fatigue>0</Fatigue>
+<FP>11</FP>
+<HT>11</HT>
+<Shield_HP>20</Shield_HP>
+<DR>0</DR>
+<Name>Jack</Name>
+<DX>10</DX>
+<Move>5</Move>
+<Shield_DR>4</Shield_DR>
+<Block>9</Block>
+<SM>0</SM>
+<Will>10</Will>
+<Per>10</Per>
+<Parry>9</Parry>
+<Notes></Notes>
+</Actor>
+<Actor name="Giant" default_attack="0" state="[Attacking]" type="Enemy">
+<ST>10</ST>
+<Speed>5.25</Speed>
+<Dodge>8</Dodge>
+<Injury>0</Injury>
+<Shield_DB>2</Shield_DB>
+<HP>25</HP>
+<IQ>10</IQ>
+<Fatigue>0</Fatigue>
+<FP>15</FP>
+<HT>11</HT>
+<Shield_HP>20</Shield_HP>
+<DR>0</DR>
+<Name>Giant</Name>
+<DX>10</DX>
+<Move>5</Move>
+<Shield_DR>4</Shield_DR>
+<Block>9</Block>
+<SM>0</SM>
+<Will>10</Will>
+<Per>10</Per>
+<Parry>9</Parry>
+<Notes></Notes>
+<Attack name="Club" skill="10" damage="5d cr" unbalanced="false" />
+</Actor>
+<Actor name="Mouse" default_attack="0" state="[Attacking]" type="Neutral">
+<ST>4</ST>
+<Speed>6</Speed>
+<Dodge>8</Dodge>
+<Injury>0</Injury>
+<Shield_DB>2</Shield_DB>
+<HP>1</HP>
+<IQ>10</IQ>
+<Fatigue>0</Fatigue>
+<FP>1</FP>
+<HT>10</HT>
+<Shield_HP>20</Shield_HP>
+<DR>0</DR>
+<Name>Mouse</Name>
+<DX>10</DX>
+<Move>4</Move>
+<Shield_DR>4</Shield_DR>
+<Block>9</Block>
+<SM>0</SM>
+<Will>10</Will>
+<Per>10</Per>
+<Parry>9</Parry>
+<Notes></Notes>
+<Attack name="Bite" skill="11" damage="1d-5 cr" unbalanced="false" />
+</Actor>
+<Actor name="Mouse" default_attack="0" state="[Attacking]" type="Neutral">
+<ST>4</ST>
+<Speed>6</Speed>
+<Dodge>8</Dodge>
+<Injury>0</Injury>
+<Shield_DB>2</Shield_DB>
+<HP>1</HP>
+<IQ>10</IQ>
+<Fatigue>0</Fatigue>
+<FP>1</FP>
+<HT>10</HT>
+<Shield_HP>20</Shield_HP>
+<DR>0</DR>
+<Name>Mouse</Name>
+<DX>10</DX>
+<Move>4</Move>
+<Shield_DR>4</Shield_DR>
+<Block>9</Block>
+<SM>0</SM>
+<Will>10</Will>
+<Per>10</Per>
+<Parry>9</Parry>
+<Notes></Notes>
+<Attack name="Bite" skill="11" damage="1d-5 cr" unbalanced="false" />
+</Actor>
+</ActorGroup>
+</GroupFolder>
+</GURPSActorGroupList>

@@ -1078,11 +1078,13 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     }//GEN-LAST:event_fieldFocusLost
     
     private void add_traitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_add_traitActionPerformed
+    	flushEdits();
         traitTableModel.addTrait();
         resizeTableInPanel(traits, traitsTable, traitTableModel);
     }//GEN-LAST:event_add_traitActionPerformed
 
     private void remove_traitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_remove_traitActionPerformed
+    	flushEdits();
     	// Convert from sorted row numbers to model row numbers
         // Most of this is not necessary, since the table has a single row selection model
         int viewRows[] = traitsTable.getSelectedRows();
@@ -1104,12 +1106,16 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     }//GEN-LAST:event_resizeAttackTableActionPerformed
 
     private void default_attackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_default_attackActionPerformed
+    	flushEdits();
+		if(attacksTable.getSelectedRow() == -1)
+			return;
         int modelRow = attacksTable.getRowSorter().convertRowIndexToModel(attacksTable.getSelectedRow());
         attackTableModel.setDefaultAttack(modelRow);
         resizeTableInPanel(attacks, attacksTable, attackTableModel);
     }//GEN-LAST:event_default_attackActionPerformed
 
     private void remove_attackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_remove_attackActionPerformed
+    	flushEdits();
         // Convert from sorted row numbers to model row numbers
         // Most of this is not necessary, since the table has a single row selection model
         int viewRows[] = attacksTable.getSelectedRows();
@@ -1123,6 +1129,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     }//GEN-LAST:event_remove_attackActionPerformed
 
     private void add_attackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_add_attackActionPerformed
+    	flushEdits();
         attackTableModel.addAttack();
         resizeTableInPanel(attacks, attacksTable, attackTableModel);
     }//GEN-LAST:event_add_attackActionPerformed
