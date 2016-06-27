@@ -1,0 +1,8 @@
+
+# /
+/bin
+/build
+/nbproject
+
+# /src/resources/images/
+/src/resources/images/Thumbs.db
