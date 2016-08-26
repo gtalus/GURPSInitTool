@@ -47,7 +47,7 @@ import gurpsinittool.util.SearchSupport;
 public class GITApp extends JFrame 
 	implements PropertyChangeListener, EncounterLogListener, ListSelectionListener, TableModelListener {
 	
-	public static final String version = "1.5.0";
+	public static final String version = "1.5.1";
 	private static final boolean DEBUG = false;
 	
 	private InitTable initTable;
@@ -228,7 +228,7 @@ public class GITApp extends JFrame
     }
    
     private void initializeActions() {
-    	actionSizeColumns = new GAction("Auto-size columns", "Auto re-size the table columns to best fit (Alt+A)", new ImageIcon("src/resources/images/script_code.png")) {
+    	actionSizeColumns = new GAction("Auto-size columns", "Auto re-size the table columns to best fit (Alt+A)", new ImageIcon(GITApp.class.getResource("/resources/images/script_code.png"))) {
     		public void actionPerformed(ActionEvent arg0) {	initTable.autoSizeColumns(); }
     	};
     	actionOptions = new GAction("Options", "Open the options dialog (Ctrl+O)", KeyEvent.VK_O, null) {
@@ -237,13 +237,13 @@ public class GITApp extends JFrame
     	actionAbout = new GAction("About", "Information about the program", null) {
     		public void actionPerformed(ActionEvent arg0) { showAboutDialog(); }
     	};
-    	actionOpenCriticalTables = new GAction("Critical Tables", "Open Critical Tables (Alt+C)", new ImageIcon("src/resources/images/table_error.png")) {
+    	actionOpenCriticalTables = new GAction("Critical Tables", "Open Critical Tables (Alt+C)", new ImageIcon(GITApp.class.getResource("/resources/images/table_error.png"))) {
     		public void actionPerformed(ActionEvent arg0) { 
     			MiscUtil.validateOnScreen(criticalTables);
         		criticalTables.setVisible(true);
     		}
     	};
-    	actionOpenGroupManager = new GAction("Group Manager", "Open Group Manager (Alt+G)", new ImageIcon("src/resources/images/group.png")) {
+    	actionOpenGroupManager = new GAction("Group Manager", "Open Group Manager (Alt+G)", new ImageIcon(GITApp.class.getResource("/resources/images/group.png"))) {
     		public void actionPerformed(ActionEvent arg0) { 
     			MiscUtil.validateOnScreen(groupManager);
         		groupManager.setVisible(true);

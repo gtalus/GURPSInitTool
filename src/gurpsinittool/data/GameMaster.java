@@ -24,6 +24,7 @@ import javax.swing.undo.CompoundEdit;
 import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 
+import gurpsinittool.app.GITApp;
 import gurpsinittool.app.InitTable;
 import gurpsinittool.data.ActorBase.ActorStatus;
 import gurpsinittool.data.ActorBase.ActorType;
@@ -393,7 +394,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 	@SuppressWarnings("serial")
 	private void initializeActions() {
 		// Undo / Redo
-		actionUndo = new GAction("Undo", "Undo the most recent edit (Ctrl+Z)", KeyEvent.VK_U, new ImageIcon("src/resources/images/arrow_undo.png")) {
+		actionUndo = new GAction("Undo", "Undo the most recent edit (Ctrl+Z)", KeyEvent.VK_U, new ImageIcon(GITApp.class.getResource("/resources/images/arrow_undo.png"), "Undo")) {
 			public void actionPerformed(ActionEvent arg0) {	
 				flushInteractiveEdits();
 				if (getCompoundLevel() > 0)
@@ -408,7 +409,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 				updateUndoRedo();
 			}
 		};
-		actionRedo = new GAction("Redo", "Redo the most recent undo (Ctrl+Y)", KeyEvent.VK_R, new ImageIcon("src/resources/images/arrow_redo.png")) {
+		actionRedo = new GAction("Redo", "Redo the most recent undo (Ctrl+Y)", KeyEvent.VK_R, new ImageIcon(GITApp.class.getResource("/resources/images/arrow_redo.png"), "Redo")) {
 			public void actionPerformed(ActionEvent arg0) {	
 				// TODO: what about interactive edits in progress?
 				if (getCompoundLevel() > 0)
@@ -424,16 +425,16 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 		};
 	
 		// Round Management
-		actionNextActor = new GAction("Next Combatant", "Move to the next active combatant in the turn sequence (Ctrl+N)", new ImageIcon("src/resources/images/control_play_blue.png")) {
+		actionNextActor = new GAction("Next Combatant", "Move to the next active combatant in the turn sequence (Ctrl+N)", new ImageIcon(GITApp.class.getResource("/resources/images/control_play_blue.png"))) {
 			public void actionPerformed(ActionEvent arg0) {	startCompoundEdit(); nextActor(); selectActiveActor(); endCompoundEdit("Advance");}
 		};
-		actionEndRound = new GAction("End Round", "Step to the end of the turn sequence (Ctrl+E)", new ImageIcon("src/resources/images/control_end_blue.png")) {
+		actionEndRound = new GAction("End Round", "Step to the end of the turn sequence (Ctrl+E)", new ImageIcon(GITApp.class.getResource("/resources/images/control_end_blue.png"))) {
 			public void actionPerformed(ActionEvent arg0) {	startCompoundEdit(); endRound(); selectActiveActor(); endCompoundEdit("Advance");}
 		};
-		actionNextRound = new GAction("Next Round", "Step to the start of the next round sequence (Ctrl+R)", new ImageIcon("src/resources/images/control_fastforward_blue.png")) {
+		actionNextRound = new GAction("Next Round", "Step to the start of the next round sequence (Ctrl+R)", new ImageIcon(GITApp.class.getResource("/resources/images/control_fastforward_blue.png"))) {
 			public void actionPerformed(ActionEvent arg0) {	startCompoundEdit(); nextRound(); selectActiveActor(); endCompoundEdit("Advance");}
 		};
-		actionResetRound = new GAction("Reset Round Counter", "Reset the round counter (Alt+R)", new ImageIcon("src/resources/images/control_start_blue.png")) {
+		actionResetRound = new GAction("Reset Round Counter", "Reset the round counter (Alt+R)", new ImageIcon(GITApp.class.getResource("/resources/images/control_start_blue.png"))) {
 			public void actionPerformed(ActionEvent arg0) {	
 				startCompoundEdit();
 				setRound(0);
@@ -476,7 +477,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 				endCompoundEdit("Set Act");
 			}
 		};
-		actionTagActors = new GAction("Update Tags", "Update all NPC tags (Ctrl+T)", new ImageIcon("src/resources/images/tag_blue_add.png")) {
+		actionTagActors = new GAction("Update Tags", "Update all NPC tags (Ctrl+T)", new ImageIcon(GITApp.class.getResource("/resources/images/tag_blue_add.png"))) {
 			public void actionPerformed(ActionEvent arg0) {	
 				flushInteractiveEdits();
 				startCompoundEdit();
@@ -506,7 +507,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 			}
 		};
 		// Actor actions
-		actionAttack = new GAction("Attack", "Selected combatants attack (Ctrl+K)", new ImageIcon("src/resources/images/sword.png")) {
+		actionAttack = new GAction("Attack", "Selected combatants attack (Ctrl+K)", new ImageIcon(GITApp.class.getResource("/resources/images/sword.png"))) {
 			public void actionPerformed(ActionEvent arg0) { 
 				flushInteractiveEdits();
 				startCompoundEdit();
@@ -516,7 +517,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 				endCompoundEdit("Attack");
 			}
 		};
-		actionDefend = new GAction("Defend", "Selected combatant defends (Ctrl+D)", new ImageIcon("src/resources/images/shield.png")) {
+		actionDefend = new GAction("Defend", "Selected combatant defends (Ctrl+D)", new ImageIcon(GITApp.class.getResource("/resources/images/shield.png"))) {
 			public void actionPerformed(ActionEvent arg0) { 
 				// Verify valid actor
 				Actor[] selected = initTable.getSelectedActors();
@@ -533,7 +534,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 			}
 		};
 		// Actor Editing
-		actionPostureStanding = new GAction("Standing", "Set posture to standing", new ImageIcon("src/resources/images/arrow_up.png")) {
+		actionPostureStanding = new GAction("Standing", "Set posture to standing", new ImageIcon(GITApp.class.getResource("/resources/images/arrow_up.png"))) {
 			public void actionPerformed(ActionEvent arg0) { 
 				flushInteractiveEdits();
 				startCompoundEdit();
@@ -542,7 +543,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 				endCompoundEdit("Posture");
 			}
 		};
-		actionPostureKneeling = new GAction("Kneeling", "Set posture to kneeling", new ImageIcon("src/resources/images/arrow_down_right.png")) {
+		actionPostureKneeling = new GAction("Kneeling", "Set posture to kneeling", new ImageIcon(GITApp.class.getResource("/resources/images/arrow_down_right.png"))) {
 			public void actionPerformed(ActionEvent arg0) { 
 				flushInteractiveEdits();
 				startCompoundEdit();
@@ -551,7 +552,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 				endCompoundEdit("Posture");
 			}
 		};
-		actionPostureProne = new GAction("Prone", "Set posture to prone", new ImageIcon("src/resources/images/arrow_down.png")) {
+		actionPostureProne = new GAction("Prone", "Set posture to prone", new ImageIcon(GITApp.class.getResource("/resources/images/arrow_down.png"))) {
 			public void actionPerformed(ActionEvent arg0) {
 				flushInteractiveEdits();
 				startCompoundEdit();
@@ -560,25 +561,25 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 				endCompoundEdit("Posture");
 			}
 		};
-		actionStatusTogglePhysicalStun = new GAction("Physical Stun", "Toggle Status: Physically Stunned", new ImageIcon("src/resources/images/stun_phys.png")) {
+		actionStatusTogglePhysicalStun = new GAction("Physical Stun", "Toggle Status: Physically Stunned", new ImageIcon(GITApp.class.getResource("/resources/images/stun_phys.png"))) {
 			public void actionPerformed(ActionEvent arg0) { toggleStatusOfSelectedActors(ActorStatus.StunPhys); }
 		};
-		actionStatusToggleMentalStun = new GAction("Mental Stun", "Toggle Status: Mentally Stunned", new ImageIcon("src/resources/images/stun_mental.png")) {
+		actionStatusToggleMentalStun = new GAction("Mental Stun", "Toggle Status: Mentally Stunned", new ImageIcon(GITApp.class.getResource("/resources/images/stun_mental.png"))) {
 			public void actionPerformed(ActionEvent arg0) { toggleStatusOfSelectedActors(ActorStatus.StunMental); }
 		};
-		actionStatusToggleRecoveringStun = new GAction("Recovering from Stun", "Toggle Status: Recovering from Stun", new ImageIcon("src/resources/images/stun_recover.png")) {
+		actionStatusToggleRecoveringStun = new GAction("Recovering from Stun", "Toggle Status: Recovering from Stun", new ImageIcon(GITApp.class.getResource("/resources/images/stun_recover.png"))) {
 			public void actionPerformed(ActionEvent arg0) { toggleStatusOfSelectedActors(ActorStatus.StunRecovr); }
 		};
-		actionStatusToggleAttacking = new GAction("Attacking", "Toggle Status: Attacking", new ImageIcon("src/resources/images/sword_rotate.png")) {
+		actionStatusToggleAttacking = new GAction("Attacking", "Toggle Status: Attacking", new ImageIcon(GITApp.class.getResource("/resources/images/sword_rotate.png"))) {
 			public void actionPerformed(ActionEvent arg0) { toggleStatusOfSelectedActors(ActorStatus.Attacking); }
 		};
-		actionStatusToggleDisarmed = new GAction("Disarmed", "Toggle Status: Disarmed", new ImageIcon("src/resources/images/plus_blue.png")) {
+		actionStatusToggleDisarmed = new GAction("Disarmed", "Toggle Status: Disarmed", new ImageIcon(GITApp.class.getResource("/resources/images/plus_blue.png"))) {
 			public void actionPerformed(ActionEvent arg0) { toggleStatusOfSelectedActors(ActorStatus.Disarmed); }
 		};
-		actionStatusToggleUnconscious = new GAction("Unconscious", "Toggle Status: Unconscious", new ImageIcon("src/resources/images/cross_yellow.png")) {
+		actionStatusToggleUnconscious = new GAction("Unconscious", "Toggle Status: Unconscious", new ImageIcon(GITApp.class.getResource("/resources/images/cross_yellow.png"))) {
 			public void actionPerformed(ActionEvent arg0) { toggleStatusOfSelectedActors(ActorStatus.Unconscious); }
 		};
-		actionStatusToggleDead = new GAction("Dead", "Toggle Status: Dead", new ImageIcon("src/resources/images/cross.png")) {
+		actionStatusToggleDead = new GAction("Dead", "Toggle Status: Dead", new ImageIcon(GITApp.class.getResource("/resources/images/cross.png"))) {
 			public void actionPerformed(ActionEvent arg0) { toggleStatusOfSelectedActors(ActorStatus.Dead); }
 		};
 		
