@@ -5,6 +5,7 @@ v1.5.1
 ------
 
 **Bug Fixes:**
+
 - Missing icons
 - Note changes cleared when clicking attacks/traits buttons
   
