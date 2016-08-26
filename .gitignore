@@ -2,7 +2,8 @@
 # /
 /bin
 /build
-/nbproject
+.metadata
+.settings
 
 # /src/resources/images/
 /src/resources/images/Thumbs.db
