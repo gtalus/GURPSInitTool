@@ -4,6 +4,7 @@
 /build
 .metadata
 .settings
+GitApp.props
 
 # /src/resources/images/
 /src/resources/images/Thumbs.db
