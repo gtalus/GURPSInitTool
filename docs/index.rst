@@ -33,6 +33,7 @@ In addition to combat tracking, the program provides a Group Manager which can k
    :caption: Additional Information
 
    usage_model
+   column_customization
    screenshots
    changelog
    tips_tricks

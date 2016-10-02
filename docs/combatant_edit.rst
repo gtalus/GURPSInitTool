@@ -86,6 +86,7 @@ Multiple attacks can be listed for each creature. The default attack, used when 
 - **Damage**: Accepts most damage formats. '1d', '1d+2 cr', '5', '1d-1 (2) pi+ ex' are all recognized. The default damage type is cutting. The general form is "XdY+Z [(<div>)] [<type>] [ex]". Type must be in the shortened form (cr/cut/imp/burn/etc.). As with other fields, the text will turn red if the program does not recognize the string entered as a valid damage expression. Note that 'ex' damage only currently impacts injury to Diffuse creatures (see the Injury Tolerance trait, below).
 - **Unbalanced**: If an unbalanced attack is used, it counts towards the number of parries done this turn, impacting the parry defense.
 
+.. _trait-aliases:
 
 Traits
 ------
@@ -96,3 +97,12 @@ Any other traits can be specified in the Traits table. This can be used for Skil
 - **High Pain Threshold** (HPT): Knockdown/stunning checks and shock calculation. (Note: value is not used)
 - **Low Pain Threshold** (LPT): Knockdown/stunning checks and shock calculation. (Note: value is not used)
 - **Injury Tolerance** (IT): Injury calculation in Defense dialog. Value is a ';' separated list and can include all the options from the Basic Set: No Brain; No Eyes; No Head; No Neck; No Vitals; Diffuse; Homogenous; Undead. Value is case-insensitive.
+
+Strength Tables
+---------------
+
+.. image:: _static/32_strength_tables.png
+   :align: left
+
+Various strength-related values are calculated from the combatant's ST and are displayed in the 'Strength Tables' located below the Traits table. This includes basic damage and encumbrance levels. **Striking ST** and **Lifting ST** traits, if they exist, will impact the values calculated. The values in this table are for reference only, and do not impact any of the other traits, attacks, or combat calculations.
+

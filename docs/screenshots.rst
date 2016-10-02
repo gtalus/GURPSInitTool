@@ -59,3 +59,10 @@ Attacks and Traits detail
 
 .. image:: _static/31_attacks_traits.png
 
+Column Customization dialot
+
+.. image:: _static/40_column_customizer.png
+
+Customized columns in the initiative table
+
+.. image:: _static/41_customized_columns.png

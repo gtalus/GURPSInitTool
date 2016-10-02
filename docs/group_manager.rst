@@ -1,17 +1,19 @@
-Group Manager
-=============
+Groups Manager
+==============
 
-The group manager allows you to organize and save combatant records between sessions, making them more easily available to quickly create an encounter during a game session. It is accessed by cliking the right-most icon on the toolbar or pressing Alt+G, which brings up the Group Manager window.
+The groups manager allows you to organize and save combatant records between sessions, making them more easily available to quickly create an encounter during a game session. It is accessed by cliking the right-most icon on the toolbar or pressing Alt+G, which brings up the Group Manager window.
 
 .. image:: _static/10_group_manager.png
 
-There are three major components in the Group Manager- at the upper right is the tree view which organizes folders and groups. Below that is the combatant table and to the right is the combatant details pane which can be hidden from the 'View' menu. The view menu also has an option to automatically adjust the column width of the combatant table which is set by default.
+There are three major components in the Groups Manager- at the upper right is the tree view which organizes folders and groups. Below that is the group table which displays the combatants in the currently selected group and to the right is the combatant details pane.
+
+Various customizations of this view are available in the 'View' menu, including showing or hiding the details pane, automatically re-sizing the table columns when switching groups, and changing the columns displayed in the group table.
 
 Managing Groups
 ---------------
-To creat folders and groups, right click on the tree view window and select one of the options. The right-click menu can also be used to rename or delete folders or groups. 
+To create folders and groups, right click on the tree view window and select one of the options. The right-click menu can also be used to rename or delete folders or groups. 
 
-Once you have created a group, you can begin adding combatants by selecting the group and then editing the 'new...' row in the combatant table below. This table has most of the same functionality of the initiative table in the main program window as does the details panel on the right.
+Once you have created a group, you can begin adding combatants by selecting the group and then editing the 'new...' row in the group table below. This table has most of the same functionality of the initiative table in the main program window as does the details panel on the right.
 
 .. image:: _static/11_new_group.png
 
@@ -32,7 +34,7 @@ The 'File' menu allows you to save or open group manager records, which by defau
 Using Groups
 ------------
 
-Adding combatants from the Group Manager to the initiative table is done by dragging and dropping. There are two options: first, you can drag an entire group from the tree view to the initiative table. Second, you can select rows from the combatant table in the group manager and drag them across to the initiative table. You can also do this in reverse, for example if you want to save an un-finished encounter for next session.
+Adding combatants from the Group Manager to the initiative table is done by dragging and dropping. There are two options: first, you can drag an entire group from the tree view to the initiative table. Second, you can select rows from the group table in the group manager and drag them across to the initiative table. You can also do this in reverse, for example if you want to save an un-finished encounter for next session.
 
 .. image:: _static/13_initiative_copy.png
 
