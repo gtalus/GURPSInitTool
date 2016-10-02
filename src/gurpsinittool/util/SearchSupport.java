@@ -243,7 +243,7 @@ public class SearchSupport {
 			}
 			int i = startingNodeIndex;
 			// First do partial search of startingNode
-			if (searchStartingNode.isLeaf() && searchLeafNode(searchStartingNode, searchStartingTableIndex, -1, next, reverse, pattern))
+			if (searchStartingNode.isGroup() && searchGroupNode(searchStartingNode, searchStartingTableIndex, -1, next, reverse, pattern))
 				return true; 
 			GroupTreeNode currentNode;
 			do {
@@ -256,11 +256,11 @@ public class SearchSupport {
 				}
 				if (i == startingNodeIndex) break;
 				currentNode = searchNodeList.get(i);
-				if (currentNode.isLeaf() && searchLeafNode(currentNode, -1, -1, false, reverse, pattern))
+				if (currentNode.isGroup() && searchGroupNode(currentNode, -1, -1, false, reverse, pattern))
 					return true;
 			} while (true);
 			// Finally do second half of partial search of the startingNode
-			if (searchStartingNode.isLeaf() && searchLeafNode(searchStartingNode, -1, searchStartingTableIndex, false, reverse, pattern))
+			if (searchStartingNode.isGroup() && searchGroupNode(searchStartingNode, -1, searchStartingTableIndex, false, reverse, pattern))
 				return true; 
 			break;
 		case Table:
@@ -286,7 +286,7 @@ public class SearchSupport {
 	 * @param pattern
 	 * @return whether something was found
 	 */
-	private boolean searchLeafNode(GroupTreeNode currentNode, int startingIndex, int endingIndex, boolean next, boolean reverse, Pattern pattern) {
+	private boolean searchGroupNode(GroupTreeNode currentNode, int startingIndex, int endingIndex, boolean next, boolean reverse, Pattern pattern) {
 		// Search the current node
 		ArrayList<Actor> actorList = currentNode.getActorList();
 		if (DEBUG) { System.out.println("SearchSupport: searchLeafNode: searching node " + currentNode.getUserObject().toString() + " starting at index " + startingIndex); }

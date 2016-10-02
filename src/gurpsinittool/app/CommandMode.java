@@ -147,8 +147,9 @@ public class CommandMode implements AWTEventListener {
 
 					// allow -/+/=/digit edit without focus in the injury/fatigue columns
 					int tableColumnSelected = gameMaster.initTable.getColumnModel().getSelectionModel().getLeadSelectionIndex();
-					if (tableColumnSelected != -1 &&  (tableColumnSelected == InitTableModel.columns.Fatigue.ordinal() || 
-														tableColumnSelected == InitTableModel.columns.Injury.ordinal())) {
+					String tableColumnNameSelected = gameMaster.initTable.getColumnName(tableColumnSelected);
+					if (tableColumnSelected != -1 &&  (tableColumnNameSelected == "Fatigue" || 
+													   tableColumnNameSelected == "Injury")) {
 						if (key.getKeyChar() == '-' || key.getKeyChar() == '+' || key.getKeyChar() == '=')
 							return;
 					} 

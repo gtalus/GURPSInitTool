@@ -2,7 +2,6 @@ package gurpsinittool.app;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Font;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JLabel;
@@ -10,11 +9,11 @@ import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 
-import gurpsinittool.app.InitTableModel.columns;
 import gurpsinittool.app.textfield.ParsingField;
 import gurpsinittool.app.textfield.ParsingFieldParser;
 import gurpsinittool.app.textfield.ParsingFieldParserFactory;
-import gurpsinittool.data.*;
+import gurpsinittool.data.Actor;
+import gurpsinittool.data.Attack;
 import gurpsinittool.util.MiscUtil;
 
 public class AttackTableModel extends AbstractTableModel {

@@ -9,6 +9,8 @@ import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.Properties;
+
+import javax.swing.AbstractAction;
 import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -46,7 +48,7 @@ public class GroupManager extends JFrame
 	// Default SVUID
 	private static final long serialVersionUID = 1L;
 
-	private static final boolean DEBUG = false;
+	private static final boolean DEBUG = true;
 
 	private JSplitPane jSplitPaneVertical;
 	private JSplitPane jSplitPaneHorizontal;
@@ -71,7 +73,7 @@ public class GroupManager extends JFrame
 	SearchSupport searchSupport;
 	
 	public GroupManager(Properties propertyBag) {
-		super("Group Manager");
+		super("Groups Manager");
 		this.propertyBag = propertyBag;
 		setDefaultProperties();
 		
@@ -84,7 +86,7 @@ public class GroupManager extends JFrame
 		// Create core components
 		gameMaster = new GameMaster();
 		actorDetailsPanel = new ActorDetailsPanel_v2(false);
-		groupTable = new InitTable(gameMaster, false);
+		groupTable = new InitTable(gameMaster, false, propertyBag);
 		groupTree = new GroupTree(groupTable);
 		searchSupport = new SearchSupport(getRootPane(), groupTree, groupTable);
 		
@@ -170,6 +172,15 @@ public class GroupManager extends JFrame
         menuItem.setMnemonic(KeyEvent.VK_D);
         menuItem.addItemListener(this);
         jMenu.add(menuItem);
+        menuItem = new JMenuItem(new AbstractAction() {			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				groupTable.showColumnCustomizer();
+			}
+		});
+        menuItem.setText("Customize Columns");
+        menuItem.setMnemonic(KeyEvent.VK_C);
+        jMenu.add(menuItem);     
         jMenuBar.add(jMenu);
 
         setJMenuBar(jMenuBar);
@@ -208,14 +219,7 @@ public class GroupManager extends JFrame
         setLocation(Integer.valueOf(propertyBag.getProperty("Manager.location.x")),
                 Integer.valueOf(propertyBag.getProperty("Manager.location.y")));
         setSize(Integer.valueOf(propertyBag.getProperty("Manager.size.width")),
-        		Integer.valueOf(propertyBag.getProperty("Manager.size.height")));
-
-       
-        // Auto-load a group file if requested:
-        if (propertyBag.containsKey("Manager.currentLoadedFile")) {
-        	saveAsFile = new File(propertyBag.getProperty("Manager.currentLoadedFile"));
-        	loadGroupFile(saveAsFile);
-        }
+        		Integer.valueOf(propertyBag.getProperty("Manager.size.height")));    
 	}
 
 	@Override
@@ -263,11 +267,11 @@ public class GroupManager extends JFrame
 		if (groupTree.getLastSelectedPathComponent() != null) {
 			if (DEBUG) { System.out.println("GroupManager: valueChanged: Current Selection: " + groupTree.getLastSelectedPathComponent().toString()); }
 			GroupTreeNode node = (GroupTreeNode) groupTree.getLastSelectedPathComponent();
-			if (node.isLeaf()) {
+			if (node.isGroup()) { // If current selection is a group, display the actors
 				tableModel.setActorList(node.getActorList());
 				groupTable.setVisible(true);
 			}
-			else {
+			else { // Otherwise don't show any actors
 				groupTable.setVisible(false);
 				tableModel.setActorList(null);
 			}
@@ -286,7 +290,7 @@ public class GroupManager extends JFrame
 	 */
 	public boolean querySaveChanges() {
 		if (!tableIsClean || !treeIsClean) {
-   			int n = JOptionPane.showOptionDialog(this, "The group has been modified. Save Changes?", "Group Changed", 
+   			int n = JOptionPane.showOptionDialog(this, "Groups have been modified. Save Changes?", "Groups Changed", 
    					JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
    			if (n == 0) { // save the file, then continue
    				if (!saveGroupFile(saveAsFile)) { return false;}
@@ -299,6 +303,17 @@ public class GroupManager extends JFrame
 	}
 	
 	/**
+	 * Load a default group file, if one is specified.
+	 * Intended for use at start-up
+	 */
+	public void loadDefaultGroupFile() {
+	    // Auto-load a group file if requested:
+        if (propertyBag.containsKey("Manager.currentLoadedFile")) {
+        	saveAsFile = new File(propertyBag.getProperty("Manager.currentLoadedFile"));
+        	loadGroupFile(saveAsFile);
+        }
+	}
+	/**
 	 * Create a new group file. Will discard all unsaved changes WITHOUT PROMPTING!
 	 * use querySaveChanges() if you want to query the user to save changes.
 	 */
@@ -308,7 +323,7 @@ public class GroupManager extends JFrame
     	saveAsFile = null;
     	groupTree.setClean();
 		groupTable.getActorTableModel().setClean();
-    	super.setTitle("Group Manager");
+    	super.setTitle("Groups Manager");
 	}
 	
 	/**
@@ -330,7 +345,7 @@ public class GroupManager extends JFrame
     	saveAsFile = file;
 		groupTree.setClean();
 		groupTable.getActorTableModel().setClean();
-		super.setTitle("Group Manager - " + saveAsFile.getName());
+		super.setTitle("Groups Manager - " + saveAsFile.getName());
 		return true;
 	}
 	
@@ -363,7 +378,7 @@ public class GroupManager extends JFrame
     		ActorGroupFile.SaveActorGroupTree(groupTree, file);
     		groupTree.setClean();
     		groupTable.getActorTableModel().setClean();
-    		super.setTitle("Group Manager - " + file.getName());
+    		super.setTitle("Groups Manager - " + file.getName());
     		saveAsFile = file;
     		
     		return true;
@@ -428,6 +443,7 @@ public class GroupManager extends JFrame
 		 // Optional properties
 		 if (saveAsFile != null) { propertyBag.setProperty("Manager.currentLoadedFile", saveAsFile.getAbsolutePath());}
 		 else { propertyBag.remove("Manager.currentLoadedFile");}
+		 groupTable.updateProperties(); // Update properties for the table
 	 }
 	 
 	 /**
@@ -457,18 +473,18 @@ public class GroupManager extends JFrame
 	
 			if (tableIsClean && treeIsClean) {
 				if (saveAsFile != null) {
-					setTitle("Group Manager - " + saveAsFile.getName());
+					setTitle("Groups Manager - " + saveAsFile.getName());
 				}
 				else {
-					setTitle("Group Manager");
+					setTitle("Groups Manager");
 				}
 			}
 			else {
 				if (saveAsFile != null) {
-					setTitle("Group Manager - " + saveAsFile.getName() + "*");
+					setTitle("Groups Manager - " + saveAsFile.getName() + "*");
 				}
 				else {
-					setTitle("Group Manager *");
+					setTitle("Groups Manager *");
 				}
 			}
 		}
@@ -483,9 +499,15 @@ public class GroupManager extends JFrame
 		public void tableChanged(TableModelEvent evt) {
 			if (DEBUG) { System.out.println("GroupManager: TableModelChange occured."); }
 			// Check for auto-resize
-			if(Boolean.valueOf(propertyBag.getProperty("Manager.groupTable.autoResize")))
-				groupTable.autoSizeColumns();
-			actorDetailsPanel.setActor(groupTable.getSelectedActor());
+			if (evt.getType() == TableModelEvent.UPDATE && evt.getFirstRow() == TableModelEvent.HEADER_ROW 
+					&& evt.getColumn() == TableModelEvent.ALL_COLUMNS) { // Changed column structure
+				// skip
+				if (DEBUG) { System.out.println("    Detected structure change- skipping"); }
+			} else {
+				if(Boolean.valueOf(propertyBag.getProperty("Manager.groupTable.autoResize")))
+					groupTable.autoSizeColumns();
+				//actorDetailsPanel.setActor(groupTable.getSelectedActor());
+			}
 		}
     }
     
@@ -496,7 +518,7 @@ public class GroupManager extends JFrame
 		}
 		@Override
 		public String getDescription() {
-			return "InitTool Group (*.igroup)";
+			return "InitTool Group Set (*.igroup)";
 		}
 	}
 

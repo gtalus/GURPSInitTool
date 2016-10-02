@@ -400,7 +400,6 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 				if (getCompoundLevel() > 0)
 					System.err.println("-E- GameMaster: Undo action: triggered while compound edit being built!");
 				try {
-					System.out.println("HERE: GameMaster.undo!");
 					undoManager.undo();			
 				} catch (CannotUndoException e) {
 					System.out.println("-W- Cannot undo: " + e);

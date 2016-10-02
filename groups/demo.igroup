@@ -75,6 +75,7 @@ Wolves live in packs of 8 to 12 closely related individuals. These cooperate in 
 <Shield_HP>20</Shield_HP>
 <DR>0</DR>
 <Name>Wolf</Name>
+<CR></CR>
 <DX>10</DX>
 <Move>6</Move>
 <Shield_DR>4</Shield_DR>

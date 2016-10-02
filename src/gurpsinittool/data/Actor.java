@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import gurpsinittool.data.ActorBase.BasicTrait;
 import gurpsinittool.data.Defense.DefenseResult;
 import gurpsinittool.data.Defense.DefenseType;
 import gurpsinittool.util.DieRoller;
@@ -146,24 +147,30 @@ public class Actor extends ActorBase {
 		else 
 			hit_miss = "miss";
 		boolean isHit = DieRoller.isSuccess(roll, eff_skill);
-		Damage damage;
-		try {
-			damage = Damage.ParseDamage(attack.Damage);
-		} catch (ParseException e) {
-			logEventError("Unable to parse damage string in attack '" + attack.Name + "'");
-			return;
-		}
 		if (attack.Unbalanced) {
 			setTemp("numParry", getTempInt("numParry")+1);
 		}
-		String armorDivStr = "";
-		if (damage.ArmorDivisor != 1) {
-			if (damage.ArmorDivisor == (int) damage.ArmorDivisor)
-				armorDivStr = "(" + String.format("%d", (int)damage.ArmorDivisor) + ")";
-			else
-				armorDivStr = "(" + String.format("%s", damage.ArmorDivisor) + ")";
-		}			
-		logEventTypeName("attacks with " + attack.Name + ": " + hit_miss +  " (" + roll + "/" + eff_skill + "=" + margin + ") for damage " + (isHit?"<font color=red><b>":"") + damage.BasicDamage + armorDivStr + " " + damage.Type + (isHit?"</b></font>":"") + " (" + attack.Damage + ")" + crit_string);
+		
+
+		String damageStr;
+		try {
+			Damage damage = Damage.ParseDamage(attack.Damage);
+			String armorDivStr = "";
+			if (damage.ArmorDivisor != 1) {
+				if (damage.ArmorDivisor == (int) damage.ArmorDivisor)
+					armorDivStr = "(" + String.format("%d", (int)damage.ArmorDivisor) + ")";
+				else
+					armorDivStr = "(" + String.format("%s", damage.ArmorDivisor) + ")";
+			}	
+			damageStr = (isHit?"<font color=red><b>":"") + damage.BasicDamage + armorDivStr + " " + damage.Type + (isHit?"</b></font>":"") + " (" + attack.Damage + ")";
+		} catch (ParseException e) {
+			damageStr = (isHit?"<font color=red><b>":"") + "'" + attack.Damage + "'" + (isHit?"</b></font>":"");
+			//logEventError("Unable to parse damage string in attack '" + attack.Name + "'");
+			//return;
+		}
+		
+				
+		logEventTypeName("attacks with " + attack.Name + ": " + hit_miss +  " (" + roll + "/" + eff_skill + "=" + margin + ") for damage " + damageStr + crit_string);
 	}
 	
 	public void Attack() {
@@ -381,5 +388,26 @@ public class Actor extends ActorBase {
 			break;
     	}
     	return currentDefense;
+    }
+    
+    protected String calculateTrait(CalculatedTrait calcTrait) {
+    	int strength = getTraitValueInt(BasicTrait.ST);
+    	int strikingST = hasTrait("Striking ST")?getTraitValueInt("Striking ST"):0;
+    	int liftingST = hasTrait("Lifting ST")?getTraitValueInt("Lifting ST"):0;
+
+    	switch (calcTrait) {
+		case BasicLift:
+			return StrengthTables.getBasicLift(strength+liftingST);
+		case BasicSwing:
+			return StrengthTables.getBasicDamageSwing(strength+strikingST);
+		case BasicThrust:
+			return StrengthTables.getBasicDamageThrust(strength+strikingST);
+		case CurrFP:
+			return String.valueOf(getTraitValueInt(BasicTrait.FP) - getTraitValueInt(BasicTrait.Fatigue));
+		case CurrHP:
+			return String.valueOf(getTraitValueInt(BasicTrait.HP) - getTraitValueInt(BasicTrait.Injury));
+		default:
+			return "unk";
+    	}
     }
 }

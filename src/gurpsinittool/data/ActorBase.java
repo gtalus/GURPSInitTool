@@ -17,6 +17,7 @@ import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.AbstractUndoableEdit;
 import javax.swing.undo.UndoableEditSupport;
 
+import gurpsinittool.data.ActorBase.CalculatedTrait;
 import gurpsinittool.data.ActorBase.HackStartCompound;
 import gurpsinittool.util.EncounterLogEvent;
 import gurpsinittool.util.EncounterLogListener;
@@ -40,6 +41,9 @@ public class ActorBase implements Serializable {
 	
 	// All actors must have these traits defined:
 	public enum BasicTrait {Name, ST, HP, Speed, DX, Will, Move, IQ, Per, HT, FP, SM, Fatigue, Injury, Dodge, Parry, Block, DR, Shield_DB, Shield_DR, Shield_HP, Notes}
+	
+	// These traits are calculated using some special function based on other traits. They have no value on their own.
+	public enum CalculatedTrait { CurrHP, CurrFP, BasicThrust, BasicSwing, BasicLift }
 	
 	// TODO: implement change tracking in the trait? If we want to allow other classes to hold a Trait object
 	private class Trait implements Serializable {
@@ -73,16 +77,28 @@ public class ActorBase implements Serializable {
 	protected HashMap<String, Trait> temps = new HashMap<String, Trait>();
 	 
 	// Trait Aliases
-	// Trait name points to ';' separated list of aliases
-	// Program should always use the base name for all checks/get/etc
-	protected static final Map<String, String> traitAliases;
+	// Only apply to non-basic and non-calculated traits!!
+	// Alias is a list of names that are all the same thing
+	// All aliases are created equal
+	protected static final Map<String, ArrayList<String>> traitAliases;
 	static {
-		Map<String, String> aMap = new HashMap<String, String>();
-		aMap.put("Combat Reflexes", "CR");
-		aMap.put("High Pain Threshold", "HPT");
-		aMap.put("Low Pain Threshold", "LPT");
-		aMap.put("Injury Tolerance", "IT");
-		aMap.put("Immunity to Metabolic Hazards", "IMH");
+		ArrayList<ArrayList<String>> aliases = new ArrayList<ArrayList<String>>();
+		aliases.add(new ArrayList<String>(Arrays.asList("Combat Reflexes", "CR")));
+		aliases.add(new ArrayList<String>(Arrays.asList("High Pain Threshold", "HPT")));
+		aliases.add(new ArrayList<String>(Arrays.asList("Low Pain Threshold", "LPT")));
+		aliases.add(new ArrayList<String>(Arrays.asList("Injury Tolerance", "IT")));
+		aliases.add(new ArrayList<String>(Arrays.asList("Immunity to Metabolic Hazards", "IMH")));
+		
+		Map<String, ArrayList<String>> aMap = new HashMap<String, ArrayList<String>>();
+		for (ArrayList<String> aliasSet: aliases) {
+			for (String alias: aliasSet) {
+				if (aMap.containsKey(alias)) {
+					System.err.println("-E- ActorBase: static initialization of traitAliases: alias already exists! '" + alias + "'");
+				} else {
+					aMap.put(alias, aliasSet);
+				}
+			}
+		}		
 		traitAliases = Collections.unmodifiableMap(aMap);
 	}
 	
@@ -304,12 +320,18 @@ public class ActorBase implements Serializable {
 		}
 	}
 	
-	// Traits
+    //================================================================================
+    // Traits
+    //================================================================================
 	public boolean hasTrait(String name) {
 		if (!traits.containsKey(name)) {
+			// Support calculated traits
+			if (isCalculatedTrait(name)) {
+				return true;
+			}
 			// Support aliases
 			if (traitAliases.containsKey(name)) {
-				for (String alias: traitAliases.get(name).split(";")) {
+				for (String alias: traitAliases.get(name)) {
 					if (traits.containsKey(alias))
 						return true;
 				}
@@ -318,24 +340,50 @@ public class ActorBase implements Serializable {
 		}
 		return true; 
 	}
+	// Check if this trait is one of the basic traits
 	public static boolean isBasicTrait(String name) {
-		for (BasicTrait b: BasicTrait.values()) {
-			if (b.name().equals(name)) return true;
+		try { // See if the string is a valid Calculated trait
+			BasicTrait.valueOf(name);
+			return true;
+		} catch (Exception e) {
+			return false;
 		}
-		return false;
+	}
+	// Check if this trait is one of the calculated traits
+	public static boolean isCalculatedTrait(String name) {
+		try { // See if the string is a valid Calculated trait
+			CalculatedTrait.valueOf(name);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+	// Check if this trait is not a calculated or basic trait
+	public static boolean isCustomTrait(String name) {
+		return !isCalculatedTrait(name) && !isBasicTrait(name);
+	}
+	// Overridden in the Actor class!
+	protected String calculateTrait(CalculatedTrait calcTrait) {
+		return "0";
 	}
 	
-	// Get functions
+	// ---------------------
+	// Get Trait functions:
+	// ---------------------
 	private Trait getTrait(String name) {
 		if (!traits.containsKey(name)) { // This is not a serious error?
+			// Support calculated traits
+			if (isCalculatedTrait(name)) {
+				return getTrait(CalculatedTrait.valueOf(name));
+			}
 			// Support aliases
 			if (traitAliases.containsKey(name)) {
-				for (String alias: traitAliases.get(name).split(";")) {
+				for (String alias: traitAliases.get(name)) {
 					if (traits.containsKey(alias))
 						return traits.get(alias);
 				}
 			}
-			System.out.println("-E- Actor:GetTrait: requested trait that does not exist: " + name);
+			System.out.println("-E- Actor:GetTrait: requested trait that does not exist: '" + name + "'");
 			return null; // Consider returning a new trait with no value? Probably not with the change support.
 		} 
 		return traits.get(name);
@@ -343,11 +391,17 @@ public class ActorBase implements Serializable {
 	private Trait getTrait(BasicTrait trait) {
 		return traits.get(trait.toString());
 	}
+	private Trait getTrait(CalculatedTrait trait) {
+		return new Trait(trait.name(), calculateTrait(trait));
+	}
 	public String getTraitValue(String name) {
 		return getTrait(name).value;
 	}
 	public String getTraitValue(BasicTrait trait) {
 		return getTrait(trait).value;
+	}
+	public int getTraitValueInt(String trait) {
+		return parseIntSafe(getTrait(trait).value);	
 	}
 	public int getTraitValueInt(BasicTrait trait) {
 		return parseIntSafe(getTrait(trait).value);	
@@ -357,7 +411,6 @@ public class ActorBase implements Serializable {
 			return Integer.parseInt(text);
 		} catch (NumberFormatException e) {
 			System.out.println("-W- Actor: parseIntSafe: Error parsing value: " + text);
-			//e.printStackTrace();
 			return 0;
 		}
 	}
@@ -371,7 +424,9 @@ public class ActorBase implements Serializable {
 		return traits.keySet();
 	}
 	
-	// SetTrait functions
+	// --------------------
+	// SetTrait functions:
+	// --------------------
 	// Internal - without all the checking and undoable edits
 	private void _setTrait(String name, String value) {
 		Trait trait = getTrait(name);
@@ -386,12 +441,13 @@ public class ActorBase implements Serializable {
 	 */
 	public void setTrait(String name, String value) {
 		if (!hasTrait(name)) { System.err.println("Actor.setTrait: trait does not exist: " + name); return; }
+		if (isCalculatedTrait(name)) { System.err.println("Actor.setTrait: cannot set calculated trait: " + name); return; }
 		Trait trait = getTrait(name);
-		if (!trait.value.equals(value)) {
+		if (!trait.value.equals(value)) { // Skip if old value is same as new
 			startCompoundEdit();
 			String oldValue = trait.value;
 			// And here is all the magic reporting!
-			if (name == "Injury" || name == "Fatigue") { 		
+			if (name.equals("Injury") || name.equals("Fatigue")) { 		
 				int intValue = 0;
 				try { // Enforce >= 0
 					intValue = Integer.parseInt(value);
@@ -399,8 +455,8 @@ public class ActorBase implements Serializable {
 					value = String.valueOf(intValue);
 				} catch (NumberFormatException e) {
 					System.out.println("-W- Actor: setTrait: Error parsing Injury/Fatigue value: " + value);
-				}				
-				if (name == "Injury") {  // and calculate shock				
+				}
+				if (name.equals("Injury")) {  // and calculate shock				
 					int HP = getTraitValueInt(BasicTrait.HP);
 					int diff = getTraitValueInt(BasicTrait.Injury) - intValue;
 					if (diff < 0) {
@@ -409,7 +465,7 @@ public class ActorBase implements Serializable {
 					} else {
 						logEventTypeName("healed <b><font color=blue>" + diff + "</font></b> (now " + (HP - intValue) + " HP).");		
 					}
-				} else if (name == "Fatigue") {
+				} else if (name.equals("Fatigue")) {
 					int FP = getTraitValueInt(BasicTrait.FP);
 					int diff = getTraitValueInt(BasicTrait.Fatigue) - intValue;
 					if (diff < 0) {
@@ -441,9 +497,8 @@ public class ActorBase implements Serializable {
 	 * @param value - the new trait's value
 	 * @return whether the operation was successful
 	 */
-	// No alias support currently
 	public boolean addTrait(String name, String value) {
-		if (traits.containsKey(name)) { 
+		if (hasTrait(name)) {
 			System.out.println("-W- Actor.addTrait: trait already exists! " + name); 
 			return false;
 		}
@@ -459,19 +514,21 @@ public class ActorBase implements Serializable {
 	 * @param name - the name of the trait to remove
 	 * @return success
 	 */
-	// No alias support currently
 	public boolean removeTrait(String name) {
 		if (isBasicTrait(name)) {
 			System.out.println("-E- removeTrait: cannot remove basic traits! => " + name);
 			return false;
-		} else if (!traits.containsKey(name)) {
+		} if (isCalculatedTrait(name)) {
+			System.out.println("-E- removeTrait: cannot remove calculated traits! => " + name);
+			return false;
+		} else if (!hasTrait(name)) {
 			System.out.println("-E- removeTrait: cannot remove non-existant trait! => " + name);
 			return false;
 		} else {
-			String oldValue = getTraitValue(name);
-			traits.remove(name);
-			mUes.postEdit(new TraitEdit(name, oldValue, null));
-			mPcs.firePropertyChange("trait." + name, oldValue, null);
+			Trait trait = getTrait(name);
+			traits.remove(trait.name);
+			mUes.postEdit(new TraitEdit(trait.name, trait.value, null));
+			mPcs.firePropertyChange("trait." + trait.name, trait.value, null);
 			return true;
 		}
 	}
@@ -482,10 +539,12 @@ public class ActorBase implements Serializable {
 	 * @param newName - the proposed new trait name
 	 * @return success
 	 */
-	// No alias support currently
 	public boolean renameTrait(String oldName, String newName) {
 		if (isBasicTrait(oldName)) {
 			System.out.println("-E- renameTrait: Cannot rename BasicTrait! oldName: " + oldName + ", newName: " + newName);
+			return false;
+		} else if (isCalculatedTrait(oldName)) {
+			System.out.println("-E- renameTrait: Cannot rename CalculatedTrait! oldName: " + oldName + ", newName: " + newName);
 			return false;
 		} else if (traits.containsKey(newName)) {
 			System.out.println("-E- renameTrait: New trait name already exists! oldName: " + oldName + ", newName: " + newName);
@@ -494,6 +553,11 @@ public class ActorBase implements Serializable {
 			System.out.println("-E- renameTrait: Old name does not exist! oldName: " + oldName + ", newName: " + newName);
 			return false;
 		} else {
+			// Alias support
+			if (hasTrait(newName) && (getTrait(newName) != getTrait(oldName))) { // Alias exists for different trait!				
+				System.out.println("-E- renameTrait: Trait alias exists for new name! oldName: " + oldName + ", newName: " + newName);
+				return false;
+			}
 			Trait trait = getTrait(oldName);
 			trait.name = newName;
 			traits.remove(oldName);
@@ -662,9 +726,9 @@ public class ActorBase implements Serializable {
     	}        	
     }
     private class TraitEdit extends AbstractUndoableEdit {
-    	private String traitName;
-    	private String oldValue;
-    	private String newValue;
+    	private final String traitName;
+    	private final String oldValue;
+    	private final String newValue;
     	public TraitEdit(String traitName, String oldValue, String newValue) {
     		this.traitName = traitName;
     		this.oldValue = oldValue;
@@ -700,6 +764,7 @@ public class ActorBase implements Serializable {
     	private String oldValue;
     	private String newValue;
     	public TempEdit(String tempName, String oldValue, String newValue) {
+    		super();
     		this.tempName = tempName;
     		this.oldValue = oldValue;
     		this.newValue = newValue;
@@ -761,6 +826,7 @@ public class ActorBase implements Serializable {
     	private int oldValue;
     	private int newValue;
     	public DefaultAttackEdit(int oldValue, int newValue) {
+    		super();
     		this.oldValue = oldValue;
     		this.newValue = newValue;
     	}

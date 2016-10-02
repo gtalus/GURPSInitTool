@@ -57,7 +57,7 @@ public class GroupTreeTransferHandler extends TransferHandler {
 				|| support.isDataFlavorSupported(InitTableTransferHandler.groupTableActorFlavor)){
 			parent.setDropMode(DropMode.ON);
 			support.setDropAction(COPY);
-			if (parentNode.isLeaf()) { return true; }
+			if (parentNode.isGroup()) { return true; }
 		}
 		
 		return false;
@@ -131,7 +131,7 @@ public class GroupTreeTransferHandler extends TransferHandler {
 	 			tree.setSelectionPath(new TreePath(transferNode.getPath())); // Select the newly moved group
  		}
  		else { // Get actors 
-	    	if (!parentNode.isLeaf()) { System.out.println("GroupTreeTransferHandler.importData: -E- attempting to drop rows on folder!"); return false; }
+	    	if (!parentNode.isGroup()) { System.out.println("GroupTreeTransferHandler.importData: -E- attempting to drop rows on folder!"); return false; }
 			Actor[] actorRows;
  			if (DEBUG) { System.out.println("GroupTreeTransferHandler.importData: Retrieving actor data..."); }
 			try {

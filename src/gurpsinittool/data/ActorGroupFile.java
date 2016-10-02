@@ -128,7 +128,7 @@ public class ActorGroupFile {
 			else {
 				GroupTreeNode node = (GroupTreeNode) currentNodes.get(0).getChildAt(currentPositions.get(0));
 				currentPositions.set(0, currentPositions.get(0)+1); // Increment position
-				if (!node.isLeaf()) { // GroupFolder
+				if (!node.isGroup()) { // Folder
 					buffer.append("<GroupFolder name=\"" + node.toString() + "\">\n");
 					currentNodes.add(0, node);
 					currentPositions.add(0,0);

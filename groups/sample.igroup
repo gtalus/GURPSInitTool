@@ -165,7 +165,6 @@ Additional traits not listed.</Notes>
 <Will>10</Will>
 <Parry>11</Parry>
 <Notes>(from: http://www.gurpscharacter.com/)
-Striking ST 3 included in Broadsword damage.
 Likes Fighting up close</Notes>
 <ST>12</ST>
 <Speed>6</Speed>
@@ -175,6 +174,7 @@ Likes Fighting up close</Notes>
 <Shield_HP>20</Shield_HP>
 <CR></CR>
 <Fearlessness>1</Fearlessness>
+<Striking ST>3</Striking ST>
 <Block>12</Block>
 <Per>11</Per>
 <Attack name="Broadsword" skill="15" damage="2d+2 cut" unbalanced="false" />

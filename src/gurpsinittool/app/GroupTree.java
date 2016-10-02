@@ -1,9 +1,7 @@
 package gurpsinittool.app;
 
-import gurpsinittool.data.ActorBase.ActorType;
 import gurpsinittool.util.CleanFileChangeEventSource;
 import gurpsinittool.util.FileChangeEventListener;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -15,13 +13,10 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
-import javax.swing.event.CellEditorListener;
-import javax.swing.event.ChangeEvent;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellEditor;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeModel;
@@ -53,30 +48,7 @@ public class GroupTree extends JTree
 		setNewModel();
 		this.groupTable = groupTable;
 		
-		// Add some default nodes
-//		GroupTreeNode PC_group = new GroupTreeNode("PC Groups",true);
-//		GroupTreeNode NPC_group = new GroupTreeNode("NPC Groups",true);
-//		GroupTreeNode Monster_group = new GroupTreeNode("Monster Groups",true);
-//		PC_group.add(new GroupTreeNode("Default",false));
-//		PC_group.add(new GroupTreeNode("Adventure 1",false));
-//		PC_group.add(new GroupTreeNode("Group 2",false));
-//		PC_group.add(new GroupTreeNode("I don't know",false));
-//		NPC_group.add(new GroupTreeNode("Town Guard",false));
-//		NPC_group.add(new GroupTreeNode("Nobles",false));
-//		NPC_group.add(new GroupTreeNode("Scum",false));
-//		NPC_group.add(new GroupTreeNode("Pirates",false));
-//		NPC_group.add(new GroupTreeNode("Ninjas",false));
-//		Monster_group.add(new GroupTreeNode("Goblins",false));
-//		Monster_group.add(new GroupTreeNode("Dragons",false));
-//		Monster_group.add(new GroupTreeNode("Orcs",false));
-//		Monster_group.add(new GroupTreeNode("Encounter 1",false));
-//		Monster_group.add(new GroupTreeNode("Encounter 2",false));
-//		Monster_group.add(new GroupTreeNode("Ogres",false));
-//		rootNode.add(PC_group);
-//		rootNode.add(NPC_group);
-//		rootNode.add(Monster_group);
 		treeModel.nodeStructureChanged(rootNode); // Very important. Issues with isLeaf returning true for 0 children nodes if this is not called.
-		//addGroup("test");
 
 		// Tree settings
 		setInvokesStopCellEditing(true); // Call StopCellEditing by default instead of Cancel
@@ -128,7 +100,10 @@ public class GroupTree extends JTree
 		}
 		else if ("Delete".equals(e.getActionCommand())) { // Delete selected rows
 			if (isSelectionEmpty()) return;
-    		int result = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this group?", "Confirm Group Delete", JOptionPane.OK_CANCEL_OPTION);
+			
+			GroupTreeNode currentNode = (GroupTreeNode) (getSelectionPath().getLastPathComponent());
+			String nodeType = currentNode.getAllowsChildren()?"Folder":"Group";
+    		int result = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this " + nodeType + "?", "Confirm " + nodeType + " Deletion", JOptionPane.OK_CANCEL_OPTION);
     		if (result == JOptionPane.OK_OPTION) {
     			removeCurrentNode();
     		}
@@ -186,7 +161,7 @@ public class GroupTree extends JTree
     		GroupTreeNode node = (GroupTreeNode) selectionPath.getLastPathComponent();
         	if (DEBUG) { System.out.println("GroupTree: insertObjectAtSelection: Inserting child. Selection is node: " + node.toString()); }
    		
-    		if (!node.isLeaf()) { // insert after last child node
+    		if (node.getAllowsChildren()) { // insert after last child node
     			treeModel.insertNodeInto(child, node, node.getChildCount());
     		}
     		else { // Insert after current selection
@@ -221,14 +196,22 @@ public class GroupTree extends JTree
         } 
     }
      
-    public GroupTreeModel setNewModel() {
+    /**
+     * Create a new, empty, GroupTreeModel and set that as the TreeModel 
+     * used by this component
+     * @return the newly created GroupTreeModel
+     */
+    public final GroupTreeModel setNewModel() {
     	GroupTreeModel model = new GroupTreeModel(new GroupTreeNode("Groups",false));
     	setModel(model);
     	return model;
     }
     
+    /**
+     * Set the TreeModel used by this component
+     */
  	@Override
- 	public void setModel(TreeModel newModel) {
+ 	public final void setModel(final TreeModel newModel) {
  		if (treeModel != null && !GroupTreeModel.class.isInstance(newModel)) { // Allow if model is null (as in constructor)
  			System.err.println("-E- GroupTree: setModel: model must be a GroupTreeModel!");
  			//return;
@@ -390,8 +373,6 @@ public class GroupTree extends JTree
 		}
 		
 		public void valueForPathChanged(TreePath path, Object userObj) {
-			// here
-			System.out.println("HERE: node name chaged!");
 			GroupTreeNode node = (GroupTreeNode) path.getLastPathComponent();
 			String oldName = (String) node.getUserObject();
 			String newName = (String) userObj;

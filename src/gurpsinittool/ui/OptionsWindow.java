@@ -19,11 +19,11 @@ public class OptionsWindow extends javax.swing.JFrame {
     @Override
 	public void setVisible(boolean visible) {
     	if (visible) {
-	    	MiscUtil.validateOnScreen(this);
-	   		if (!isVisible()) {
-	   			copySettingsToComponents();
+	    	MiscUtil.validateOnScreen(this); // Make sure the window is visible on screen!
+	   		if (!isVisible()) { 
+	   			copySettingsToComponents(); // If we're not visible and being made visible, get the current settings
 	   		} else if (getState() == java.awt.Frame.ICONIFIED) {
-	   			setState(java.awt.Frame.NORMAL);
+	   			setState(java.awt.Frame.NORMAL); // If the window is iconified, make it visible
 	   		}
     	}
 		super.setVisible(visible);
@@ -118,7 +118,6 @@ public class OptionsWindow extends javax.swing.JFrame {
         jPanel2 = new javax.swing.JPanel();
         auto_shock = new javax.swing.JCheckBox();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("InitTool Settings");
 
         combatAutomationPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("NPC Automation"));

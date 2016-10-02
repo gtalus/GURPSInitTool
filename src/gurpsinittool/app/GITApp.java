@@ -130,6 +130,8 @@ public class GITApp extends JFrame
         mainApp.setAccelerators();
         mainApp.addComponentsToPane();
         
+        mainApp.groupManager.loadDefaultGroupFile(); // Load the group file
+        
         //Display the window.
         if (Boolean.valueOf(mainApp.propertyBag.getProperty("GITApp.Manager.visible"))) {
         	mainApp.groupManager.setVisible(true); }
@@ -145,7 +147,7 @@ public class GITApp extends JFrame
 
     private void addComponentsToPane() {
     	// Core components
-    	initTable = new InitTable(gameMaster, true);
+    	initTable = new InitTable(gameMaster, true, propertyBag);
         searchSupport = new SearchSupport(getRootPane(), initTable);
         defenseDialog = new DefenseDialog(this);
         detailsPanel = new ActorDetailsPanel_v2(true);
@@ -243,7 +245,7 @@ public class GITApp extends JFrame
         		criticalTables.setVisible(true);
     		}
     	};
-    	actionOpenGroupManager = new GAction("Group Manager", "Open Group Manager (Alt+G)", new ImageIcon(GITApp.class.getResource("/resources/images/group.png"))) {
+    	actionOpenGroupManager = new GAction("Groups Manager", "Open Groups Manager (Alt+G)", new ImageIcon(GITApp.class.getResource("/resources/images/group.png"))) {
     		public void actionPerformed(ActionEvent arg0) { 
     			MiscUtil.validateOnScreen(groupManager);
         		groupManager.setVisible(true);
@@ -294,6 +296,7 @@ public class GITApp extends JFrame
     private void addMenuBar() {
         // The main menu bar
         JMenuBar menubar = new JMenuBar();
+        // Edit menu
         JMenu menuFile = new JMenu("Edit");
         menuFile.setMnemonic(KeyEvent.VK_E);
         
@@ -330,8 +333,24 @@ public class GITApp extends JFrame
         menuFile.add(menuItem);
  
         menubar.add(menuFile);
+        
+        // View Menu
+        menuFile = new JMenu("View");
+        menuFile.setMnemonic(KeyEvent.VK_V);    
+        menuItem = new JMenuItem(new AbstractAction() {			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				initTable.showColumnCustomizer();
+			}
+		});
+        menuItem.setText("Customize Columns");
+        menuItem.setMnemonic(KeyEvent.VK_C);
+        menuFile.add(menuItem);
+        menubar.add(menuFile);
+        
         menubar.add(Box.createHorizontalGlue());
         
+        // About menu button
         JButton menuButton = new JButton(actionAbout);
         menuButton.setOpaque(true);
         menuButton.setContentAreaFilled(false);
@@ -603,6 +622,7 @@ public class GITApp extends JFrame
 		public void windowClosing(WindowEvent evt) {
 			// Update all the various properties:
 			updateProperties();
+			initTable.updateProperties();
 			groupManager.updateProperties();
 			optionsWindow.updateProperties();
 			// Check to make sure everything is clean

@@ -15,12 +15,16 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.AbstractAction;
 import javax.swing.AbstractCellEditor;
 import javax.swing.Action;
 import javax.swing.DefaultCellEditor;
@@ -28,9 +32,11 @@ import javax.swing.DefaultListSelectionModel;
 import javax.swing.DropMode;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
@@ -42,6 +48,7 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
@@ -49,7 +56,9 @@ import javax.swing.table.TableColumn;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
-import gurpsinittool.app.InitTableModel.columns;
+
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
+
 import gurpsinittool.app.textfield.ParsingField;
 import gurpsinittool.app.textfield.ParsingFieldParser;
 import gurpsinittool.app.textfield.ParsingFieldParserFactory;
@@ -58,31 +67,53 @@ import gurpsinittool.data.*;
 import gurpsinittool.data.ActorBase.ActorStatus;
 import gurpsinittool.data.ActorBase.ActorType;
 import gurpsinittool.data.ActorBase.BasicTrait;
+import gurpsinittool.ui.ColumnCustomizer;
+import gurpsinittool.ui.CriticalTablesDialog;
+import gurpsinittool.ui.OptionsWindow;
+import gurpsinittool.util.GAction;
 import gurpsinittool.util.MiscUtil;
 import sun.swing.table.DefaultTableCellHeaderRenderer;
 
 @SuppressWarnings("serial")
 public class InitTable extends BasicTable {
 
-	private static final boolean DEBUG = false;
+	private static final boolean DEBUG = true;
 
 	private JPopupMenu popupMenu;
+	private JPopupMenu headerPopupMenu;
 	private Map<ActorStatus, Action> coordinatedStatusMenuItems;
 	private InitTableModel tableModel;
 	private boolean isInitTable;
 	private GameMaster gameMaster;
+	private ColumnCustomizer columnCustomizerWindow;
+	private Properties propertyBag;
+	private String propertyPrefix;
 	
 	/**
 	 * Default Constructor
 	 */
-	public InitTable(GameMaster gameMaster, boolean isInitTable) {
+	public InitTable(GameMaster gameMaster, boolean isInitTable, Properties propertyBag) {
 		super(new InitTableModel(gameMaster));
 		putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
 		this.gameMaster = gameMaster;
 		this.isInitTable = isInitTable;
+		this.propertyBag = propertyBag;
+		propertyPrefix = "InitTable." + (isInitTable?"init":"noninit");
+
+		setDefaultProperties();
 		tableModel = (InitTableModel) dataModel;
 		gameMaster.addPropertyChangeListener(tableModel);
+		columnCustomizerWindow = new ColumnCustomizer(tableModel);
+		columnCustomizerWindow.setLocation(Integer.valueOf(propertyBag.getProperty(propertyPrefix + ".columnCustomizer.location.x")),
+                Integer.valueOf(propertyBag.getProperty(propertyPrefix + ".columnCustomizer.location.y")));
+		columnCustomizerWindow.setSize(Integer.valueOf(propertyBag.getProperty(propertyPrefix + ".columnCustomizer.size.width")),
+        		Integer.valueOf(propertyBag.getProperty(propertyPrefix + ".columnCustomizer.size.height")));
 		initialize();
+		
+		// initialize columns in data model
+		ArrayList<String> columnArrayNames = new ArrayList<String>(Arrays.asList(propertyBag.getProperty(propertyPrefix + ".tableModel.columnNames").split(";")));
+		tableModel.setColumnList(columnArrayNames);
+		initializeColumnHandling();
 	}
     
     /**
@@ -111,7 +142,7 @@ public class InitTable extends BasicTable {
     	    }
     	    
        	    column.setPreferredWidth(width);
-       	    if (isInitTable && i == 0) { // Set the 'Act' column size
+       	    if (isInitTable && getColumnName(i).equals("Act")) { // Set the 'Act' column size
        	    	column.setMaxWidth(width);
        	    	column.setMinWidth(width);
        	    }
@@ -163,13 +194,8 @@ public class InitTable extends BasicTable {
     }    
  
 	private void initialize() {
-		 //InitTable initTable = new InitTable(new ActorTableModel());
         setDefaultRenderer(Object.class, new InitTableCellRenderer());
-       //setDefaultRenderer(Float.class, new InitTableCellRenderer());
-        //setDefaultRenderer(Integer.class, new InitTableCellRenderer());
-        setDefaultEditor(String.class, new InitTableStringCellEditor());
-        //setDefaultEditor(Float.class, new InitTableFloatCellEditor());
-        //setDefaultEditor(Integer.class, new InitTableIntegerCellEditor());
+        setDefaultEditor(String.class, new InitTableStringCellEditor(2));
         
         setTransferHandler(new InitTableTransferHandler("name"));
         setPreferredScrollableViewportSize(new Dimension(800, 270));
@@ -180,32 +206,8 @@ public class InitTable extends BasicTable {
         setDropMode(DropMode.INSERT_ROWS);
         this.setSurrendersFocusOnKeystroke(true); // WHY??? orig false
         // Not doing 'asdf' ENTER, moves to next row
-
-        // Freeze the 'Act' column size
-        getColumnModel().getColumn(InitTableModel.columns.Act.ordinal()).setResizable(false);       
-        
-		// Set column editors
-        JComboBox<ActorStatus> initTableStateEditor = new JComboBox<ActorStatus>();
-        for (Actor.ActorStatus a : Actor.ActorStatus.values()) {
-        	initTableStateEditor.addItem(a);
-        }
-        getColumnModel().getColumn(InitTableModel.columns.Name.ordinal()).setCellEditor(new InitTableStringCellEditor());
-        
-        getColumnModel().getColumn(InitTableModel.columns.Speed.ordinal()).setCellEditor(new InitTableCellEditor(ParsingFieldParserFactory.FloatParser()));
-        getColumnModel().getColumn(InitTableModel.columns.Move.ordinal()).setCellEditor(new InitTableCellEditor(ParsingFieldParserFactory.IntegerParser()));
-        getColumnModel().getColumn(InitTableModel.columns.HT.ordinal()).setCellEditor(new InitTableCellEditor(ParsingFieldParserFactory.IntegerParser()));
-        getColumnModel().getColumn(InitTableModel.columns.HP.ordinal()).setCellEditor(new InitTableCellEditor(ParsingFieldParserFactory.IntegerParser()));
-        getColumnModel().getColumn(InitTableModel.columns.Injury.ordinal()).setCellEditor(new InitTableCellEditor(ParsingFieldParserFactory.IntegerParser()));
-        getColumnModel().getColumn(InitTableModel.columns.FP.ordinal()).setCellEditor(new InitTableCellEditor(ParsingFieldParserFactory.IntegerParser()));
-        getColumnModel().getColumn(InitTableModel.columns.Fatigue.ordinal()).setCellEditor(new InitTableCellEditor(ParsingFieldParserFactory.IntegerParser()));
-
-        getColumnModel().getColumn(InitTableModel.columns.Injury.ordinal()).setCellEditor(new InitTableDamageCellEditor());
-        getColumnModel().getColumn(InitTableModel.columns.Fatigue.ordinal()).setCellEditor(new InitTableDamageCellEditor());
-
-        getColumnModel().getColumn(InitTableModel.columns.Status.ordinal()).setCellEditor(new InitTableStatusListCellEditor());
-        //getColumnModel().getColumn(InitTableModel.columns.Type.ordinal()).setCellEditor(new InitTableTypeListCellEditor());
-        
-        
+   
+        // Header
         getTableHeader().setDefaultRenderer(new InitTableHeaderRenderer(getTableHeader().getDefaultRenderer()));
         
 		// Table popup menu
@@ -248,17 +250,56 @@ public class InitTable extends BasicTable {
         popupMenu.add(new JMenuItem(gameMaster.actionDeleteSelectedActors));
         if (isInitTable) { popupMenu.add(new JMenuItem(gameMaster.actionTagSelectedActors)); }
         if (isInitTable) { popupMenu.add(new JMenuItem(gameMaster.actionRemoveTagSelectedActors)); }
+        addMouseListener(new MousePopupListener(false));
         
-        MousePopupListener popupListener = new MousePopupListener();
-        addMouseListener(popupListener);
-        getTableHeader().addMouseListener(popupListener);
-        
+        // Header popup menu
+        headerPopupMenu = new JPopupMenu();
+        headerPopupMenu.add(new AbstractAction("Customize Columns") {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {				
+				showColumnCustomizer();
+			}
+		});
+    	getTableHeader().addMouseListener(new MousePopupListener(true));
+    	
+		// Setup actor status editor
+        JComboBox<ActorStatus> initTableStateEditor = new JComboBox<ActorStatus>();
+        for (Actor.ActorStatus a : Actor.ActorStatus.values()) {
+        	initTableStateEditor.addItem(a);
+        }
+	}
+	
+	/**
+	 * Perform customizations to handling for each column
+	 */
+	private void initializeColumnHandling() {
+		int actColumnIndex = -1;
+		for (int i = 0; i < this.getColumnCount(); i++) {
+			String columnName = getColumnName(i);
+			// Special handling
+			if ("Act".equals(columnName)) {
+		        getColumnModel().getColumn(i).setResizable(false); // Freeze size
+		        actColumnIndex = i;
+			} else if (columnName.equals("Speed")) {
+				getColumnModel().getColumn(i).setCellEditor(new InitTableCellEditor(ParsingFieldParserFactory.FloatParser()));
+			} else if (columnName.equals("Move") || columnName.equals("HT") || columnName.equals("HP") || columnName.equals("FP")) {
+				getColumnModel().getColumn(i).setCellEditor(new InitTableCellEditor(ParsingFieldParserFactory.IntegerParser()));
+			} else if (columnName.equals("Injury") || columnName.equals("Fatigue")) {
+				getColumnModel().getColumn(i).setCellEditor(new InitTableDamageCellEditor());			    
+			} else if (columnName.equals("Status")) {
+		        getColumnModel().getColumn(i).setCellEditor(new InitTableStatusListCellEditor());
+			} else if (columnName.equals("Type")) {
+				getColumnModel().getColumn(i).setCellEditor(new InitTableTypeListCellEditor());
+			}else if (columnName.equals("Name")) {
+				getColumnModel().getColumn(i).setCellEditor(new InitTableStringCellEditor(1));
+			} else {
+				// use default: InitTableStringCellEditor(2)
+			}
+		}
+		
         // Don't display 'Act' column in the group manager table
         // Removing this column changes the indexes in the column model only - be careful when using getColumn(i)
-        if(!isInitTable) { getColumnModel().removeColumn(getColumnModel().getColumn(InitTableModel.columns.Act.ordinal())); }
-        
-        // Create initial column sizing
-        autoSizeColumns();
+        if(!isInitTable && actColumnIndex != -1) { getColumnModel().removeColumn(getColumnModel().getColumn(actColumnIndex)); }
 	}
 	
 	/**
@@ -320,12 +361,24 @@ public class InitTable extends BasicTable {
 				getCellEditor().cancelCellEditing();
 	}
 
+	@Override
+	public void tableChanged(TableModelEvent e) {
+		super.tableChanged(e);
+		if (DEBUG) { System.out.println("InitTable: tableChanged: got event: " + e + ", type=" + e.getType()); }
+		if (e.getType() == TableModelEvent.UPDATE && e.getFirstRow() == TableModelEvent.HEADER_ROW 
+				&& e.getColumn() == TableModelEvent.ALL_COLUMNS) {
+			if (DEBUG) { System.out.println("    Detected data structure change"); }
+			initializeColumnHandling();
+			autoSizeColumns();
+		}
+	
+	}
 	/**
 	 * Modify a component to match it's conditions
 	 * @param component : the component to modify
 	 * @param actor
 	 */
-	private static void formatComponentAlignment(JLabel c, Actor a, InitTableModel.columns col) {
+	private static void formatComponentAlignment(JLabel c, Actor a, String columnName) {
 		c.setHorizontalAlignment(SwingConstants.LEFT);
 		c.setHorizontalTextPosition(JLabel.LEADING);
 
@@ -333,7 +386,7 @@ public class InitTable extends BasicTable {
 			c.setHorizontalAlignment(SwingConstants.RIGHT);
 		}
 
-		if (col == columns.Act) {
+		if (columnName.equals("Act")) {
 			c.setHorizontalAlignment(SwingConstants.RIGHT);
 		}
 	}
@@ -353,50 +406,41 @@ public class InitTable extends BasicTable {
 	/**
 	 * Modify a component to match it's conditions
 	 * @param component : the component to modify
-	 * @param actor
+	 * @param actor : the underlying actor object for the current row
 	 */
-	private static void formatComponentColor(JComponent c, Actor a, boolean isSelected, InitTableModel.columns col) {
+	private static void formatComponentColor(JComponent c, Actor a, boolean isSelected, boolean isEditable) {
 
 		c.setForeground(Color.black);
+		Color paleColor = new Color(255,255,255);
+		Color greyColor = Color.gray;
+		Color backgroundColor = new Color(255,255,255);
+		switch (a.getType()) {
+		case PC:
+			backgroundColor = new Color(128,255,128);
+			break;
+		case Ally:
+			backgroundColor = new Color(128,128,255);
+			break;
+		case Enemy:
+			backgroundColor = new Color(255,128,128);
+			break;
+		case Neutral:
+			backgroundColor = new Color(128,128,128);
+			break;
+		case Special:
+			backgroundColor = new Color(255,128,255);
+			break;
+		}
 		
-		if (isSelected) {
-			switch (a.getType()) {
-			case PC:
-				c.setBackground(new Color(128,255,128));
-				break;
-			case Ally:
-				c.setBackground(new Color(128,128,255));
-				break;
-			case Enemy:
-				c.setBackground(new Color(255,128,128));
-				break;
-			case Neutral:
-				c.setBackground(new Color(128,128,128));
-				break;
-			case Special:
-				c.setBackground(new Color(255,128,255));
-				break;
-			}
+		if (!isSelected) {
+			backgroundColor = MiscUtil.setAlpha(backgroundColor, 150);
+			backgroundColor = MiscUtil.blend(backgroundColor, paleColor);
 		}
-		else {
-			switch (a.getType()) {
-			case PC:
-				c.setBackground(new Color(200,255,200));
-				break;
-			case Ally:
-				c.setBackground(new Color(200,200,255));
-				break;
-			case Enemy:
-				c.setBackground(new Color(255,200,200));
-				break;
-			case Neutral:
-				c.setBackground(new Color(200,200,200));
-				break;
-			case Special:
-				c.setBackground(new Color(255,200,255));
-				break;
-			}
+		if (!isEditable) {
+			greyColor = MiscUtil.setAlpha(greyColor, 75);
+			backgroundColor = MiscUtil.blend(backgroundColor, greyColor);
 		}
+		c.setBackground(backgroundColor);
 		
 		if (a.hasStatus(ActorStatus.Unconscious)
 				|| a.hasStatus(ActorStatus.Disabled)
@@ -405,8 +449,7 @@ public class InitTable extends BasicTable {
 		}
 	}
    
-	private void formatEditField(JTextField c, boolean isSelected, int row, int col) {
-		tableModel.getActor(row);
+	private void formatEditField(JTextField c, boolean isSelected, boolean isEditable, int row) {
 		if (row == getRowCount() -1) {
 			c.setBackground(Color.white);
 			c.setForeground(Color.gray);
@@ -414,14 +457,49 @@ public class InitTable extends BasicTable {
 			return;
 		}
 		
-		InitTableModel.columns columns = InitTableModel.columns.valueOf(getColumnName(col));
-		Actor a = tableModel.getActor(row);
-					
-		formatComponentColor((JComponent)c, a, isSelected, columns);
+		Actor a = tableModel.getActor(row);				
+		formatComponentColor((JComponent)c, a, isSelected, isEditable);
 		formatComponentAlignment(c, a);
 		c.setBorder(new LineBorder(Color.white));
 	}
 	
+	 /**
+	  * Set default properties if they are not already defined.
+	  */
+	 private void setDefaultProperties() {
+		 if (!propertyBag.containsKey(propertyPrefix + ".tableModel.columnNames")) {
+			 propertyBag.setProperty(propertyPrefix + ".tableModel.columnNames", String.join(";", ColumnCustomizer.defaultColumns)); }
+		 // columnCustomizerWindow
+		 if (!propertyBag.containsKey(propertyPrefix + ".columnCustomizer.location.x")) {
+			 propertyBag.setProperty(propertyPrefix + ".columnCustomizer.location.x", "110"); }
+		 if (!propertyBag.containsKey(propertyPrefix + ".columnCustomizer.location.y")) {
+			 propertyBag.setProperty(propertyPrefix + ".columnCustomizer.location.y", "110"); }
+		 if (!propertyBag.containsKey(propertyPrefix + ".columnCustomizer.size.width")) {
+			 propertyBag.setProperty(propertyPrefix + ".columnCustomizer.size.width",  String.valueOf(new ColumnCustomizer(null).getPreferredSize().width)); }
+		 if (!propertyBag.containsKey(propertyPrefix + ".columnCustomizer.size.height")) {
+			 propertyBag.setProperty(propertyPrefix + ".columnCustomizer.size.height",  String.valueOf(new ColumnCustomizer(null).getPreferredSize().height)); }
+	 }
+	 
+	 /**
+	  * Update all the store-able properties to their current values
+	  */
+	 public void updateProperties() {
+		 // Kept up-to-date with event listeners
+		 propertyBag.setProperty(propertyPrefix + ".tableModel.columnNames", String.join(";", tableModel.getColumnNames()));
+		 // columnCustomizerWindow
+		 propertyBag.setProperty(propertyPrefix + ".columnCustomizer.location.x", String.valueOf(columnCustomizerWindow.getLocation().x));
+		 propertyBag.setProperty(propertyPrefix + ".columnCustomizer.location.y", String.valueOf(columnCustomizerWindow.getLocation().y));
+		 propertyBag.setProperty(propertyPrefix + ".columnCustomizer.size.width", String.valueOf(columnCustomizerWindow.getSize().width));
+		 propertyBag.setProperty(propertyPrefix + ".columnCustomizer.size.height", String.valueOf(columnCustomizerWindow.getSize().height));
+	 }
+	 
+	 /**
+	  * Show the column customization window
+	  */
+	 public void showColumnCustomizer() {
+		 columnCustomizerWindow.setVisible(true);
+	 }
+	 
 	/**
 	 * Renderer to deal with all the customizations based on Actor state/type/etc.
 	 * Assumes that the table model being used is an ActorTableModel.
@@ -438,8 +516,8 @@ public class InitTable extends BasicTable {
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 			
 			JLabel c = (JLabel) base.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-			InitTableModel.columns col = InitTableModel.columns.valueOf(table.getColumnName(column));
-			if (col == columns.Injury || col == columns.Fatigue) {
+			String columnName = getColumnName(column);
+			if (columnName.equals("Injury") || columnName.equals("Fatigue")) {
 				c.setForeground(Color.red);
 			}		
 			return c;
@@ -458,48 +536,48 @@ public class InitTable extends BasicTable {
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 			
 			JLabel c = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-			InitTableModel.columns col = InitTableModel.columns.valueOf(table.getColumnName(column));
+			String columnName = getColumnName(column); // Get the name of the column from the table, which accounts for hidden columns
 			c.setIcon(new ImageIcon()); // Clear out any icon
 			if (row == table.getRowCount() -1) {
 				c.setBackground(Color.white);
 				c.setForeground(Color.gray);
 				c.setHorizontalAlignment(SwingConstants.LEFT);
-				if (col == columns.Name)
+				if (columnName.equals("Name"))
 					c.setText("new...");
-				else if (col == columns.Status)
+				else if (columnName.equals("Status"))
 					c.setText("");
 				return c;
 			}
 			
 			// Basic Formatting
-			Actor a = ((InitTableModel)table.getModel()).getActor(row);
-			formatComponentColor((JComponent)c, a, isSelected, col);
-			formatComponentAlignment(c, a, col);
-			if (col == columns.Act && (gameMaster.getActiveActor() == row)) {
+			Actor a = tableModel.getActor(row);
+			formatComponentColor((JComponent)c, a, isSelected, table.isCellEditable(row, column));
+			formatComponentAlignment(c, a, columnName);
+			if (columnName.equals("Act") && (gameMaster.getActiveActor() == row)) {
 				c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/go.png"), "Current Actor"));  
-			} else if (col == columns.Status) {
+			} else if (columnName.equals("Status")) {
 				c.setText(a.getStatusesString());
 			}			
 
 			// Check parsing: at some point may want to create 'ParsingComponent' which has label and textfield versions
-			if (col == columns.Speed) {				
+			if (columnName.equals("Speed")) {				
 				if (!ParsingFieldParserFactory.FloatParser().parseIsValid(c.getText()))
 					c.setForeground(Color.red);
-			} else if (col == columns.Move || col == columns.HT || col == columns.HP || col == columns.Injury || col == columns.FP || col == columns.Fatigue) {
+			} else if (columnName.equals("Move") || columnName.equals("HT") || columnName.equals("HP") || columnName.equals("Injury") || columnName.equals("FP") || columnName.equals("Fatigue")) {
 				if (!ParsingFieldParserFactory.IntegerParser().parseIsValid(c.getText()))
 					c.setForeground(Color.red);
 			}
 			
 			// Special formatting
 			// Custom rendering for various columns
-			if (col == columns.Move) {				
+			if (columnName.equals("Move") || columnName.equals("Dodge")) {				
 				int Injury = a.getTraitValueInt(BasicTrait.Injury);
 				int Fatigue = a.getTraitValueInt(BasicTrait.Fatigue);
 				int HP = a.getTraitValueInt(BasicTrait.HP);
 				int FP = a.getTraitValueInt(BasicTrait.FP);
 				
 				if (Injury > 2*HP/3 || Fatigue > 2*FP/3) {					
-					int currentValue = a.getTraitValueInt(BasicTrait.Move);
+					int currentValue = a.getTraitValueInt(columnName);
 					int newValue;
 					if (Injury > 2*HP/3 && Fatigue > 2*FP/3) {
 						newValue = (int) Math.ceil((double)currentValue/4);
@@ -511,7 +589,7 @@ public class InitTable extends BasicTable {
 					c.setText(newValue + " (" + c.getText() + ")");
 					MiscUtil.setLabelBold(c);
 				}
-			} else if (col == columns.HT) {
+			} else if (columnName.equals("HT")) {
 				int Injury = a.getTraitValueInt(BasicTrait.Injury);
 				int HP = a.getTraitValueInt(BasicTrait.HP);
 				HP = Math.max(HP, 1); // Minimum HP = 1 for calc purposes
@@ -523,8 +601,15 @@ public class InitTable extends BasicTable {
 					}
 					c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png"), "Must check to stay conscious"));
 				}
+			} else if (Actor.isCustomTrait(columnName)) {
+				if (a.hasTrait(columnName)) {
+					String traitValue = a.getTraitValue(columnName);
+					if (traitValue.equals("")) {
+						c.setText("<html><em>[yes]</em></html>");
+					}
+				}
 			}
-						
+			
 			return c;
 		}
 	}
@@ -550,7 +635,7 @@ public class InitTable extends BasicTable {
 			if (isSelected)
 			    c.selectAll();
 			
-			formatEditField(c, isSelected, row, column);
+			formatEditField(c, isSelected, table.isCellEditable(row, column), row);
 			c.refreshForeground();
 			return c;
 		}
@@ -571,9 +656,9 @@ public class InitTable extends BasicTable {
 		 * Super does not define default constructor, so must define one.
 		 * @param comboBox
 		 */
-		public InitTableStringCellEditor() {
+		public InitTableStringCellEditor(int clicksToStart) {
 			super(new JTextField());
-			setClickCountToStart(1);
+			setClickCountToStart(clicksToStart);
 			editorComponent.addFocusListener(this);
 		}
 		
@@ -582,7 +667,7 @@ public class InitTable extends BasicTable {
 			JTextField c = (JTextField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
 			actor = ((InitTableModel)table.getModel()).getActor(row);
 			actorName = actor.getTraitValue(BasicTrait.Name);
-			formatEditField(c, isSelected, row, column);
+			formatEditField(c, isSelected, table.isCellEditable(row, column), row);
 			return c;
 		}
 		
@@ -641,7 +726,7 @@ public class InitTable extends BasicTable {
 		@Override
 		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
 			tf = (ParsingField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
-			formatEditField(tf, isSelected, row, column);
+			formatEditField(tf, isSelected, table.isCellEditable(row, column), row);
 			tf.refreshForeground();
 			return tf;
 		}
@@ -1004,15 +1089,24 @@ public class InitTable extends BasicTable {
 	 */
 	class MousePopupListener extends MouseAdapter {
 	    	
+		private boolean isHeader;
+		
+		public MousePopupListener(boolean isHeader) { this.isHeader = isHeader; }
 	    public void mousePressed(MouseEvent e) { checkPopup(e); }
 	    public void mouseClicked(MouseEvent e) { checkPopup(e); checkResize(e);}
 	    public void mouseReleased(MouseEvent e) { checkPopup(e); }
 	 
 	    private void checkPopup(MouseEvent e) {
-	    	if (e.isPopupTrigger() & (getSelectedRows().length > 0)) {
-	    		updateCoordinatedStatusMenuItems();
-	   			popupMenu.show(e.getComponent(), e.getX(), e.getY());
-	        }
+	    	if (isHeader) {
+	    		if (e.isPopupTrigger()) {
+	    			headerPopupMenu.show(e.getComponent(), e.getX(), e.getY());
+	    		}
+	    	} else {
+		    	if (e.isPopupTrigger() & (getSelectedRows().length > 0)) {
+		    		updateCoordinatedStatusMenuItems();
+		    		popupMenu.show(e.getComponent(), e.getX(), e.getY());
+		        }
+	    	}
 	    }
 	    
 	    private void checkResize(MouseEvent e) {
@@ -1028,6 +1122,26 @@ public class InitTable extends BasicTable {
 				}
 	    	}
 	    }
+	}
+	
+	@SuppressWarnings("serial")
+	abstract public class TableColumnAction extends AbstractAction {
+		private TableColumn column;
+		private String name;
+		public TableColumnAction(TableColumn column, String text) {
+			super(text);
+			putValue(SELECTED_KEY, true);
+			this.column = column;
+			this.name = text;
+		}
+		public void actionPerformed(ActionEvent arg0) {
+			JCheckBoxMenuItem menuItem = (JCheckBoxMenuItem) arg0.getSource();
+			if (menuItem.isSelected()) {
+				getColumnModel().addColumn(column);
+			} else {
+				getColumnModel().removeColumn(column);
+			}
+		}
 	}
 }
 

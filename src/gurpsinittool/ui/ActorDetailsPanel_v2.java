@@ -20,6 +20,7 @@ import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.text.JTextComponent;
@@ -38,6 +39,7 @@ import gurpsinittool.data.Actor;
 import gurpsinittool.data.ActorBase.ActorStatus;
 import gurpsinittool.data.ActorBase.ActorType;
 import gurpsinittool.data.ActorBase.BasicTrait;
+import gurpsinittool.data.StrengthTables;
 //import gurpsinittool.data.GameMaster;
 
 
@@ -59,6 +61,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	private AttackTableModel attackTableModel;
 	private TraitTableModel traitTableModel;
 	private TraitTableModel tempTableModel;
+	private DefaultTableModel strengthTableModel;
 	
 	// GameMaster object
 	//public GameMaster gameMaster;
@@ -129,11 +132,14 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     private gurpsinittool.app.textfield.ParsingField shield_db;
     private gurpsinittool.app.textfield.ParsingField shield_dr;
     private gurpsinittool.app.textfield.ParsingField shield_hp;
+    private javax.swing.JCheckBox showStrengthTablesCheckBox;
     private javax.swing.JCheckBox showTempCheckBox;
     private gurpsinittool.app.textfield.ParsingField sm;
     private gurpsinittool.app.textfield.ParsingField speed;
     private gurpsinittool.app.textfield.ParsingField st;
     private javax.swing.JLabel status_label;
+    private javax.swing.JTable strengthTable;
+    private javax.swing.JPanel strengthTablesPanel;
     private javax.swing.JPanel tempPanel;
     private javax.swing.JTable tempTable;
     private javax.swing.JPanel traits;
@@ -151,11 +157,14 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     	tempTableModel = new TraitTableModel(true);
     	
         initComponents();
+    	strengthTableModel = (DefaultTableModel) strengthTable.getModel();
+
         attacksTable.setDefaultRenderer(String.class, attackTableModel.new AttackTableCellRenderer());
         attacksTable.setDefaultRenderer(Integer.class, attackTableModel.new AttackTableCellRenderer());
         attacksTable.getColumnModel().getColumn(AttackTableModel.columns.Damage.ordinal()).setCellEditor(attackTableModel.new AttackTableCellEditor(ParsingFieldParserFactory.DamageParser()));
 
         showTempCheckBox.setSelected(false); showTempCheckBoxActionPerformed(null); // Start hidden
+        showStrengthTablesCheckBox.setSelected(false); showStrengthTablesCheckBoxActionPerformed(null); // Start hidden
         disableAndClearPanel();
     }
 
@@ -244,6 +253,9 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         block = new gurpsinittool.app.textfield.ParsingField();
         fatigue = new gurpsinittool.app.textfield.ParsingField();
         injury = new gurpsinittool.app.textfield.ParsingField();
+        strengthTablesPanel = new javax.swing.JPanel();
+        strengthTable = new javax.swing.JTable();
+        showStrengthTablesCheckBox = new javax.swing.JCheckBox();
 
         jLabel2.setFont(jLabel2.getFont().deriveFont(jLabel2.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel2.setText("Status:");
@@ -477,14 +489,13 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         shieldPanelLayout.setVerticalGroup(
             shieldPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(shieldPanelLayout.createSequentialGroup()
-                .addGroup(shieldPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel15, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(shieldPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jLabel17, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel16, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(shield_db, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(shield_dr, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(shield_hp, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGroup(shieldPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel17, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel16, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(shield_db, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(shield_dr, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(shield_hp, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel15, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(0, 0, 0))
         );
 
@@ -829,6 +840,71 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
             }
         });
 
+        strengthTablesPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Strength Tables"));
+        strengthTablesPanel.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+
+        strengthTable.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(153, 153, 153)));
+        strengthTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {"Basic Thrust", null},
+                {"Basic Swing", null},
+                {"Basic Lift", null},
+                {"<html><b>Encumbrance</b></html>", null},
+                {"None", null},
+                {"Light", null},
+                {"Medium", null},
+                {"Heavy", null},
+                {"Extra-Heavy", null}
+            },
+            new String [] {
+                "Name", "Value"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.String.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        strengthTable.setIntercellSpacing(new java.awt.Dimension(2, 2));
+
+        javax.swing.GroupLayout strengthTablesPanelLayout = new javax.swing.GroupLayout(strengthTablesPanel);
+        strengthTablesPanel.setLayout(strengthTablesPanelLayout);
+        strengthTablesPanelLayout.setHorizontalGroup(
+            strengthTablesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(strengthTablesPanelLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(strengthTable, javax.swing.GroupLayout.PREFERRED_SIZE, 164, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
+        strengthTablesPanelLayout.setVerticalGroup(
+            strengthTablesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(strengthTablesPanelLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(strengthTable, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
+
+        showStrengthTablesCheckBox.setSelected(true);
+        showStrengthTablesCheckBox.setToolTipText("");
+        showStrengthTablesCheckBox.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/bullet_toggle_plus.png"))); // NOI18N
+        showStrengthTablesCheckBox.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        showStrengthTablesCheckBox.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/bullet_toggle_minus.png"))); // NOI18N
+        showStrengthTablesCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                showStrengthTablesCheckBoxActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -942,6 +1018,10 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                         .addComponent(jLabel6)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(fatigue, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))))
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(showStrengthTablesCheckBox)
+                .addGap(0, 0, 0)
+                .addComponent(strengthTablesPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -964,14 +1044,13 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                     .addComponent(hp, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(speed, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel21, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel24, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(dx, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(will, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(move, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel24, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(dx, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(will, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(move, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel21, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel22, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1016,12 +1095,16 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                 .addComponent(traits, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(showStrengthTablesCheckBox)
+                    .addComponent(strengthTablesPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 0, 0)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(showTempCheckBox)
                     .addComponent(tempPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(0, 0, 0)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel1)
                 .addGap(0, 0, 0)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 131, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 23, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
             
@@ -1142,14 +1225,6 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
        	//gameMaster.new AttackNumAction(modelRow).actionPerformed(null);
     }//GEN-LAST:event_execute_attackActionPerformed
 
-    private void resizeTempTableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resizeTempTableActionPerformed
-        resizeTableInPanel(tempPanel, tempTable, tempTableModel);
-    }//GEN-LAST:event_resizeTempTableActionPerformed
-
-    private void refresh_tempActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refresh_tempActionPerformed
-        tempTableModel.setActor(actor);
-    }//GEN-LAST:event_refresh_tempActionPerformed
-
     private void showTempCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showTempCheckBoxActionPerformed
        	tempPanel.setVisible(showTempCheckBox.isSelected());
        	if (showTempCheckBox.isSelected()) {
@@ -1160,6 +1235,25 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         tempPanel.doLayout();
         this.doLayout();
     }//GEN-LAST:event_showTempCheckBoxActionPerformed
+
+    private void resizeTempTableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resizeTempTableActionPerformed
+        resizeTableInPanel(tempPanel, tempTable, tempTableModel);
+    }//GEN-LAST:event_resizeTempTableActionPerformed
+
+    private void refresh_tempActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refresh_tempActionPerformed
+        tempTableModel.setActor(actor);
+    }//GEN-LAST:event_refresh_tempActionPerformed
+
+    private void showStrengthTablesCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showStrengthTablesCheckBoxActionPerformed
+    	strengthTablesPanel.setVisible(showStrengthTablesCheckBox.isSelected());
+       	if (showStrengthTablesCheckBox.isSelected()) {
+       		showStrengthTablesCheckBox.setText("");
+       	} else {
+       		showStrengthTablesCheckBox.setText("show Strength Tables");
+       	}
+       	strengthTablesPanel.doLayout();
+        this.doLayout();
+    }//GEN-LAST:event_showStrengthTablesCheckBoxActionPerformed
 
  
 
@@ -1346,8 +1440,35 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	    resizeTableInPanel(attacks, attacksTable, attackTableModel);
 	    resizeTableInPanel(traits, traitsTable, traitTableModel);
 	    //resizeTableInPanel(tempPanel, tempTable, tempTableModel);
+	    refreshActorSecondaryValues();
 		actorLoading--; // turn property updates back on
 	}
+    
+    /**
+     * Refresh the actor's calculated values in the display
+     */
+    protected void refreshActorSecondaryValues () {
+    	//Strength stuff:
+	    strengthTableModel.setValueAt(actor.getTraitValue("BasicThrust"), 0, 1);
+	    strengthTableModel.setValueAt(actor.getTraitValue("BasicSwing"), 1, 1);
+	    strengthTableModel.setValueAt(actor.getTraitValue("BasicLift") + " lbs", 2, 1);
+	    Double basicLift = Double.parseDouble(actor.getTraitValue("BasicLift"));
+	    for (int enc =0; enc <= 4; enc++) {
+	    	strengthTableModel.setValueAt(StrengthTables.getEncumbrance(enc, basicLift) + " lbs", 4+enc, 1);
+	    }
+//	    strengthTable.setTableHeader(null);
+//    	//strengthTable.getTableHeader().setVisible(false);
+//    	//strengthTable.getTableHeader().setUI(null);
+// 
+//	    strengthTable.revalidate();
+//	    strengthTable.doLayout();
+//
+//	    Dimension panelSize = new Dimension(0, strengthTablesPanel.getMinimumSize().height+10);
+//	   
+//	    strengthTablesPanel.setPreferredSize(panelSize);
+//	    strengthTablesPanel.doLayout();
+//	    strengthTablesPanel.revalidate();
+    }
 	
 	/**
 	 * Refresh actor name field, which depends on the type and status
@@ -1393,6 +1514,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 		actorLoading++;
 		actor.setTrait(name, value);
 		actorLoading--;
+		refreshActorSecondaryValues(); // only secondary values for now
 	}
 	
 	/**
@@ -1434,6 +1556,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	    resizeTableInPanel(attacks, attacksTable, attackTableModel);
 	    resizeTableInPanel(traits, traitsTable, traitTableModel);
 	    resizeTableInPanel(tempPanel, tempTable, tempTableModel);
+	    //resizeTableInPanel(strengthTablesPanel, strengthTable, strengthTableModel);
 		if (actor != null) {
 			actor.addPropertyChangeListener(this);
 			enablePanel();

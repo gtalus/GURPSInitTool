@@ -13,7 +13,9 @@ import javax.swing.undo.UndoableEditSupport;
 
 import gurpsinittool.data.*;
 import gurpsinittool.data.ActorBase.ActorStatus;
+import gurpsinittool.data.ActorBase.ActorType;
 import gurpsinittool.data.ActorBase.BasicTrait;
+import gurpsinittool.data.ActorBase.CalculatedTrait;
 import gurpsinittool.util.CleanFileChangeEventSource;
 import gurpsinittool.util.FileChangeEventListener;
 import gurpsinittool.util.SearchSupport;
@@ -25,15 +27,18 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private static final boolean DEBUG = false;
+	private static final boolean DEBUG = true;
 	private UndoableEditSupport mUes = new UndoableEditSupport();
 
 	// Removed: Dodge, type
 	// TODO: consolidate HP/Damage, FP/Fatigue
-	private String[] columnNames = {"Act", "Name", "Speed", "Move", "HT", "HP", "Injury", "FP", "Fatigue", "Status"};
-	private Class<?>[] columnClasses = {String.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class};
-	public enum columns {Act, Name, Speed, Move, HT, HP, Injury, FP, Fatigue, Status};
-	private static int numColumns = 10;
+	//private String[] columnNames = {"Act", "Name", "Speed", "Move", "HT", "HP", "Injury", "FP", "Fatigue", "Status"};
+	//private Class<?>[] columnClasses = {String.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class};
+	//public enum columns {Act, Name, Speed, Move, HT, HP, Injury, FP, Fatigue, Status};
+	//private static int numColumns = 10;
+	
+	// Use dynamic column list
+	private ArrayList<String> columnNames = new ArrayList<String>();
 	
 	Actor newActor = new Actor();
 	private ArrayList<Actor> actorList = new ArrayList<Actor>();	
@@ -44,7 +49,6 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 		this.gameMaster = gameMaster;
 		// This is a special row which allows new actors to be added.
 		addNewActor();
-		
 	}
 	
 	/**
@@ -86,7 +90,7 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 		Actor actor = new Actor(newActor);
 		actor.addPropertyChangeListener(this);
 		actorList.add(actorList.size(),actor);
-		setDirty();
+		// setDirty(); Not dirty: this is inital state, or the result of the actor being edited, which separately marks the DB as dirty
     	fireTableRowsInserted(actorList.size()-1,actorList.size()-1);
 	}
 	
@@ -160,17 +164,21 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 	
 	@Override
 	public Class<?> getColumnClass(int c) {
-		return columnClasses[c];
+		return String.class; // All strings!
 	}
 	
 	public int getColumnCount() {
-		return numColumns;
+		return columnNames.size();
 	}
 	
 	@Override
     public String getColumnName(int col) {
-        return columnNames[col];
+        return columnNames.get(col);
     }
+	
+	public ArrayList<String> getColumnNames() {
+		return new ArrayList<String>(columnNames);
+	}
 
 	public int getRowCount() {
 		return actorList.size();
@@ -178,31 +186,18 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		Actor actor = (Actor) actorList.get(rowIndex);
-		switch (columns.values()[columnIndex]) {
-		case Name:
-			return actor.getTraitValue(BasicTrait.Name);
-		case Speed:
-			return actor.getTraitValue(BasicTrait.Speed);
-		case Move:
-			return actor.getTraitValue(BasicTrait.Move);
-		//case Dodge:
-		//	return actor.getTraitValueInt(BasicTrait.Dodge);
-		case HT:
-			return actor.getTraitValue(BasicTrait.HT);
-		case HP:
-			return actor.getTraitValue(BasicTrait.HP);
-		case Injury:
-			return actor.getTraitValue(BasicTrait.Injury);
-		case FP:
-			return actor.getTraitValue(BasicTrait.FP);
-		case Fatigue:
-			return actor.getTraitValue(BasicTrait.Fatigue);
-		case Status:
-			return actor.getAllStatuses();
-		//case Type:
-		//	return actor.getType();
-		default:
+		String traitName = columnNames.get(columnIndex);
+		// Special cases first:
+		if (traitName.equals("Act")) {
 			return null;
+		} else if (traitName.equals("Status")) {
+			return actor.getAllStatuses();
+		} else if (traitName.equals("Type")) {
+			return actor.getType();
+		} else {
+			if (!actor.hasTrait(traitName))
+				return null;
+			return actor.getTraitValue(traitName);
 		}
 	}
 	
@@ -222,63 +217,43 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
                                + value.getClass() + ")");
         }
         
-        // Convert to actual enums to allow comparison with previous value
-        switch (columns.values()[col]) {
-        //case Type:
-        // 	value = ActorType.valueOf(value.toString());
-        default:
-        }
-        
         Actor a = (Actor) actorList.get(row);
-		switch (columns.values()[col]) {
-		case Name:
-			a.setTrait(BasicTrait.Name, (String) value);
-			break;
-		case Speed:
-			a.setTrait(BasicTrait.Speed, (String) value);
-			break;
-		case Move:
-			a.setTrait(BasicTrait.Move, (String) value);
-			break;
-		//case Dodge:
-		//	a.setTrait(BasicTrait.Dodge, String.valueOf((Integer) value));
-		//	break;
-		case HT:
-			a.setTrait(BasicTrait.HT, (String) value);
-			break;
-		case HP:
-			a.setTrait(BasicTrait.HP, (String) value);
-			break;
-		case Injury:
-			a.setTrait(BasicTrait.Injury, (String) value);
-			break;
-		case FP:
-			a.setTrait(BasicTrait.FP, (String) value);
-			break;
-		case Fatigue:
-			a.setTrait(BasicTrait.Fatigue, (String) value);
-			break;
-		case Status:
+        String traitName = columnNames.get(col);
+        if (traitName.equals("Act")) {
+			// do nothing
+		} else if (traitName.equals("Status")) {
 			a.setAllStatuses((HashSet<ActorStatus>) value);
-			break;
-		//case Type:
-		//	a.setType((ActorType) value);
-		//	break;
-		default:
+		} else if (traitName.equals("Type")) {
+			a.setType((ActorType)value);
+		} else {
+			a.setTrait(traitName, (String) value); 
 		}
     }
     
 	@Override
     public boolean isCellEditable(int row, int col) {
-        switch (columns.values()[col]) {
-        case Act:
-        	return false;
-        default:
-        	return true;
-        }
+		String columnName = columnNames.get(col);
+		if ("Status".equals(columnName) || "Type".equals(columnName)) {
+			return true;
+		} else if (columnName.equals("Act") || columnName.equals("Notes") || !Actor.isBasicTrait(columnName)) {
+			return false;
+		} else {
+			return true;
+		}
     }
 
-
+	/**
+	 * Set the list of columns, which will trigger a full refresh of the table.
+	 * @param columnList : the new list of column names, in order, either matching 
+	 * the name of traits or special value "Act"
+	 */
+	public void setColumnList(ArrayList<String> columnList) {
+		if (DEBUG) { System.out.println("ActorTableModel: setColumnList: Setting list to " + columnList); }
+		columnNames.clear();
+		columnNames.addAll(columnList);
+		super.fireTableStructureChanged();
+	}
+	
 	/**
 	 * Set the list of actors to the ArrayList<Actor> specified. Redraw table.
 	 * @param actorList : the new ArrayList<Actor> to use as the base for the ActorTableModel
