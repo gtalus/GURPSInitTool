@@ -5,26 +5,26 @@ Combat Tracking
 Automation
 ----------
 
-Only combatants with NPC types are subject to automation. NPC types are ally, neutral, and enemy. Special and PC types are not automated. Each automation function can be controlled through the Settings dialog, which is accessible under the Edit menu of the main window.
+Which types of combatants are subject to automation is user configurable through the Settings dialog, which is accessible under the Edit menu of the main window. By default, combatants of type 'ally', 'neutral', and 'enemy' are automated. Each automation function can also be disabled or enabled individually.
 
 .. image:: _static/20_automation_options.png
    :align: left
 
 Attack
 ~~~~~~
-NPCs with the 'Attacking' status that are not otherwise disabled or stunned will make their default attack at the start of their turn. Keep in mind that the attack is only printed to the log.
+Automated type combatants (ATC) with the 'Attacking' status that are not otherwise disabled or stunned will make their default attack at the start of their turn. Keep in mind that the attack is only printed to the log.
 
 Unconsciousness Checks
 ~~~~~~~~~~~~~~~~~~~~~~
-If an NPC is at 0 or fewer remaining HP, they make a consciousness roll at the start of their turn (before attacking, if enabled). If they fail their status is set to Disarmed, Prone and Unconscious and their turn is skipped.
+If an ATC is at 0 or fewer remaining HP, they make a consciousness roll at the start of their turn (before attacking, if enabled). If they fail their status is set to Disarmed, Prone and Unconscious and their turn is skipped.
 
 Knockdown and Stunning
 ~~~~~~~~~~~~~~~~~~~~~~
-The Defense dialog prints Knockdown/Stunning calculations to the log. If this option is set, the results of those calculations are applied to NPCs.
+The Defense dialog prints Knockdown/Stunning calculations to the log. If this option is set, the results of those calculations are applied to ATCs.
 
 Stun Recovery
 ~~~~~~~~~~~~~
-NPCs with mental or physical stun statuses will make checks at the start of their turn to recover. If they have the 'StunRecover' state, then they will automatically lose that state at the start of their next turn.
+ATCs with mental or physical stun statuses will make checks at the start of their turn to recover. If they have the 'StunRecover' state, then they will automatically lose that state at the start of their next turn.
 
 Attacks
 -------
@@ -77,3 +77,9 @@ Injury to the shield is also calculated and tracked in a simplified manner. Basi
 
 .. note:: On a shield hit the defender hit location for any penetrating damage is not changed to the arm automatically.
 
+Injury & Fatigue
+~~~~~~~~~~~~~~~~
+
+Injury and fatigue are tracked as positive values: when you lose HP that is noted as an increase of 'Injury', and when you are healed that is noted as a reduction in injury. The 'HP' and 'FP' columns always show the base HP and FP, without any injury or fatigue applied. You can customize the columns to include 'currFP' and 'currHP' if you want to see the adjusted values.
+
+Changes to injury or fatigue while a combat is running will be displayed in the log. The rules for losing FP (ie. an increase in 'Fatigue') while at 0 FP or less are applied: additional fatigue causes injury on a point-per-point basis. Fatigue is limited to 2*FP, but further loses are still applied as injury.

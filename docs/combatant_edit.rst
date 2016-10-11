@@ -19,6 +19,8 @@ The Initiative Table
 
 The initiative table is fully editable. The status cell displays a list box when clicked which allows multiple status changes to be made. A right-click menu in the table provides additional editing options, and most apply to all selected rows. This menu provides the only way of deleting rows. Status changes made through this menu are done in a coordinated fashion, so it is a useful way to get all the selected rows the the same state.
 
+For most cells containing a numeric value, pressing a key to enter edit mode will remove the current value and replace it with the key pressed. The non-numeric 'Name', 'Status', and 'Type' columns will immediately enter edit mode when clicked.
+
 Special editing function is enabled for the Injury and Fatigue columns. If you press a number, '+/=' or '-' key while one of those fields is selected, it will start entry of a delta value to be added or subtracted from the previous one (a number starts an add). These fields can parse simple +/- expressions such as '3+4-2'.
 
 .. image:: _static/30_table_status_display.png

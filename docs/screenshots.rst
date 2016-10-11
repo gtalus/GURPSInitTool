@@ -59,6 +59,10 @@ Attacks and Traits detail
 
 .. image:: _static/31_attacks_traits.png
 
+Strength Tables
+
+.. image:: _static/32_strength_tables.png
+
 Column Customization dialot
 
 .. image:: _static/40_column_customizer.png
