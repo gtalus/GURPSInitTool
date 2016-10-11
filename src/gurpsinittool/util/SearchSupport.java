@@ -34,7 +34,7 @@ import gurpsinittool.data.Actor;
 import gurpsinittool.data.ActorBase.BasicTrait;
 
 public class SearchSupport {
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 
 	private JToolBar searchBar;
 	private JTextField searchField;

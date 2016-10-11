@@ -15,6 +15,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.KeyboardFocusManager;
+import java.awt.Rectangle;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Arrays;
@@ -24,13 +25,20 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.text.JTextComponent;
+
+import com.sun.xml.internal.bind.v2.runtime.reflect.Lister.Pack;
+
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JViewport;
+import javax.swing.SwingUtilities;
 
 import gurpsinittool.app.*;
 import gurpsinittool.app.textfield.ParsingField;
@@ -53,7 +61,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	// Default SVUID
 	private static final long serialVersionUID = 1L;
 
-	private static final boolean DEBUG = false;
+	private static final boolean DEBUG = true;
 	
 	private boolean isInit; // Whether we are attached to the init Table, or just the group table
 	private int actorLoading = 0; // Block for property updates while in the middle of an update
@@ -106,7 +114,6 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
@@ -119,6 +126,8 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     private javax.swing.JToolBar jToolBar5;
     private gurpsinittool.app.textfield.ParsingField move;
     private javax.swing.JTextField name;
+    private javax.swing.JScrollPane noteScrollPane;
+    private javax.swing.JSeparator noteSeparator;
     private javax.swing.JTextArea notes;
     private gurpsinittool.app.textfield.ParsingField parry;
     private gurpsinittool.app.textfield.ParsingField per;
@@ -195,7 +204,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         type = new javax.swing.JComboBox();
         jLabel7 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
+        noteScrollPane = new javax.swing.JScrollPane();
         notes = new javax.swing.JTextArea();
         jLabel9 = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
@@ -256,6 +265,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         strengthTablesPanel = new javax.swing.JPanel();
         strengthTable = new javax.swing.JTable();
         showStrengthTablesCheckBox = new javax.swing.JCheckBox();
+        noteSeparator = new javax.swing.JSeparator();
 
         jLabel2.setFont(jLabel2.getFont().deriveFont(jLabel2.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel2.setText("Status:");
@@ -376,20 +386,22 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jLabel1.setFont(jLabel1.getFont().deriveFont(jLabel1.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel1.setText("Notes:");
 
-        jScrollPane1.setPreferredSize(new java.awt.Dimension(50, 50));
-        jScrollPane1.setRequestFocusEnabled(false);
+        noteScrollPane.setPreferredSize(new java.awt.Dimension(50, 50));
+        noteScrollPane.setRequestFocusEnabled(false);
 
         notes.setFont(new java.awt.Font("Tahoma", 0, 11)); // NOI18N
         notes.setLineWrap(true);
         notes.setRows(5);
         notes.setWrapStyleWord(true);
+        notes.setMinimumSize(new java.awt.Dimension(100, 18));
         notes.setName("Notes"); // NOI18N
+        notes.setPreferredSize(new java.awt.Dimension(100, 74));
         notes.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusLost(java.awt.event.FocusEvent evt) {
                 fieldFocusLost(evt);
             }
         });
-        jScrollPane1.setViewportView(notes);
+        noteScrollPane.setViewportView(notes);
 
         jLabel9.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel9.setText("HT:");
@@ -905,12 +917,19 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
             }
         });
 
+        noteSeparator.setCursor(new java.awt.Cursor(java.awt.Cursor.N_RESIZE_CURSOR));
+        noteSeparator.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            public void mouseDragged(java.awt.event.MouseEvent evt) {
+                noteSeparatorMouseDragged(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(name, javax.swing.GroupLayout.Alignment.TRAILING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(noteScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(shieldPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(attacks, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(traits, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -1021,7 +1040,9 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
             .addGroup(layout.createSequentialGroup()
                 .addComponent(showStrengthTablesCheckBox)
                 .addGap(0, 0, 0)
-                .addComponent(strengthTablesPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(strengthTablesPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
+            .addComponent(noteSeparator)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1097,14 +1118,15 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(showStrengthTablesCheckBox)
                     .addComponent(strengthTablesPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(0, 0, 0)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(showTempCheckBox)
                     .addComponent(tempPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(noteSeparator, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel1)
-                .addGap(0, 0, 0)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 23, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(noteScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
             
@@ -1162,8 +1184,25 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     
     private void add_traitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_add_traitActionPerformed
     	flushEdits();
-        traitTableModel.addTrait();
+    	final String traitName = traitTableModel.addTrait();
+        // Figure out what new row is
+    	final int row = traitTableModel.getTraitRow(traitName);
         resizeTableInPanel(traits, traitsTable, traitTableModel);
+
+        // Move focus to new trait name cell and delete default name
+        // Need to use invokeLater to handle asynchronous issues with editCell and requestFocus functions
+    	SwingUtilities.invokeLater(new Runnable() {
+    		@Override
+    		public void run() {
+    	    	traitsTable.changeSelection(row, TraitTableModel.columns.Name.ordinal(), false, false);
+    	    	traitsTable.editCellAt(row, TraitTableModel.columns.Name.ordinal());
+    			Component editor = traitsTable.getEditorComponent();
+    			if (editor != null) {
+    				editor.requestFocusInWindow();
+    				((JTextComponent)editor).selectAll();
+    			}
+    		}
+    	});
     }//GEN-LAST:event_add_traitActionPerformed
 
     private void remove_traitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_remove_traitActionPerformed
@@ -1241,7 +1280,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     }//GEN-LAST:event_resizeTempTableActionPerformed
 
     private void refresh_tempActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refresh_tempActionPerformed
-        tempTableModel.setActor(actor);
+        tempTableModel.rebuildTable();
     }//GEN-LAST:event_refresh_tempActionPerformed
 
     private void showStrengthTablesCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showStrengthTablesCheckBoxActionPerformed
@@ -1254,6 +1293,23 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
        	strengthTablesPanel.doLayout();
         this.doLayout();
     }//GEN-LAST:event_showStrengthTablesCheckBoxActionPerformed
+
+    private void noteSeparatorMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_noteSeparatorMouseDragged
+    	int y = -1*evt.getY();
+    	int currentHeight = noteScrollPane.getPreferredSize().height;
+    	int minimumHeight = noteScrollPane.getMinimumSize().height;
+    	int newY = currentHeight+y;
+    	newY = Math.max(minimumHeight, newY); // not less than minimum!
+    	
+    	//System.out.println("HERE: mouseDragged event, y=" + evt.getY() + ", x=" + evt.getX());
+    	Dimension preferredSize = new Dimension(noteScrollPane.getPreferredSize().width, newY);
+    	noteScrollPane.setPreferredSize(preferredSize);
+    	
+    	revalidate();
+    	//doLayout();
+    	//repaint();
+    	scrollRectToVisible(new Rectangle(0,getHeight()-1,1,1));
+    }//GEN-LAST:event_noteSeparatorMouseDragged
 
  
 
@@ -1437,9 +1493,15 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	    attackTableModel.setActor(actor);
 	    traitTableModel.setActor(actor);
 	    //tempTableModel.setActor(actor);
-	    resizeTableInPanel(attacks, attacksTable, attackTableModel);
-	    resizeTableInPanel(traits, traitsTable, traitTableModel);
-	    //resizeTableInPanel(tempPanel, tempTable, tempTableModel);
+	    // GUI re-size update
+	    SwingUtilities.invokeLater(new Runnable() {
+	    	@Override
+	    	public void run() {
+	    		resizeTableInPanel(attacks, attacksTable, attackTableModel);
+	    		resizeTableInPanel(traits, traitsTable, traitTableModel);
+	    		//resizeTableInPanel(tempPanel, tempTable, tempTableModel);
+	    	}
+	    });
 	    refreshActorSecondaryValues();
 		actorLoading--; // turn property updates back on
 	}
@@ -1553,8 +1615,6 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 		attackTableModel.setActor(actor);
 	    traitTableModel.setActor(actor);
 	    tempTableModel.setActor(actor);
-	    resizeTableInPanel(attacks, attacksTable, attackTableModel);
-	    resizeTableInPanel(traits, traitsTable, traitTableModel);
 	    resizeTableInPanel(tempPanel, tempTable, tempTableModel);
 	    //resizeTableInPanel(strengthTablesPanel, strengthTable, strengthTableModel);
 		if (actor != null) {
@@ -1562,6 +1622,8 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 			enablePanel();
 			refreshActor();
 		} else {
+		    resizeTableInPanel(attacks, attacksTable, attackTableModel);
+		    resizeTableInPanel(traits, traitsTable, traitTableModel);
 			disableAndClearPanel();
 		}      
 	}
@@ -1603,10 +1665,12 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		// TODO: add some intelligence to this? Will need to create component map which allows 
+		// TODO: add some intelligence to this? Especially attack and trait tables
+		// Will potentially need to create component map which allows 
 		// a 'getComponentByName(String name)' type function to operate
-		if (DEBUG) System.out.println("ActorDetailsPanel: received actor property changed notification!");
-		refreshActor();	
+		if (DEBUG) System.out.println("ActorDetailsPanel: propertyChange: actor property '" + e.getPropertyName() + "' changed from '" + e.getOldValue() + "' to '" + e.getNewValue() + "'");
+		
+		refreshActor();
 	} 
 
 }

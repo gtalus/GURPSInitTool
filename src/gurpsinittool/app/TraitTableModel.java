@@ -1,11 +1,14 @@
 package gurpsinittool.app;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import javax.swing.table.AbstractTableModel;
 import gurpsinittool.data.*;
 
-public class TraitTableModel extends AbstractTableModel {
+public class TraitTableModel extends AbstractTableModel implements PropertyChangeListener {
 
 	/**
 	 * Default UID
@@ -80,6 +83,7 @@ public class TraitTableModel extends AbstractTableModel {
                                + " (an instance of "
                                + value.getClass() + ")");
         }
+        //new Exception().printStackTrace();
 
         if (isTemp) return;
         
@@ -120,25 +124,33 @@ public class TraitTableModel extends AbstractTableModel {
 	 * @param actorList : the new ArrayList<Actor> to use as the base for the ActorTableModel
 	 */
 	public void setActor(Actor actor) {
-//		if (currentActor == actor) {
-//			refreshActor();
-//			return;
-//		}
+		if (actor == currentActor)
+			return; // Not going to refresh same actor!
+		
+		// Property change events
+		if (currentActor != null)
+			currentActor.removePropertyChangeListener(this);
 		currentActor = actor;
-		// Build displayedTraits list
+		if (currentActor != null)
+			currentActor.addPropertyChangeListener(this);
+		
+		rebuildTable();
+	}
+	
+	/**
+	 * Fully refresh the table
+	 */
+	public void rebuildTable() {
+		// Build initial displayedTraits list
 		displayedTraitKeys.clear();
 		displayedTraitKeys.addAll(getTraitNames());		
 		fireTableDataChanged();
 	}
 	
-//	public void refreshActor() {
-//		ArrayList<String> newList = getTraitNames();
-//		// what are new
-//		
-//		// what are old
-//		
-//	}
-	
+	/**
+	 * Get a sorted list of trait names
+	 * @return a sorted list of trait names
+	 */
 	private ArrayList<String> getTraitNames() {
 		ArrayList<String> theList = new ArrayList<String>();
 		if (currentActor != null) {
@@ -151,13 +163,15 @@ public class TraitTableModel extends AbstractTableModel {
 				}
 			}
 		}
+		Collections.sort(theList);
 		return theList;
 	}
 
 	/**
 	 * Add new trait row
+	 * @return the name of the added trait
 	 */
-    public void addTrait() {
+    public String addTrait() {
     	if (!isTemp && currentActor != null) {
     		// Figure out a new name
     		int num = 1;
@@ -165,12 +179,25 @@ public class TraitTableModel extends AbstractTableModel {
     		while (currentActor.hasTrait(prefix + String.valueOf(num))) {num++;}
     		// Add the new trait
     		String name = prefix + String.valueOf(num);
-//    		if (currentActor.addTrait(name, "")) {
-//    			displayedTraitKeys.add(name);	
-//    			fireTableRowsInserted(getRowCount()-1, getRowCount()-1);
-//    		}
     		currentActor.addTrait(name, ""); // Rely on automatic refresh
+    		return name;
+    	} else {
+    		return null;
     	}
+    }
+    
+    /**
+     * Get the row number of the specified trait
+     * @param name : the name of the trait to be found
+     * @return the row that the trait is on, or -1 if it's not found
+     */
+    public int getTraitRow(String name) {
+    	for (int i = 0; i < displayedTraitKeys.size(); i++) {
+    		if (name.equals(displayedTraitKeys.get(i))) {
+    			return i;
+    		}
+    	}
+    	return -1;
     }
 
     /**
@@ -191,4 +218,48 @@ public class TraitTableModel extends AbstractTableModel {
     		//fireTableRowsDeleted(rows[0], rows[rows.length-1]);
     	}
     }
+
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		if (isTemp)
+			return; // for now!
+		// Listen to events and fire appropriate events
+		if (e.getSource() != currentActor) {
+			System.err.println ("TraitTableModel:propertyChange: source of event is not current actor! Shouldn't happen!");
+		} else {
+			System.out.println("HERE: property = " + e.getPropertyName() + ", " + e.getOldValue() + ", " + e.getNewValue());
+			// See if it's a trait
+			if(e.getPropertyName().startsWith("trait.")) { // New trait or value changed
+				String name = e.getPropertyName().replaceFirst("^trait.", "");
+				if (e.getOldValue() == null) { // new trait
+					// Error checking
+					if (!Actor.isCustomTrait(name)) 
+						System.err.println("TraitTableModel: propertyChange: newly created trait is not custom! " + name);
+					if (displayedTraitKeys.contains(name))
+						System.err.println("TraitTableModel: propertyChange: newly created trait already in list of displayed traits! " + name);
+					displayedTraitKeys.add(name);
+					System.out.println("HERE: new trait");
+					fireTableRowsInserted(displayedTraitKeys.size()-1, displayedTraitKeys.size()-1);
+				} else if (e.getNewValue() == null) { // deleted trait
+					if (!displayedTraitKeys.contains(name))
+						System.err.println("TraitTableModel: propertyChange: deleted trait not in display traits list! " + name);
+					int index = displayedTraitKeys.indexOf(name);
+					displayedTraitKeys.remove(index);
+					fireTableRowsDeleted(index, index);
+				} else if (Actor.isCustomTrait(name)) { // Value changed for custom trait
+					if (!displayedTraitKeys.contains(name))
+						System.err.println("TraitTableModel: propertyChange: changed trait not in display traits list! " + name);
+					fireTableCellUpdated(displayedTraitKeys.indexOf(name), columns.Value.ordinal());
+					System.out.println("HERE: value change");
+				}
+			} else if ("traitName".equals(e.getPropertyName())) { // Trait name change
+				if (!displayedTraitKeys.contains(e.getOldValue()))
+					System.err.println("TraitTableModel: propertyChange: renamed trait original name not in display traits list! " + e.getOldValue());
+				int index = displayedTraitKeys.indexOf(e.getOldValue());
+				displayedTraitKeys.set(index, (String)e.getNewValue());
+				fireTableCellUpdated(index, columns.Name.ordinal());
+				System.out.println("HERE: trait rename");
+			}			
+		}
+	}
 }

@@ -77,7 +77,7 @@ import sun.swing.table.DefaultTableCellHeaderRenderer;
 @SuppressWarnings("serial")
 public class InitTable extends BasicTable {
 
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 
 	private JPopupMenu popupMenu;
 	private JPopupMenu headerPopupMenu;
@@ -282,16 +282,16 @@ public class InitTable extends BasicTable {
 		        actColumnIndex = i;
 			} else if (columnName.equals("Speed")) {
 				getColumnModel().getColumn(i).setCellEditor(new InitTableCellEditor(ParsingFieldParserFactory.FloatParser()));
-			} else if (columnName.equals("Move") || columnName.equals("HT") || columnName.equals("HP") || columnName.equals("FP")) {
-				getColumnModel().getColumn(i).setCellEditor(new InitTableCellEditor(ParsingFieldParserFactory.IntegerParser()));
 			} else if (columnName.equals("Injury") || columnName.equals("Fatigue")) {
 				getColumnModel().getColumn(i).setCellEditor(new InitTableDamageCellEditor());			    
 			} else if (columnName.equals("Status")) {
 		        getColumnModel().getColumn(i).setCellEditor(new InitTableStatusListCellEditor());
 			} else if (columnName.equals("Type")) {
 				getColumnModel().getColumn(i).setCellEditor(new InitTableTypeListCellEditor());
-			}else if (columnName.equals("Name")) {
+			} else if (columnName.equals("Name")) {
 				getColumnModel().getColumn(i).setCellEditor(new InitTableStringCellEditor(1));
+			} else if (ActorBase.isBasicTrait(columnName)) { // All other basic traits are integers
+				getColumnModel().getColumn(i).setCellEditor(new InitTableCellEditor(ParsingFieldParserFactory.IntegerParser()));
 			} else {
 				// use default: InitTableStringCellEditor(2)
 			}
@@ -706,7 +706,7 @@ public class InitTable extends BasicTable {
 	class InitTableDamageCellEditor extends DefaultCellEditor {
 		ParsingField tf;
 		
-		private static final boolean DEBUG = true;
+		private static final boolean DEBUG = false;
 		
 		public InitTableDamageCellEditor() {
 			super(new ParsingField());

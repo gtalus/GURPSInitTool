@@ -306,6 +306,7 @@ public class Actor extends ActorBase {
 
 		// Crit failure
 		if (defense.result == DefenseResult.CritFailure) {
+			
 			switch (defense.type) {
 			case Parry:
 				CriticalTables.Entry crit_result = CriticalTables.getRandomEntry(CriticalTables.critical_miss);
@@ -323,6 +324,11 @@ public class Actor extends ActorBase {
 			case None:
 				System.err.println("-E- unexpected 'None' defense type for critical failure!");
 				break;
+			}
+			
+			if (defense.ee) {
+				// Apply extra injury
+				setTrait(BasicTrait.Injury, String.valueOf(getTraitValueInt(BasicTrait.Injury)+1));
 			}
 		}
 	}

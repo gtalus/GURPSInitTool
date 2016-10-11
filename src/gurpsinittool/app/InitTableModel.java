@@ -27,7 +27,7 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	private UndoableEditSupport mUes = new UndoableEditSupport();
 
 	// Removed: Dodge, type

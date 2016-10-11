@@ -203,7 +203,7 @@ public class GITApp extends JFrame
         
         // The actor info pane
         JScrollPane actorDetailsPane = new JScrollPane(detailsPanel);
-        actorDetailsPane.setMinimumSize(new Dimension(detailsPanel.getPreferredSize().width+20,0));
+        actorDetailsPane.setMinimumSize(new Dimension(detailsPanel.getPreferredSize().width+21,0));
 
         // Overall layout
         jSplitPaneVertical = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tableScrollPane, logScrollPane);

@@ -29,7 +29,7 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Component id="combatAutomationPanel" alignment="0" max="32767" attributes="0"/>
           <Group type="102" alignment="1" attributes="0">
-              <EmptySpace min="0" pref="66" max="32767" attributes="0"/>
+              <EmptySpace min="0" pref="44" max="32767" attributes="0"/>
               <Component id="okButton" min="-2" pref="59" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="applyButton" min="-2" max="-2" attributes="0"/>
@@ -44,7 +44,7 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" attributes="0">
               <Component id="combatAutomationPanel" min="-2" max="-2" attributes="0"/>
-              <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
               <Component id="jPanel2" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
               <Component id="jPanel1" min="-2" max="-2" attributes="0"/>
@@ -63,7 +63,7 @@
       <Properties>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-            <TitledBorder title="NPC Automation"/>
+            <TitledBorder title="Automation"/>
           </Border>
         </Property>
       </Properties>
@@ -77,8 +77,25 @@
                       <Component id="auto_unconsciousness" min="-2" max="-2" attributes="0"/>
                       <Component id="auto_knockdown" min="-2" max="-2" attributes="0"/>
                       <Component id="auto_stunrecovery" min="-2" max="-2" attributes="0"/>
+                      <Group type="102" alignment="0" attributes="0">
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Group type="102" alignment="0" attributes="0">
+                                  <Component id="pc_automated" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace min="18" pref="18" max="-2" attributes="0"/>
+                              </Group>
+                              <Component id="enemy_automated" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Component id="ally_automated" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Component id="neutral_automated" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Component id="special_automated" alignment="0" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                      </Group>
+                      <Group type="103" alignment="0" groupAlignment="1" max="-2" attributes="0">
+                          <Component id="jSeparator1" alignment="0" max="32767" attributes="0"/>
+                          <Component id="jLabel1" alignment="0" max="32767" attributes="0"/>
+                      </Group>
                   </Group>
-                  <EmptySpace min="0" pref="104" max="32767" attributes="0"/>
+                  <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -90,9 +107,23 @@
                   <Component id="auto_unconsciousness" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="auto_knockdown" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace pref="1" max="32767" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
                   <Component id="auto_stunrecovery" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
+                  <EmptySpace min="-2" max="-2" attributes="0"/>
+                  <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace min="-2" pref="1" max="-2" attributes="0"/>
+                  <Component id="jSeparator1" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace min="-2" max="-2" attributes="0"/>
+                  <Component id="pc_automated" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="enemy_automated" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="ally_automated" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="neutral_automated" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="special_automated" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace min="0" pref="7" max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -120,6 +151,43 @@
           <Properties>
             <Property name="text" type="java.lang.String" value="Stun Recovery"/>
             <Property name="toolTipText" type="java.lang.String" value="Stunned NPCs check for stun recovery at the start of their turns."/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JSeparator" name="jSeparator1">
+        </Component>
+        <Component class="javax.swing.JLabel" name="jLabel1">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Combatant types automated:"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="pc_automated">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="PC"/>
+            <Property name="toolTipText" type="java.lang.String" value="NPCs with the &apos;Attacking&apos; status automatically perform their default attack when it is their turn, as long as they are not Stunned."/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="enemy_automated">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Enemy"/>
+            <Property name="toolTipText" type="java.lang.String" value="NPCs with the &apos;Attacking&apos; status automatically perform their default attack when it is their turn, as long as they are not Stunned."/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="ally_automated">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Ally"/>
+            <Property name="toolTipText" type="java.lang.String" value="NPCs with the &apos;Attacking&apos; status automatically perform their default attack when it is their turn, as long as they are not Stunned."/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="neutral_automated">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Neutral"/>
+            <Property name="toolTipText" type="java.lang.String" value="NPCs with the &apos;Attacking&apos; status automatically perform their default attack when it is their turn, as long as they are not Stunned."/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="special_automated">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Special"/>
+            <Property name="toolTipText" type="java.lang.String" value="NPCs with the &apos;Attacking&apos; status automatically perform their default attack when it is their turn, as long as they are not Stunned."/>
           </Properties>
         </Component>
       </SubComponents>

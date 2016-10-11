@@ -270,7 +270,20 @@ public class ActorBase implements Serializable {
 		}
 	}
 	public boolean isTypeAutomated() {
-		return (type == ActorType.Enemy || type == ActorType.Ally || type == ActorType.Neutral);
+		switch (type) {
+		case Ally:
+			return settings.AUTOMATE_ALLY;
+		case Enemy:
+			return settings.AUTOMATE_ENEMY;
+		case Neutral:
+			return settings.AUTOMATE_NEUTRAL;
+		case PC:
+			return settings.AUTOMATE_PC;
+		case Special:
+			return settings.AUTOMATE_SPECIAL;
+		default:
+			return false;			
+		}
 	}
 	
 	// Attack Table
@@ -432,7 +445,7 @@ public class ActorBase implements Serializable {
 		Trait trait = getTrait(name);
 		String oldValue = trait.value;
 		trait.value = value;
-		mPcs.firePropertyChange("trait." + name, value, oldValue);			
+		mPcs.firePropertyChange("trait." + name, oldValue, value);			
 	}
 	/**
 	 * Set the value of a trait, adding if that trait does not exist
@@ -458,20 +471,31 @@ public class ActorBase implements Serializable {
 				}
 				if (name.equals("Injury")) {  // and calculate shock				
 					int HP = getTraitValueInt(BasicTrait.HP);
-					int diff = getTraitValueInt(BasicTrait.Injury) - intValue;
-					if (diff < 0) {
-						setTemp("shock.next", getTempInt("shock.next") - diff);
-						logEventTypeName("took <b><font color=red>" + (-1*diff) + "</font></b> damage (now " + (HP - intValue) + " HP).");
+					int diff = intValue - getTraitValueInt(BasicTrait.Injury); // Additional injury
+					if (diff > 0) {
+						setTemp("shock.next", getTempInt("shock.next") + diff);
+						logEventTypeName("took <b><font color=red>" + diff + "</font></b> damage (now " + (HP - intValue) + " HP).");
 					} else {
-						logEventTypeName("healed <b><font color=blue>" + diff + "</font></b> (now " + (HP - intValue) + " HP).");		
+						logEventTypeName("healed <b><font color=blue>" + (-1*diff) + "</font></b> (now " + (HP - intValue) + " HP).");		
 					}
 				} else if (name.equals("Fatigue")) {
 					int FP = getTraitValueInt(BasicTrait.FP);
-					int diff = getTraitValueInt(BasicTrait.Fatigue) - intValue;
-					if (diff < 0) {
-						logEventTypeName("lost <b>" + (-1*diff) + "</b> fatigue (now " + (FP - intValue) + " FP).");
+					int oldFatigue = getTraitValueInt(BasicTrait.Fatigue);
+					int diff =  intValue - oldFatigue; // 
+					if (intValue > 2*FP) { // Minimum of -1xFP
+						intValue = 2*FP;
+						value = String.valueOf(intValue);
+					}
+					if (diff > 0) {
+						logEventTypeName("lost <b>" + diff + "</b> fatigue (now " + (FP - intValue) + " FP).");
 					} else {
-						logEventTypeName("recoverd <b>" + diff + "</b> fatigue (now " + (FP - intValue) + " FP).");		
+						logEventTypeName("recoverd <b>" + (-1*diff) + "</b> fatigue (now " + (FP - intValue) + " FP).");		
+					}
+					// Fatigue / Injury interaction
+					if (diff > 0 && intValue > FP) { // Taking Fatigue, and resulting in less than 0 FP
+						int injury = diff + ((oldFatigue < FP)?(oldFatigue-FP):0);
+						//System.out.println("HERE: taking additional " + injury + " injury. OldFatigue: " + oldFatigue + ", diff: " + diff + ", intValue: " + intValue + ", value: " + value );
+						setTrait(BasicTrait.Injury, getTraitValueInt(BasicTrait.Injury) + injury);
 					}
 				}
 			}

@@ -48,7 +48,7 @@ public class GroupManager extends JFrame
 	// Default SVUID
 	private static final long serialVersionUID = 1L;
 
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 
 	private JSplitPane jSplitPaneVertical;
 	private JSplitPane jSplitPaneHorizontal;

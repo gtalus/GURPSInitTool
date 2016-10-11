@@ -9,6 +9,13 @@ public class GameSettings  {
 	public boolean AUTO_STUNRECOVERY = true; // Automatically check for stun recovery for each enemy
 	public boolean AUTO_SHOCK = true; // Track shock and apply as penalty to attack skill
 	
+	// Whether or not to automate each type of combatant:
+	public boolean AUTOMATE_PC = false;
+	public boolean AUTOMATE_ENEMY = true;
+	public boolean AUTOMATE_ALLY = true;
+	public boolean AUTOMATE_NEUTRAL = true;
+	public boolean AUTOMATE_SPECIAL = false;
+	
 	// Interface / Logging
 	public boolean LOG_STATUSCHANGES = false; // Log all status changes
 	public boolean LOG_DEFENSEDETAILS = false; // Log defense details (retreat/EE/side/etc.)

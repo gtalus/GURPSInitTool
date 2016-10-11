@@ -54,6 +54,16 @@ public class OptionsWindow extends javax.swing.JFrame {
 			 currentSettings.AUTO_STUNRECOVERY = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_STUNRECOVERY")); }
 		 if (propertyBag.containsKey("Options.game.AUTO_UNCONSCIOUS")) {
 			 currentSettings.AUTO_UNCONSCIOUS = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_UNCONSCIOUS")); }
+		 if (propertyBag.containsKey("Options.game.AUTOMATE_PC")) {
+			 currentSettings.AUTOMATE_PC = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTOMATE_PC")); }
+		 if (propertyBag.containsKey("Options.game.AUTOMATE_ENEMY")) {
+			 currentSettings.AUTOMATE_ENEMY = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTOMATE_ENEMY")); }
+		 if (propertyBag.containsKey("Options.game.AUTOMATE_ALLY")) {
+			 currentSettings.AUTOMATE_ALLY = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTOMATE_ALLY")); }
+		 if (propertyBag.containsKey("Options.game.AUTOMATE_NEUTRAL")) {
+			 currentSettings.AUTOMATE_NEUTRAL = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTOMATE_NEUTRAL")); }
+		 if (propertyBag.containsKey("Options.game.AUTOMATE_SPECIAL")) {
+			 currentSettings.AUTOMATE_SPECIAL = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTOMATE_SPECIAL")); }
 		 if (propertyBag.containsKey("Options.game.AUTO_SHOCK")) {
 			 currentSettings.AUTO_SHOCK = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_SHOCK")); }
 		 if (propertyBag.containsKey("Options.game.LOG_STATUSCHANGES")) {
@@ -89,6 +99,11 @@ public class OptionsWindow extends javax.swing.JFrame {
 		 propertyBag.setProperty("Options.game.AUTO_KNOCKDOWNSTUN", String.valueOf(currentSettings.AUTO_KNOCKDOWNSTUN));
 		 propertyBag.setProperty("Options.game.AUTO_STUNRECOVERY", String.valueOf(currentSettings.AUTO_STUNRECOVERY));
 		 propertyBag.setProperty("Options.game.AUTO_UNCONSCIOUS", String.valueOf(currentSettings.AUTO_UNCONSCIOUS));
+		 propertyBag.setProperty("Options.game.AUTOMATE_PC", String.valueOf(currentSettings.AUTOMATE_PC));
+		 propertyBag.setProperty("Options.game.AUTOMATE_ENEMY", String.valueOf(currentSettings.AUTOMATE_ENEMY));
+		 propertyBag.setProperty("Options.game.AUTOMATE_ALLY", String.valueOf(currentSettings.AUTOMATE_ALLY));
+		 propertyBag.setProperty("Options.game.AUTOMATE_NEUTRAL", String.valueOf(currentSettings.AUTOMATE_NEUTRAL));
+		 propertyBag.setProperty("Options.game.AUTOMATE_SPECIAL", String.valueOf(currentSettings.AUTOMATE_SPECIAL));
 		 propertyBag.setProperty("Options.game.AUTO_SHOCK", String.valueOf(currentSettings.AUTO_SHOCK));
 		 propertyBag.setProperty("Options.game.LOG_STATUSCHANGES", String.valueOf(currentSettings.LOG_STATUSCHANGES));
 		 propertyBag.setProperty("Options.game.LOG_DEFENSEDETAILS", String.valueOf(currentSettings.LOG_DEFENSEDETAILS));
@@ -109,6 +124,13 @@ public class OptionsWindow extends javax.swing.JFrame {
         auto_unconsciousness = new javax.swing.JCheckBox();
         auto_knockdown = new javax.swing.JCheckBox();
         auto_stunrecovery = new javax.swing.JCheckBox();
+        jSeparator1 = new javax.swing.JSeparator();
+        jLabel1 = new javax.swing.JLabel();
+        pc_automated = new javax.swing.JCheckBox();
+        enemy_automated = new javax.swing.JCheckBox();
+        ally_automated = new javax.swing.JCheckBox();
+        neutral_automated = new javax.swing.JCheckBox();
+        special_automated = new javax.swing.JCheckBox();
         okButton = new javax.swing.JButton();
         applyButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
@@ -120,7 +142,7 @@ public class OptionsWindow extends javax.swing.JFrame {
 
         setTitle("InitTool Settings");
 
-        combatAutomationPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("NPC Automation"));
+        combatAutomationPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Automation"));
 
         auto_attack.setText("Attack");
         auto_attack.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
@@ -134,6 +156,23 @@ public class OptionsWindow extends javax.swing.JFrame {
         auto_stunrecovery.setText("Stun Recovery");
         auto_stunrecovery.setToolTipText("Stunned NPCs check for stun recovery at the start of their turns.");
 
+        jLabel1.setText("Combatant types automated:");
+
+        pc_automated.setText("PC");
+        pc_automated.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
+
+        enemy_automated.setText("Enemy");
+        enemy_automated.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
+
+        ally_automated.setText("Ally");
+        ally_automated.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
+
+        neutral_automated.setText("Neutral");
+        neutral_automated.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
+
+        special_automated.setText("Special");
+        special_automated.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
+
         javax.swing.GroupLayout combatAutomationPanelLayout = new javax.swing.GroupLayout(combatAutomationPanel);
         combatAutomationPanel.setLayout(combatAutomationPanelLayout);
         combatAutomationPanelLayout.setHorizontalGroup(
@@ -143,8 +182,21 @@ public class OptionsWindow extends javax.swing.JFrame {
                     .addComponent(auto_attack)
                     .addComponent(auto_unconsciousness)
                     .addComponent(auto_knockdown)
-                    .addComponent(auto_stunrecovery))
-                .addGap(0, 104, Short.MAX_VALUE))
+                    .addComponent(auto_stunrecovery)
+                    .addGroup(combatAutomationPanelLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(combatAutomationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(combatAutomationPanelLayout.createSequentialGroup()
+                                .addComponent(pc_automated)
+                                .addGap(18, 18, 18))
+                            .addComponent(enemy_automated)
+                            .addComponent(ally_automated)
+                            .addComponent(neutral_automated)
+                            .addComponent(special_automated)))
+                    .addGroup(combatAutomationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(jSeparator1, javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         combatAutomationPanelLayout.setVerticalGroup(
             combatAutomationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -154,9 +206,23 @@ public class OptionsWindow extends javax.swing.JFrame {
                 .addComponent(auto_unconsciousness)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(auto_knockdown)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 1, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(auto_stunrecovery)
-                .addGap(0, 0, 0))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel1)
+                .addGap(1, 1, 1)
+                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(pc_automated)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(enemy_automated)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(ally_automated)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(neutral_automated)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(special_automated)
+                .addGap(0, 7, Short.MAX_VALUE))
         );
 
         okButton.setText("OK");
@@ -230,7 +296,7 @@ public class OptionsWindow extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(combatAutomationPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(0, 66, Short.MAX_VALUE)
+                .addGap(0, 44, Short.MAX_VALUE)
                 .addComponent(okButton, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(applyButton)
@@ -243,7 +309,7 @@ public class OptionsWindow extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(combatAutomationPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -277,7 +343,12 @@ public class OptionsWindow extends javax.swing.JFrame {
     	auto_knockdown.setSelected(currentSettings.AUTO_KNOCKDOWNSTUN);
     	auto_stunrecovery.setSelected(currentSettings.AUTO_STUNRECOVERY);
     	auto_unconsciousness.setSelected(currentSettings.AUTO_UNCONSCIOUS);
-        auto_shock.setSelected(currentSettings.AUTO_SHOCK);
+    	pc_automated.setSelected(currentSettings.AUTOMATE_PC);
+    	enemy_automated.setSelected(currentSettings.AUTOMATE_ENEMY);
+    	ally_automated.setSelected(currentSettings.AUTOMATE_ALLY);
+    	neutral_automated.setSelected(currentSettings.AUTOMATE_NEUTRAL);
+    	special_automated.setSelected(currentSettings.AUTOMATE_SPECIAL);
+    	auto_shock.setSelected(currentSettings.AUTO_SHOCK);
         log_statuschanges.setSelected(currentSettings.LOG_STATUSCHANGES);
         log_defensedetails.setSelected(currentSettings.LOG_DEFENSEDETAILS);
     }
@@ -288,6 +359,11 @@ public class OptionsWindow extends javax.swing.JFrame {
     	currentSettings.AUTO_STUNRECOVERY = auto_stunrecovery.isSelected();
     	currentSettings.AUTO_UNCONSCIOUS = auto_unconsciousness.isSelected();   
     	currentSettings.AUTO_SHOCK = auto_shock.isSelected();
+    	currentSettings.AUTOMATE_PC = pc_automated.isSelected();
+       	currentSettings.AUTOMATE_ENEMY = enemy_automated.isSelected();
+       	currentSettings.AUTOMATE_ALLY = ally_automated.isSelected();
+       	currentSettings.AUTOMATE_NEUTRAL = neutral_automated.isSelected();
+       	currentSettings.AUTOMATE_SPECIAL = special_automated.isSelected();
     	currentSettings.LOG_STATUSCHANGES = log_statuschanges.isSelected();
     	currentSettings.LOG_DEFENSEDETAILS = log_defensedetails.isSelected();
     }
@@ -327,6 +403,7 @@ public class OptionsWindow extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox ally_automated;
     private javax.swing.JButton applyButton;
     private javax.swing.JCheckBox auto_attack;
     private javax.swing.JCheckBox auto_knockdown;
@@ -335,11 +412,17 @@ public class OptionsWindow extends javax.swing.JFrame {
     private javax.swing.JCheckBox auto_unconsciousness;
     private javax.swing.JButton cancelButton;
     private javax.swing.JPanel combatAutomationPanel;
+    private javax.swing.JCheckBox enemy_automated;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JSeparator jSeparator1;
     private gurpsinittool.data.GameSettings localSettings;
     private javax.swing.JCheckBox log_defensedetails;
     private javax.swing.JCheckBox log_statuschanges;
+    private javax.swing.JCheckBox neutral_automated;
     private javax.swing.JButton okButton;
+    private javax.swing.JCheckBox pc_automated;
+    private javax.swing.JCheckBox special_automated;
     // End of variables declaration//GEN-END:variables
 }
