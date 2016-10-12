@@ -26,18 +26,13 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.text.JTextComponent;
 
-import com.sun.xml.internal.bind.v2.runtime.reflect.Lister.Pack;
-
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 
 import gurpsinittool.app.*;
@@ -70,6 +65,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	private TraitTableModel traitTableModel;
 	private TraitTableModel tempTableModel;
 	private DefaultTableModel strengthTableModel;
+	private PopupStatusEditList popupStatusEditList;
 	
 	// GameMaster object
 	//public GameMaster gameMaster;
@@ -146,7 +142,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     private gurpsinittool.app.textfield.ParsingField sm;
     private gurpsinittool.app.textfield.ParsingField speed;
     private gurpsinittool.app.textfield.ParsingField st;
-    private javax.swing.JLabel status_label;
+    private javax.swing.JButton status_button;
     private javax.swing.JTable strengthTable;
     private javax.swing.JPanel strengthTablesPanel;
     private javax.swing.JPanel tempPanel;
@@ -164,6 +160,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     	attackTableModel = new AttackTableModel();
     	traitTableModel = new TraitTableModel(false);
     	tempTableModel = new TraitTableModel(true);
+    	popupStatusEditList = new PopupStatusEditList();
     	
         initComponents();
     	strengthTableModel = (DefaultTableModel) strengthTable.getModel();
@@ -236,7 +233,6 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         remove_trait = new javax.swing.JButton();
         jSeparator5 = new javax.swing.JToolBar.Separator();
         resizeTraitTable = new javax.swing.JButton();
-        status_label = new javax.swing.JLabel();
         showTempCheckBox = new javax.swing.JCheckBox();
         tempPanel = new javax.swing.JPanel();
         jScrollPane6 = new javax.swing.JScrollPane();
@@ -266,6 +262,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         strengthTable = new javax.swing.JTable();
         showStrengthTablesCheckBox = new javax.swing.JCheckBox();
         noteSeparator = new javax.swing.JSeparator();
+        status_button = new javax.swing.JButton();
 
         jLabel2.setFont(jLabel2.getFont().deriveFont(jLabel2.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel2.setText("Status:");
@@ -391,11 +388,8 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 
         notes.setFont(new java.awt.Font("Tahoma", 0, 11)); // NOI18N
         notes.setLineWrap(true);
-        notes.setRows(5);
         notes.setWrapStyleWord(true);
-        notes.setMinimumSize(new java.awt.Dimension(100, 18));
         notes.setName("Notes"); // NOI18N
-        notes.setPreferredSize(new java.awt.Dimension(100, 74));
         notes.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusLost(java.awt.event.FocusEvent evt) {
                 fieldFocusLost(evt);
@@ -598,8 +592,6 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                 .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 27, Short.MAX_VALUE)
                 .addGap(0, 0, 0))
         );
-
-        status_label.setText("status_label");
 
         showTempCheckBox.setSelected(true);
         showTempCheckBox.setToolTipText("");
@@ -924,6 +916,14 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
             }
         });
 
+        status_button.setText("status_button1");
+        status_button.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        status_button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                status_buttonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -1027,7 +1027,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                                 .addGap(19, 19, 19)))
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(type, 0, 152, Short.MAX_VALUE)
-                            .addComponent(status_label, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                            .addComponent(status_button, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(11, 11, 11)
                         .addComponent(jLabel5)
@@ -1055,7 +1055,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(status_label))
+                    .addComponent(status_button))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1311,6 +1311,10 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     	scrollRectToVisible(new Rectangle(0,getHeight()-1,1,1));
     }//GEN-LAST:event_noteSeparatorMouseDragged
 
+    private void status_buttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_status_buttonActionPerformed
+    	popupStatusEditList.show(actor, status_button, 0, 0);
+    }//GEN-LAST:event_status_buttonActionPerformed
+
  
 
     /**
@@ -1358,10 +1362,8 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     	shield_dr.setEnabled(false);
     	shield_hp.setText("");
     	shield_hp.setEnabled(false);
-    	
-    	//status.setSelectedIndex(-1);
-    	//status.setEnabled(false);
-    	status_label.setText("");
+    	status_button.setText(" ");
+    	status_button.setEnabled(false);
     	type.setSelectedIndex(-1);
     	type.setEnabled(false);
     	name.setText("");
@@ -1409,7 +1411,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     	shield_db.setEnabled(true);
     	shield_dr.setEnabled(true);
     	shield_hp.setEnabled(true);
-    	//status.setEnabled(true);
+    	status_button.setEnabled(true);
     	type.setEnabled(true);
     	name.setEnabled(true);
     	add_attack.setEnabled(true);
@@ -1466,8 +1468,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	    
 		refreshActorField(name);
 		formatActorName();
-		// TODO: clean-up / replace with editor component
-		status_label.setText(actor.getStatusesString());
+		refreshActorStatus();
 	    type.setSelectedItem(actor.getType());
 	    refreshActorField(st);
 	    refreshActorField(hp);
@@ -1505,6 +1506,17 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	    refreshActorSecondaryValues();
 		actorLoading--; // turn property updates back on
 	}
+    
+    protected void refreshActorStatus() {
+    	// TODO: maybe resize dynamically based on viewport size?
+    	int width = 130;//getWidth()-100;
+		String status_string = actor.getStatusesString();
+		if ("".equals(status_string))
+			status_string = " "; // avoid odd button display
+		else 
+			status_string = "<html><body style='width: " + width + "'><p>" + status_string + "</p></body></html>";
+		status_button.setText(status_string);
+    }
     
     /**
      * Refresh the actor's calculated values in the display
