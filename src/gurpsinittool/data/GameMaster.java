@@ -8,6 +8,8 @@ import java.beans.PropertyChangeSupport;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,14 +37,18 @@ import gurpsinittool.util.MiscUtil;
 import gurpsinittool.util.EncounterLogEvent;
 import gurpsinittool.util.EncounterLogListener;
 import gurpsinittool.util.EncounterLogSupport;
-import gurpsinittool.util.GAction;
+import gurpsinittool.util.AbstractGAction;
 
 public class GameMaster implements EncounterLogListener, UndoableEditListener, PropertyChangeListener {
+	/**
+	 * Logger
+	 */
+	private final static Logger LOG = Logger.getLogger(GameMaster.class.getName());
+	
 	// Game logic members
 	private Integer round = 0;
 	private Integer activeActor = -1;
 	
-	private static final boolean DEBUG = false;
 	private PropertyChangeSupport mPcs = new PropertyChangeSupport(this); // Change reporting
 	private EncounterLogSupport mEls = new EncounterLogSupport(this); // where to send log messages
 
@@ -70,7 +76,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 		public void actionPerformed(ActionEvent arg0) {
 			flushInteractiveEdits();
 			for (Actor a : initTable.getSelectedActors())
-				a.Attack(num);
+				a.attack(num);
 		}
 	};
 	public Action actionDefend;
@@ -181,7 +187,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 				break;
 			}
 			currentActor = initTable.getActorTableModel().getActor(actorRow);
-			currentActor.NextTurn();
+			currentActor.nextTurn();
 		// Skip over disabled/unconscious/dead/waiting actors
 		} while (currentActor.hasStatus(ActorStatus.Disabled)
 				|| currentActor.hasStatus(ActorStatus.Unconscious)
@@ -223,16 +229,16 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 		flushInteractiveEdits();
 		startCompoundEdit();
 		// First, determine which way to go
-		boolean all_set = true;
+		boolean allSet = true;
     	Actor[] actors = initTable.getSelectedActors();
     	for (Actor a : actors) {
     		if (!a.hasStatus(status)) {
-				all_set = false;
+				allSet = false;
 				break;
 			}
     	}
     	for (Actor a : actors) {
-    		if (all_set)
+    		if (allSet)
 				a.removeStatus(status);
 			else
 				a.addStatus(status);
@@ -298,7 +304,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
     				return tag;
     		}
     	}
-    	System.out.println("-W- GameMaster:getNextTag: no free tags!");
+    	if (LOG.isLoggable(Level.INFO)) { LOG.info("No free tags!");}
     	return "S99";
     }
 	
@@ -351,7 +357,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
     	String aName = actor.getTraitValue(BasicTrait.Name);
 		if (!nameTag.matcher(aName).matches()) {
 			String tag = getNextTag(tags);
-			if (DEBUG) System.out.println("GameMaster:tagActor: Tagging actor " + aName + " with " + "[" + tag + "]");
+			if (LOG.isLoggable(Level.FINE)) { LOG.fine("Tagging actor " + aName + " with " + "[" + tag + "]");}
 			actor.setTrait(BasicTrait.Name, aName + " [" + tag + "]");
 			tags.add(tag);
 		}
@@ -371,7 +377,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
     	for (int i = 0; i < initTable.getActorTableModel().getRowCount()-1; ++i) {
     		Actor a = initTable.getActorTableModel().getActor(i);
     		String aName = a.getTraitValue(BasicTrait.Name);
-    		if (DEBUG) System.out.println("GameMaster:catalogTags: Cataloging actor: " + aName);
+    		if (LOG.isLoggable(Level.FINE)) { LOG.fine("Cataloging actor: " + aName);}
     		if ((matcher = nameTag.matcher(aName)).matches()) {
     			String name = matcher.group(1);
     			String tag = matcher.group(2);
@@ -379,11 +385,11 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
     			if (clean && a.isTypeAutomated() && (a.hasStatus(ActorStatus.Unconscious)
     														|| a.hasStatus(ActorStatus.Disabled)
     														|| a.hasStatus(ActorStatus.Dead))) {
-    				System.out.println("GameMaster:catalogTags: cleaning tag: " + tag);
+    				if (LOG.isLoggable(Level.FINE)) { LOG.fine("Cleaning tag: " + tag);}
     				a.setTrait(BasicTrait.Name, name);
     			} else {
 	    			if (tags.contains(tag)) 
-	    				System.out.println("-W- GameMaster:catalogTags: Duplicate tag detected! " + tag);
+	    				if (LOG.isLoggable(Level.INFO)) { LOG.info("Duplicate tag detected! " + tag);}
 	    			tags.add(tag);
     			}
     		}
@@ -394,46 +400,44 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 	@SuppressWarnings("serial")
 	private void initializeActions() {
 		// Undo / Redo
-		actionUndo = new GAction("Undo", "Undo the most recent edit (Ctrl+Z)", KeyEvent.VK_U, new ImageIcon(GITApp.class.getResource("/resources/images/arrow_undo.png"), "Undo")) {
+		actionUndo = new AbstractGAction("Undo", "Undo the most recent edit (Ctrl+Z)", KeyEvent.VK_U, new ImageIcon(GITApp.class.getResource("/resources/images/arrow_undo.png"), "Undo")) {
 			public void actionPerformed(ActionEvent arg0) {	
 				flushInteractiveEdits();
 				if (getCompoundLevel() > 0)
-					System.err.println("-E- GameMaster: Undo action: triggered while compound edit being built!");
+					if (LOG.isLoggable(Level.WARNING)) { LOG.warning("Undo action: triggered while compound edit being built!");}
 				try {
 					undoManager.undo();			
 				} catch (CannotUndoException e) {
-					System.out.println("-W- Cannot undo: " + e);
-					e.printStackTrace();
+					if (LOG.isLoggable(Level.WARNING)) { LOG.log(Level.WARNING, "Cannot undo: " + e, e);}
 				}
 				updateUndoRedo();
 			}
 		};
-		actionRedo = new GAction("Redo", "Redo the most recent undo (Ctrl+Y)", KeyEvent.VK_R, new ImageIcon(GITApp.class.getResource("/resources/images/arrow_redo.png"), "Redo")) {
+		actionRedo = new AbstractGAction("Redo", "Redo the most recent undo (Ctrl+Y)", KeyEvent.VK_R, new ImageIcon(GITApp.class.getResource("/resources/images/arrow_redo.png"), "Redo")) {
 			public void actionPerformed(ActionEvent arg0) {	
 				// TODO: what about interactive edits in progress?
 				if (getCompoundLevel() > 0)
-					System.err.println("-E- GameMaster: Undo action: triggered while compound edit being built!");
+					if (LOG.isLoggable(Level.WARNING)) { LOG.warning("Redo action: triggered while compound edit being built!");}
 				try {
 					undoManager.redo();
 				} catch (CannotRedoException e) {
-					System.out.println("-W- Cannot redo: " + e);
-					e.printStackTrace();
+					if (LOG.isLoggable(Level.WARNING)) { LOG.log(Level.WARNING, "Cannot redo: " + e, e);}
 				}
 				updateUndoRedo();		
 			}
 		};
 	
 		// Round Management
-		actionNextActor = new GAction("Next Combatant", "Move to the next active combatant in the turn sequence (Ctrl+N)", new ImageIcon(GITApp.class.getResource("/resources/images/control_play_blue.png"))) {
+		actionNextActor = new AbstractGAction("Next Combatant", "Move to the next active combatant in the turn sequence (Ctrl+N)", new ImageIcon(GITApp.class.getResource("/resources/images/control_play_blue.png"))) {
 			public void actionPerformed(ActionEvent arg0) {	startCompoundEdit(); nextActor(); selectActiveActor(); endCompoundEdit("Advance");}
 		};
-		actionEndRound = new GAction("End Round", "Step to the end of the turn sequence (Ctrl+E)", new ImageIcon(GITApp.class.getResource("/resources/images/control_end_blue.png"))) {
+		actionEndRound = new AbstractGAction("End Round", "Step to the end of the turn sequence (Ctrl+E)", new ImageIcon(GITApp.class.getResource("/resources/images/control_end_blue.png"))) {
 			public void actionPerformed(ActionEvent arg0) {	startCompoundEdit(); endRound(); selectActiveActor(); endCompoundEdit("Advance");}
 		};
-		actionNextRound = new GAction("Next Round", "Step to the start of the next round sequence (Ctrl+R)", new ImageIcon(GITApp.class.getResource("/resources/images/control_fastforward_blue.png"))) {
+		actionNextRound = new AbstractGAction("Next Round", "Step to the start of the next round sequence (Ctrl+R)", new ImageIcon(GITApp.class.getResource("/resources/images/control_fastforward_blue.png"))) {
 			public void actionPerformed(ActionEvent arg0) {	startCompoundEdit(); nextRound(); selectActiveActor(); endCompoundEdit("Advance");}
 		};
-		actionResetRound = new GAction("Reset Round Counter", "Reset the round counter (Alt+R)", new ImageIcon(GITApp.class.getResource("/resources/images/control_start_blue.png"))) {
+		actionResetRound = new AbstractGAction("Reset Round Counter", "Reset the round counter (Alt+R)", new ImageIcon(GITApp.class.getResource("/resources/images/control_start_blue.png"))) {
 			public void actionPerformed(ActionEvent arg0) {	
 				startCompoundEdit();
 				setRound(0);
@@ -442,7 +446,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 			}
 		};	
 		// Actor management
-		actionDeleteSelectedActors = new GAction("Delete", "Delete the selected combatants", null) {
+		actionDeleteSelectedActors = new AbstractGAction("Delete", "Delete the selected combatants", null) {
 			public void actionPerformed(ActionEvent arg0) { 
 				flushInteractiveEdits();
 				int result = JOptionPane.showConfirmDialog(initTable, "Are you sure you want to delete these rows?", "Confirm Row Delete", JOptionPane.OK_CANCEL_OPTION);
@@ -456,17 +460,17 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 				endCompoundEdit("Delete");
 			}
 		};
-		actionResetSelectedActors = new GAction("Reset", "Reset the state of the selected combatants", null) {
+		actionResetSelectedActors = new AbstractGAction("Reset", "Reset the state of the selected combatants", null) {
 			public void actionPerformed(ActionEvent arg0) { 
 				flushInteractiveEdits();
 				startCompoundEdit();
 		    	for (Actor a : initTable.getSelectedActors()) {
-		    		a.Reset();
+		    		a.reset();
 		    	}		  
 		    	endCompoundEdit("Reset");
 			}
 		};
-		actionSetSelectedActorActive = new GAction("Set Active", "Set the selected combatant to be currently active", null) {
+		actionSetSelectedActorActive = new AbstractGAction("Set Active", "Set the selected combatant to be currently active", null) {
 			public void actionPerformed(ActionEvent arg0) { 
 				flushInteractiveEdits();
 				startCompoundEdit();
@@ -476,7 +480,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 				endCompoundEdit("Set Act");
 			}
 		};
-		actionTagActors = new GAction("Update Tags", "Update all NPC tags (Ctrl+T)", new ImageIcon(GITApp.class.getResource("/resources/images/tag_blue_add.png"))) {
+		actionTagActors = new AbstractGAction("Update Tags", "Update all NPC tags (Ctrl+T)", new ImageIcon(GITApp.class.getResource("/resources/images/tag_blue_add.png"))) {
 			public void actionPerformed(ActionEvent arg0) {	
 				flushInteractiveEdits();
 				startCompoundEdit();
@@ -485,7 +489,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 				initTable.autoSizeColumns(); 
 			}
 		};
-		actionTagSelectedActors = new GAction("Tag", "Add tags to the selected combatants", null) {
+		actionTagSelectedActors = new AbstractGAction("Tag", "Add tags to the selected combatants", null) {
 			public void actionPerformed(ActionEvent arg0) { 
 				flushInteractiveEdits();
 				startCompoundEdit();
@@ -495,7 +499,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 				endCompoundEdit("Tag");
 			}
 		};
-		actionRemoveTagSelectedActors = new GAction("Remove Tag", "Remove tags from the selected combatants", null) {
+		actionRemoveTagSelectedActors = new AbstractGAction("Remove Tag", "Remove tags from the selected combatants", null) {
 			public void actionPerformed(ActionEvent arg0) { 
 				flushInteractiveEdits();
 				startCompoundEdit();
@@ -506,17 +510,17 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 			}
 		};
 		// Actor actions
-		actionAttack = new GAction("Attack", "Selected combatants attack (Ctrl+K)", new ImageIcon(GITApp.class.getResource("/resources/images/sword.png"))) {
+		actionAttack = new AbstractGAction("Attack", "Selected combatants attack (Ctrl+K)", new ImageIcon(GITApp.class.getResource("/resources/images/sword.png"))) {
 			public void actionPerformed(ActionEvent arg0) { 
 				flushInteractiveEdits();
 				startCompoundEdit();
 				for (Actor a : initTable.getSelectedActors()) {
-					a.Attack();
+					a.attack();
 				}
 				endCompoundEdit("Attack");
 			}
 		};
-		actionDefend = new GAction("Defend", "Selected combatant defends (Ctrl+D)", new ImageIcon(GITApp.class.getResource("/resources/images/shield.png"))) {
+		actionDefend = new AbstractGAction("Defend", "Selected combatant defends (Ctrl+D)", new ImageIcon(GITApp.class.getResource("/resources/images/shield.png"))) {
 			public void actionPerformed(ActionEvent arg0) { 
 				// Verify valid actor
 				Actor[] selected = initTable.getSelectedActors();
@@ -528,12 +532,12 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 				MiscUtil.validateOnScreen(defenseDialog);
 				defenseDialog.setVisible(true); // Modal call    			 
 				if (defenseDialog.valid) { // Process and log result!
-					actor.Defend(defenseDialog.defense);
+					actor.defend(defenseDialog.defense);
 				}
 			}
 		};
 		// Actor Editing
-		actionPostureStanding = new GAction("Standing", "Set posture to standing", new ImageIcon(GITApp.class.getResource("/resources/images/arrow_up.png"))) {
+		actionPostureStanding = new AbstractGAction("Standing", "Set posture to standing", new ImageIcon(GITApp.class.getResource("/resources/images/arrow_up.png"))) {
 			public void actionPerformed(ActionEvent arg0) { 
 				flushInteractiveEdits();
 				startCompoundEdit();
@@ -542,7 +546,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 				endCompoundEdit("Posture");
 			}
 		};
-		actionPostureKneeling = new GAction("Kneeling", "Set posture to kneeling", new ImageIcon(GITApp.class.getResource("/resources/images/arrow_down_right.png"))) {
+		actionPostureKneeling = new AbstractGAction("Kneeling", "Set posture to kneeling", new ImageIcon(GITApp.class.getResource("/resources/images/arrow_down_right.png"))) {
 			public void actionPerformed(ActionEvent arg0) { 
 				flushInteractiveEdits();
 				startCompoundEdit();
@@ -551,7 +555,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 				endCompoundEdit("Posture");
 			}
 		};
-		actionPostureProne = new GAction("Prone", "Set posture to prone", new ImageIcon(GITApp.class.getResource("/resources/images/arrow_down.png"))) {
+		actionPostureProne = new AbstractGAction("Prone", "Set posture to prone", new ImageIcon(GITApp.class.getResource("/resources/images/arrow_down.png"))) {
 			public void actionPerformed(ActionEvent arg0) {
 				flushInteractiveEdits();
 				startCompoundEdit();
@@ -560,69 +564,69 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 				endCompoundEdit("Posture");
 			}
 		};
-		actionStatusTogglePhysicalStun = new GAction("Physical Stun", "Toggle Status: Physically Stunned", new ImageIcon(GITApp.class.getResource("/resources/images/stun_phys.png"))) {
+		actionStatusTogglePhysicalStun = new AbstractGAction("Physical Stun", "Toggle Status: Physically Stunned", new ImageIcon(GITApp.class.getResource("/resources/images/stun_phys.png"))) {
 			public void actionPerformed(ActionEvent arg0) { toggleStatusOfSelectedActors(ActorStatus.StunPhys); }
 		};
-		actionStatusToggleMentalStun = new GAction("Mental Stun", "Toggle Status: Mentally Stunned", new ImageIcon(GITApp.class.getResource("/resources/images/stun_mental.png"))) {
+		actionStatusToggleMentalStun = new AbstractGAction("Mental Stun", "Toggle Status: Mentally Stunned", new ImageIcon(GITApp.class.getResource("/resources/images/stun_mental.png"))) {
 			public void actionPerformed(ActionEvent arg0) { toggleStatusOfSelectedActors(ActorStatus.StunMental); }
 		};
-		actionStatusToggleRecoveringStun = new GAction("Recovering from Stun", "Toggle Status: Recovering from Stun", new ImageIcon(GITApp.class.getResource("/resources/images/stun_recover.png"))) {
+		actionStatusToggleRecoveringStun = new AbstractGAction("Recovering from Stun", "Toggle Status: Recovering from Stun", new ImageIcon(GITApp.class.getResource("/resources/images/stun_recover.png"))) {
 			public void actionPerformed(ActionEvent arg0) { toggleStatusOfSelectedActors(ActorStatus.StunRecovr); }
 		};
-		actionStatusToggleAttacking = new GAction("Attacking", "Toggle Status: Attacking", new ImageIcon(GITApp.class.getResource("/resources/images/sword_rotate.png"))) {
+		actionStatusToggleAttacking = new AbstractGAction("Attacking", "Toggle Status: Attacking", new ImageIcon(GITApp.class.getResource("/resources/images/sword_rotate.png"))) {
 			public void actionPerformed(ActionEvent arg0) { toggleStatusOfSelectedActors(ActorStatus.Attacking); }
 		};
-		actionStatusToggleDisarmed = new GAction("Disarmed", "Toggle Status: Disarmed", new ImageIcon(GITApp.class.getResource("/resources/images/plus_blue.png"))) {
+		actionStatusToggleDisarmed = new AbstractGAction("Disarmed", "Toggle Status: Disarmed", new ImageIcon(GITApp.class.getResource("/resources/images/plus_blue.png"))) {
 			public void actionPerformed(ActionEvent arg0) { toggleStatusOfSelectedActors(ActorStatus.Disarmed); }
 		};
-		actionStatusToggleUnconscious = new GAction("Unconscious", "Toggle Status: Unconscious", new ImageIcon(GITApp.class.getResource("/resources/images/cross_yellow.png"))) {
+		actionStatusToggleUnconscious = new AbstractGAction("Unconscious", "Toggle Status: Unconscious", new ImageIcon(GITApp.class.getResource("/resources/images/cross_yellow.png"))) {
 			public void actionPerformed(ActionEvent arg0) { toggleStatusOfSelectedActors(ActorStatus.Unconscious); }
 		};
-		actionStatusToggleDead = new GAction("Dead", "Toggle Status: Dead", new ImageIcon(GITApp.class.getResource("/resources/images/cross.png"))) {
+		actionStatusToggleDead = new AbstractGAction("Dead", "Toggle Status: Dead", new ImageIcon(GITApp.class.getResource("/resources/images/cross.png"))) {
 			public void actionPerformed(ActionEvent arg0) { toggleStatusOfSelectedActors(ActorStatus.Dead); }
 		};
 		
-		actionCoordinateSelectedStatusAttacking = new GAction("Attacking", "Change selected combatants' Attacking status to be the same", null) {
+		actionCoordinateSelectedStatusAttacking = new AbstractGAction("Attacking", "Change selected combatants' Attacking status to be the same", null) {
 			public void actionPerformed(ActionEvent arg0) { coordinatedChangeStatusOfSelectedActors(ActorStatus.Attacking); }
 		};
-		actionCoordinateSelectedStatusDead = new GAction("Dead", "Change selected combatants' Dead status to be the same", null) {
+		actionCoordinateSelectedStatusDead = new AbstractGAction("Dead", "Change selected combatants' Dead status to be the same", null) {
 			public void actionPerformed(ActionEvent arg0) { coordinatedChangeStatusOfSelectedActors(ActorStatus.Dead); }
 		};
-		actionCoordinateSelectedStatusDisabled = new GAction("Disabled", "Change selected combatants' Disabled status to be the same", null) {
+		actionCoordinateSelectedStatusDisabled = new AbstractGAction("Disabled", "Change selected combatants' Disabled status to be the same", null) {
 			public void actionPerformed(ActionEvent arg0) { coordinatedChangeStatusOfSelectedActors(ActorStatus.Disabled); }
 		};
-		actionCoordinateSelectedStatusDisarmed = new GAction("Disarmed", "Change selected combatants' Disarmed status to be the same", null) {
+		actionCoordinateSelectedStatusDisarmed = new AbstractGAction("Disarmed", "Change selected combatants' Disarmed status to be the same", null) {
 			public void actionPerformed(ActionEvent arg0) { coordinatedChangeStatusOfSelectedActors(ActorStatus.Disarmed); }
 		};
-		actionCoordinateSelectedStatusUnconscious = new GAction("Unconscious", "Change selected combatants' Unconscious status to be the same", null) {
+		actionCoordinateSelectedStatusUnconscious = new AbstractGAction("Unconscious", "Change selected combatants' Unconscious status to be the same", null) {
 			public void actionPerformed(ActionEvent arg0) { coordinatedChangeStatusOfSelectedActors(ActorStatus.Unconscious); }
 		};		
-		actionCoordinateSelectedStatusWaiting = new GAction("Waiting", "Change selected combatants' Waiting status to be the same", null) {
+		actionCoordinateSelectedStatusWaiting = new AbstractGAction("Waiting", "Change selected combatants' Waiting status to be the same", null) {
 			public void actionPerformed(ActionEvent arg0) { coordinatedChangeStatusOfSelectedActors(ActorStatus.Waiting); }
 		};
-		actionCoordinateSelectedStatusMentalStun = new GAction("Mental Stun", "Change selected combatants' Mental Stun status to be the same", null) {
+		actionCoordinateSelectedStatusMentalStun = new AbstractGAction("Mental Stun", "Change selected combatants' Mental Stun status to be the same", null) {
 			public void actionPerformed(ActionEvent arg0) { coordinatedChangeStatusOfSelectedActors(ActorStatus.StunMental); }
 		};		
-		actionCoordinateSelectedStatusPhysicalStun = new GAction("Physical Stun", "Change selected combatants' Physical Stun status to be the same", null) {
+		actionCoordinateSelectedStatusPhysicalStun = new AbstractGAction("Physical Stun", "Change selected combatants' Physical Stun status to be the same", null) {
 			public void actionPerformed(ActionEvent arg0) { coordinatedChangeStatusOfSelectedActors(ActorStatus.StunPhys); }
 		};		
-		actionCoordinateSelectedStatusRecoveringStun = new GAction("Recovering Stun", "Change selected combatants' Recovering Stun status to be the same", null) {
+		actionCoordinateSelectedStatusRecoveringStun = new AbstractGAction("Recovering Stun", "Change selected combatants' Recovering Stun status to be the same", null) {
 			public void actionPerformed(ActionEvent arg0) { coordinatedChangeStatusOfSelectedActors(ActorStatus.StunRecovr); }
 		};
 		
-		actionSetSelectedTypePC = new GAction("PC", "Set type to PC", null) {
+		actionSetSelectedTypePC = new AbstractGAction("PC", "Set type to PC", null) {
 			public void actionPerformed(ActionEvent arg0) { setSelectedType(ActorType.PC); }
 		};
-		actionSetSelectedTypeAlly = new GAction("Ally", "Set type to Ally", null) {
+		actionSetSelectedTypeAlly = new AbstractGAction("Ally", "Set type to Ally", null) {
 			public void actionPerformed(ActionEvent arg0) { setSelectedType(ActorType.Ally); }
 		};
-		actionSetSelectedTypeNeutral = new GAction("Neutral", "Set type to Neutral", null) {
+		actionSetSelectedTypeNeutral = new AbstractGAction("Neutral", "Set type to Neutral", null) {
 			public void actionPerformed(ActionEvent arg0) { setSelectedType(ActorType.Neutral); }
 		};
-		actionSetSelectedTypeEnemy = new GAction("Enemy", "Set type to Enemy", null) {
+		actionSetSelectedTypeEnemy = new AbstractGAction("Enemy", "Set type to Enemy", null) {
 			public void actionPerformed(ActionEvent arg0) { setSelectedType(ActorType.Enemy); }
 		};
-		actionSetSelectedTypeSpecial = new GAction("Special", "Set type to Special", null) {
+		actionSetSelectedTypeSpecial = new AbstractGAction("Special", "Set type to Special", null) {
 			public void actionPerformed(ActionEvent arg0) { setSelectedType(ActorType.Special); }
 		};
 	
@@ -699,8 +703,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 	}	
 	public void endCompoundEdit(String display) {
 		if (getCompoundLevel() == 0) {
-			System.err.println("-E- GameMaster: endCompoundEdit: compound edit not started!!");
-			new Exception().printStackTrace();
+			if (LOG.isLoggable(Level.WARNING)) { LOG.log(Level.WARNING, "Compound edit not started!", new Exception());}
 			return;
 		} else { // End it and post it
 			CompoundEdit edit = compoundEdits.pop();
@@ -714,16 +717,16 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 	public void propertyChange(PropertyChangeEvent e) {
 		if (GameMaster.class.isInstance(e.getSource())) {
 			// Assume I'm the source
-			if (DEBUG) System.out.println("GameMaster: propertyChange: saw property change for Gamemaster");
+			if (LOG.isLoggable(Level.FINER)) { LOG.finer("Saw property change for Gamemaster");}
 			String propertyName = e.getPropertyName();
 			if (propertyName.equals("ActiveActor")) {
 				postUndoableEdit(new ActiveActorEdit((Integer) e.getOldValue(), (Integer) e.getNewValue()));
 			} else if (propertyName.equals("Round")) {
 				postUndoableEdit(new RoundEdit((Integer) e.getOldValue(), (Integer) e.getNewValue()));		
 			} else 
-				System.err.println("GameMaster: propertyChange: unrecognized GameMaster property: " + propertyName);
+				if (LOG.isLoggable(Level.WARNING)) { LOG.warning("Unrecognized GameMaster property: " + propertyName);}
 		} else {
-			System.err.println("GameMaster: propertyChange: unexpected source type: " + e.getSource().getClass().toString());
+			if (LOG.isLoggable(Level.WARNING)) { LOG.warning("Unexpected source type: " + e.getSource().getClass().toString());}
 		}
 	}
 

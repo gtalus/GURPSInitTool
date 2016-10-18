@@ -141,8 +141,6 @@ public class GroupTree extends JTree
 		treeModel.insertNodeInto(node, parentNode, position);
 	    mUes.postEdit(new NodeEdit(node, true));
 	}
-
-
     
     /**
      * Determine where a new node should be placed, based on the current selection

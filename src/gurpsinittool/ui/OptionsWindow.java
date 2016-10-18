@@ -9,25 +9,18 @@ import gurpsinittool.data.GameSettings;
 import gurpsinittool.util.MiscUtil;
 
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author dcsmall
  */
 public class OptionsWindow extends javax.swing.JFrame {
-
-    @Override
-	public void setVisible(boolean visible) {
-    	if (visible) {
-	    	MiscUtil.validateOnScreen(this); // Make sure the window is visible on screen!
-	   		if (!isVisible()) { 
-	   			copySettingsToComponents(); // If we're not visible and being made visible, get the current settings
-	   		} else if (getState() == java.awt.Frame.ICONIFIED) {
-	   			setState(java.awt.Frame.NORMAL); // If the window is iconified, make it visible
-	   		}
-    	}
-		super.setVisible(visible);
-	}
+	/**
+	 * Logger
+	 */
+	private final static Logger LOG = Logger.getLogger(OptionsWindow.class.getName());
 
 	public GameSettings currentSettings;
     private Properties propertyBag;
@@ -47,29 +40,29 @@ public class OptionsWindow extends javax.swing.JFrame {
 //        		Integer.valueOf(propertyBag.getProperty("Options.size.height")));
         
 		 if (propertyBag.containsKey("Options.game.AUTO_ATTACK")) {
-			 currentSettings.AUTO_ATTACK = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_ATTACK")); }
+			 currentSettings.autoAttack = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_ATTACK")); }
 		 if (propertyBag.containsKey("Options.game.AUTO_KNOCKDOWNSTUN")) {
-			 currentSettings.AUTO_KNOCKDOWNSTUN = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_KNOCKDOWNSTUN")); }
+			 currentSettings.autoKnockdownStun = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_KNOCKDOWNSTUN")); }
 		 if (propertyBag.containsKey("Options.game.AUTO_STUNRECOVERY")) {
-			 currentSettings.AUTO_STUNRECOVERY = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_STUNRECOVERY")); }
+			 currentSettings.autoStunRecovery = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_STUNRECOVERY")); }
 		 if (propertyBag.containsKey("Options.game.AUTO_UNCONSCIOUS")) {
-			 currentSettings.AUTO_UNCONSCIOUS = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_UNCONSCIOUS")); }
+			 currentSettings.autoUnconscious = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_UNCONSCIOUS")); }
 		 if (propertyBag.containsKey("Options.game.AUTOMATE_PC")) {
-			 currentSettings.AUTOMATE_PC = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTOMATE_PC")); }
+			 currentSettings.automatePC = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTOMATE_PC")); }
 		 if (propertyBag.containsKey("Options.game.AUTOMATE_ENEMY")) {
-			 currentSettings.AUTOMATE_ENEMY = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTOMATE_ENEMY")); }
+			 currentSettings.automateEnemy = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTOMATE_ENEMY")); }
 		 if (propertyBag.containsKey("Options.game.AUTOMATE_ALLY")) {
-			 currentSettings.AUTOMATE_ALLY = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTOMATE_ALLY")); }
+			 currentSettings.automateAlly = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTOMATE_ALLY")); }
 		 if (propertyBag.containsKey("Options.game.AUTOMATE_NEUTRAL")) {
-			 currentSettings.AUTOMATE_NEUTRAL = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTOMATE_NEUTRAL")); }
+			 currentSettings.automateNeutral = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTOMATE_NEUTRAL")); }
 		 if (propertyBag.containsKey("Options.game.AUTOMATE_SPECIAL")) {
-			 currentSettings.AUTOMATE_SPECIAL = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTOMATE_SPECIAL")); }
+			 currentSettings.automateSpecial = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTOMATE_SPECIAL")); }
 		 if (propertyBag.containsKey("Options.game.AUTO_SHOCK")) {
-			 currentSettings.AUTO_SHOCK = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_SHOCK")); }
+			 currentSettings.autoShock = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_SHOCK")); }
 		 if (propertyBag.containsKey("Options.game.LOG_STATUSCHANGES")) {
-			 currentSettings.LOG_STATUSCHANGES = Boolean.valueOf(propertyBag.getProperty("Options.game.LOG_STATUSCHANGES")); }
+			 currentSettings.logStatusChanges = Boolean.valueOf(propertyBag.getProperty("Options.game.LOG_STATUSCHANGES")); }
 		 if (propertyBag.containsKey("Options.game.LOG_DEFENSEDETAILS")) {
-			 currentSettings.LOG_DEFENSEDETAILS = Boolean.valueOf(propertyBag.getProperty("Options.game.LOG_DEFENSEDETAILS")); }
+			 currentSettings.logDefenseDetails = Boolean.valueOf(propertyBag.getProperty("Options.game.LOG_DEFENSEDETAILS")); }
     }
 
     /**
@@ -95,18 +88,18 @@ public class OptionsWindow extends javax.swing.JFrame {
 		 propertyBag.setProperty("Options.location.y", String.valueOf(getLocation().y));
 //		 propertyBag.setProperty("Options.size.width", String.valueOf(getSize().width));
 //		 propertyBag.setProperty("Options.size.height", String.valueOf(getSize().height));
-		 propertyBag.setProperty("Options.game.AUTO_ATTACK", String.valueOf(currentSettings.AUTO_ATTACK));
-		 propertyBag.setProperty("Options.game.AUTO_KNOCKDOWNSTUN", String.valueOf(currentSettings.AUTO_KNOCKDOWNSTUN));
-		 propertyBag.setProperty("Options.game.AUTO_STUNRECOVERY", String.valueOf(currentSettings.AUTO_STUNRECOVERY));
-		 propertyBag.setProperty("Options.game.AUTO_UNCONSCIOUS", String.valueOf(currentSettings.AUTO_UNCONSCIOUS));
-		 propertyBag.setProperty("Options.game.AUTOMATE_PC", String.valueOf(currentSettings.AUTOMATE_PC));
-		 propertyBag.setProperty("Options.game.AUTOMATE_ENEMY", String.valueOf(currentSettings.AUTOMATE_ENEMY));
-		 propertyBag.setProperty("Options.game.AUTOMATE_ALLY", String.valueOf(currentSettings.AUTOMATE_ALLY));
-		 propertyBag.setProperty("Options.game.AUTOMATE_NEUTRAL", String.valueOf(currentSettings.AUTOMATE_NEUTRAL));
-		 propertyBag.setProperty("Options.game.AUTOMATE_SPECIAL", String.valueOf(currentSettings.AUTOMATE_SPECIAL));
-		 propertyBag.setProperty("Options.game.AUTO_SHOCK", String.valueOf(currentSettings.AUTO_SHOCK));
-		 propertyBag.setProperty("Options.game.LOG_STATUSCHANGES", String.valueOf(currentSettings.LOG_STATUSCHANGES));
-		 propertyBag.setProperty("Options.game.LOG_DEFENSEDETAILS", String.valueOf(currentSettings.LOG_DEFENSEDETAILS));
+		 propertyBag.setProperty("Options.game.AUTO_ATTACK", String.valueOf(currentSettings.autoAttack));
+		 propertyBag.setProperty("Options.game.AUTO_KNOCKDOWNSTUN", String.valueOf(currentSettings.autoKnockdownStun));
+		 propertyBag.setProperty("Options.game.AUTO_STUNRECOVERY", String.valueOf(currentSettings.autoStunRecovery));
+		 propertyBag.setProperty("Options.game.AUTO_UNCONSCIOUS", String.valueOf(currentSettings.autoUnconscious));
+		 propertyBag.setProperty("Options.game.AUTOMATE_PC", String.valueOf(currentSettings.automatePC));
+		 propertyBag.setProperty("Options.game.AUTOMATE_ENEMY", String.valueOf(currentSettings.automateEnemy));
+		 propertyBag.setProperty("Options.game.AUTOMATE_ALLY", String.valueOf(currentSettings.automateAlly));
+		 propertyBag.setProperty("Options.game.AUTOMATE_NEUTRAL", String.valueOf(currentSettings.automateNeutral));
+		 propertyBag.setProperty("Options.game.AUTOMATE_SPECIAL", String.valueOf(currentSettings.automateSpecial));
+		 propertyBag.setProperty("Options.game.AUTO_SHOCK", String.valueOf(currentSettings.autoShock));
+		 propertyBag.setProperty("Options.game.LOG_STATUSCHANGES", String.valueOf(currentSettings.logStatusChanges));
+		 propertyBag.setProperty("Options.game.LOG_DEFENSEDETAILS", String.valueOf(currentSettings.logDefenseDetails));
 	 }
 	 
     /**
@@ -120,58 +113,58 @@ public class OptionsWindow extends javax.swing.JFrame {
 
         localSettings = new gurpsinittool.data.GameSettings();
         combatAutomationPanel = new javax.swing.JPanel();
-        auto_attack = new javax.swing.JCheckBox();
-        auto_unconsciousness = new javax.swing.JCheckBox();
-        auto_knockdown = new javax.swing.JCheckBox();
-        auto_stunrecovery = new javax.swing.JCheckBox();
+        autoAttack = new javax.swing.JCheckBox();
+        autoUnconsciousness = new javax.swing.JCheckBox();
+        autoKnockdown = new javax.swing.JCheckBox();
+        autoStunrecovery = new javax.swing.JCheckBox();
         jSeparator1 = new javax.swing.JSeparator();
         jLabel1 = new javax.swing.JLabel();
-        pc_automated = new javax.swing.JCheckBox();
-        enemy_automated = new javax.swing.JCheckBox();
-        ally_automated = new javax.swing.JCheckBox();
-        neutral_automated = new javax.swing.JCheckBox();
-        special_automated = new javax.swing.JCheckBox();
+        pcAutomated = new javax.swing.JCheckBox();
+        enemyAutomated = new javax.swing.JCheckBox();
+        allyAutomated = new javax.swing.JCheckBox();
+        neutralAutomated = new javax.swing.JCheckBox();
+        specialAutomated = new javax.swing.JCheckBox();
         okButton = new javax.swing.JButton();
         applyButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
-        log_defensedetails = new javax.swing.JCheckBox();
-        log_statuschanges = new javax.swing.JCheckBox();
+        logDefenseDetails = new javax.swing.JCheckBox();
+        logStatusChanges = new javax.swing.JCheckBox();
         jPanel2 = new javax.swing.JPanel();
-        auto_shock = new javax.swing.JCheckBox();
+        autoShock = new javax.swing.JCheckBox();
 
         setTitle("InitTool Settings");
 
         combatAutomationPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Automation"));
 
-        auto_attack.setText("Attack");
-        auto_attack.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
+        autoAttack.setText("Attack");
+        autoAttack.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
 
-        auto_unconsciousness.setText("Unconsciousness Checks");
-        auto_unconsciousness.setToolTipText("NPCs check for unconsciousness at the start of each of their turns.");
+        autoUnconsciousness.setText("Unconsciousness Checks");
+        autoUnconsciousness.setToolTipText("NPCs check for unconsciousness at the start of each of their turns.");
 
-        auto_knockdown.setText("Knockdown and Stunning");
-        auto_knockdown.setToolTipText("NPCs check for knockdown and stunning when taking sufficient damage.");
+        autoKnockdown.setText("Knockdown and Stunning");
+        autoKnockdown.setToolTipText("NPCs check for knockdown and stunning when taking sufficient damage.");
 
-        auto_stunrecovery.setText("Stun Recovery");
-        auto_stunrecovery.setToolTipText("Stunned NPCs check for stun recovery at the start of their turns.");
+        autoStunrecovery.setText("Stun Recovery");
+        autoStunrecovery.setToolTipText("Stunned NPCs check for stun recovery at the start of their turns.");
 
         jLabel1.setText("Combatant types automated:");
 
-        pc_automated.setText("PC");
-        pc_automated.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
+        pcAutomated.setText("PC");
+        pcAutomated.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
 
-        enemy_automated.setText("Enemy");
-        enemy_automated.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
+        enemyAutomated.setText("Enemy");
+        enemyAutomated.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
 
-        ally_automated.setText("Ally");
-        ally_automated.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
+        allyAutomated.setText("Ally");
+        allyAutomated.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
 
-        neutral_automated.setText("Neutral");
-        neutral_automated.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
+        neutralAutomated.setText("Neutral");
+        neutralAutomated.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
 
-        special_automated.setText("Special");
-        special_automated.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
+        specialAutomated.setText("Special");
+        specialAutomated.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
 
         javax.swing.GroupLayout combatAutomationPanelLayout = new javax.swing.GroupLayout(combatAutomationPanel);
         combatAutomationPanel.setLayout(combatAutomationPanelLayout);
@@ -179,20 +172,18 @@ public class OptionsWindow extends javax.swing.JFrame {
             combatAutomationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(combatAutomationPanelLayout.createSequentialGroup()
                 .addGroup(combatAutomationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(auto_attack)
-                    .addComponent(auto_unconsciousness)
-                    .addComponent(auto_knockdown)
-                    .addComponent(auto_stunrecovery)
+                    .addComponent(autoAttack)
+                    .addComponent(autoUnconsciousness)
+                    .addComponent(autoKnockdown)
+                    .addComponent(autoStunrecovery)
                     .addGroup(combatAutomationPanelLayout.createSequentialGroup()
                         .addContainerGap()
                         .addGroup(combatAutomationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(combatAutomationPanelLayout.createSequentialGroup()
-                                .addComponent(pc_automated)
-                                .addGap(18, 18, 18))
-                            .addComponent(enemy_automated)
-                            .addComponent(ally_automated)
-                            .addComponent(neutral_automated)
-                            .addComponent(special_automated)))
+                            .addComponent(pcAutomated)
+                            .addComponent(enemyAutomated)
+                            .addComponent(allyAutomated)
+                            .addComponent(neutralAutomated)
+                            .addComponent(specialAutomated)))
                     .addGroup(combatAutomationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                         .addComponent(jSeparator1, javax.swing.GroupLayout.Alignment.LEADING)
                         .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
@@ -201,27 +192,27 @@ public class OptionsWindow extends javax.swing.JFrame {
         combatAutomationPanelLayout.setVerticalGroup(
             combatAutomationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(combatAutomationPanelLayout.createSequentialGroup()
-                .addComponent(auto_attack)
+                .addComponent(autoAttack)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(auto_unconsciousness)
+                .addComponent(autoUnconsciousness)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(auto_knockdown)
+                .addComponent(autoKnockdown)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(auto_stunrecovery)
+                .addComponent(autoStunrecovery)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel1)
                 .addGap(1, 1, 1)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(pc_automated)
+                .addComponent(pcAutomated)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(enemy_automated)
+                .addComponent(enemyAutomated)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(ally_automated)
+                .addComponent(allyAutomated)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(neutral_automated)
+                .addComponent(neutralAutomated)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(special_automated)
+                .addComponent(specialAutomated)
                 .addGap(0, 7, Short.MAX_VALUE))
         );
 
@@ -248,11 +239,11 @@ public class OptionsWindow extends javax.swing.JFrame {
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Logging"));
 
-        log_defensedetails.setText("Defense details");
-        log_defensedetails.setToolTipText("Log defense details (retreat/EE/side/etc.)");
+        logDefenseDetails.setText("Defense details");
+        logDefenseDetails.setToolTipText("Log defense details (retreat/EE/side/etc.)");
 
-        log_statuschanges.setText("Verbose Status Changes");
-        log_statuschanges.setToolTipText("Log all status changes");
+        logStatusChanges.setText("Verbose Status Changes");
+        logStatusChanges.setToolTipText("Log all status changes");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -260,34 +251,34 @@ public class OptionsWindow extends javax.swing.JFrame {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(log_statuschanges)
-                    .addComponent(log_defensedetails))
+                    .addComponent(logStatusChanges)
+                    .addComponent(logDefenseDetails))
                 .addGap(0, 0, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addComponent(log_statuschanges)
+                .addComponent(logStatusChanges)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(log_defensedetails))
+                .addComponent(logDefenseDetails))
         );
 
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Game Rules"));
 
-        auto_shock.setText("Shock");
-        auto_shock.setToolTipText("Track and apply shock to all attack rolls");
+        autoShock.setText("Shock");
+        autoShock.setToolTipText("Track and apply shock to all attack rolls");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addComponent(auto_shock)
+                .addComponent(autoShock)
                 .addGap(0, 0, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(auto_shock)
+            .addComponent(autoShock)
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -324,13 +315,13 @@ public class OptionsWindow extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
-        System.out.println("DefenseDialog: OK!");
+        if (LOG.isLoggable(Level.FINE)) {LOG.fine("DefenseDialog: OK!");}
         copyComponentsToSettings();
     	setVisible(false);
     }//GEN-LAST:event_okButtonActionPerformed
 
     private void applyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_applyButtonActionPerformed
-        System.out.println("OptionsWindow: Apply!");
+    	if (LOG.isLoggable(Level.FINE)) {LOG.fine("OptionsWindow: Apply!");}
         copyComponentsToSettings();
     }//GEN-LAST:event_applyButtonActionPerformed
 
@@ -339,34 +330,48 @@ public class OptionsWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_cancelButtonActionPerformed
 
     private void copySettingsToComponents() {
-    	auto_attack.setSelected(currentSettings.AUTO_ATTACK);
-    	auto_knockdown.setSelected(currentSettings.AUTO_KNOCKDOWNSTUN);
-    	auto_stunrecovery.setSelected(currentSettings.AUTO_STUNRECOVERY);
-    	auto_unconsciousness.setSelected(currentSettings.AUTO_UNCONSCIOUS);
-    	pc_automated.setSelected(currentSettings.AUTOMATE_PC);
-    	enemy_automated.setSelected(currentSettings.AUTOMATE_ENEMY);
-    	ally_automated.setSelected(currentSettings.AUTOMATE_ALLY);
-    	neutral_automated.setSelected(currentSettings.AUTOMATE_NEUTRAL);
-    	special_automated.setSelected(currentSettings.AUTOMATE_SPECIAL);
-    	auto_shock.setSelected(currentSettings.AUTO_SHOCK);
-        log_statuschanges.setSelected(currentSettings.LOG_STATUSCHANGES);
-        log_defensedetails.setSelected(currentSettings.LOG_DEFENSEDETAILS);
+    	autoAttack.setSelected(currentSettings.autoAttack);
+    	autoKnockdown.setSelected(currentSettings.autoKnockdownStun);
+    	autoStunrecovery.setSelected(currentSettings.autoStunRecovery);
+    	autoUnconsciousness.setSelected(currentSettings.autoUnconscious);
+    	pcAutomated.setSelected(currentSettings.automatePC);
+    	enemyAutomated.setSelected(currentSettings.automateEnemy);
+    	allyAutomated.setSelected(currentSettings.automateAlly);
+    	neutralAutomated.setSelected(currentSettings.automateNeutral);
+    	specialAutomated.setSelected(currentSettings.automateSpecial);
+    	autoShock.setSelected(currentSettings.autoShock);
+        logStatusChanges.setSelected(currentSettings.logStatusChanges);
+        logDefenseDetails.setSelected(currentSettings.logDefenseDetails);
     }
     
     public void copyComponentsToSettings() {
-    	currentSettings.AUTO_ATTACK = auto_attack.isSelected();
-    	currentSettings.AUTO_KNOCKDOWNSTUN = auto_knockdown.isSelected();
-    	currentSettings.AUTO_STUNRECOVERY = auto_stunrecovery.isSelected();
-    	currentSettings.AUTO_UNCONSCIOUS = auto_unconsciousness.isSelected();   
-    	currentSettings.AUTO_SHOCK = auto_shock.isSelected();
-    	currentSettings.AUTOMATE_PC = pc_automated.isSelected();
-       	currentSettings.AUTOMATE_ENEMY = enemy_automated.isSelected();
-       	currentSettings.AUTOMATE_ALLY = ally_automated.isSelected();
-       	currentSettings.AUTOMATE_NEUTRAL = neutral_automated.isSelected();
-       	currentSettings.AUTOMATE_SPECIAL = special_automated.isSelected();
-    	currentSettings.LOG_STATUSCHANGES = log_statuschanges.isSelected();
-    	currentSettings.LOG_DEFENSEDETAILS = log_defensedetails.isSelected();
+    	currentSettings.autoAttack = autoAttack.isSelected();
+    	currentSettings.autoKnockdownStun = autoKnockdown.isSelected();
+    	currentSettings.autoStunRecovery = autoStunrecovery.isSelected();
+    	currentSettings.autoUnconscious = autoUnconsciousness.isSelected();   
+    	currentSettings.autoShock = autoShock.isSelected();
+    	currentSettings.automatePC = pcAutomated.isSelected();
+       	currentSettings.automateEnemy = enemyAutomated.isSelected();
+       	currentSettings.automateAlly = allyAutomated.isSelected();
+       	currentSettings.automateNeutral = neutralAutomated.isSelected();
+       	currentSettings.automateSpecial = specialAutomated.isSelected();
+    	currentSettings.logStatusChanges = logStatusChanges.isSelected();
+    	currentSettings.logDefenseDetails = logDefenseDetails.isSelected();
     }
+    
+    @Override
+	public void setVisible(boolean visible) {
+    	if (visible) {
+	    	MiscUtil.validateOnScreen(this); // Make sure the window is visible on screen!
+	   		if (!isVisible()) { 
+	   			copySettingsToComponents(); // If we're not visible and being made visible, get the current settings
+	   		} else if (getState() == java.awt.Frame.ICONIFIED) {
+	   			setState(java.awt.Frame.NORMAL); // If the window is iconified, make it visible
+	   		}
+    	}
+		super.setVisible(visible);
+	}
+    
     /**
      * @param args the command line arguments
      */
@@ -403,26 +408,26 @@ public class OptionsWindow extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JCheckBox ally_automated;
+    private javax.swing.JCheckBox allyAutomated;
     private javax.swing.JButton applyButton;
-    private javax.swing.JCheckBox auto_attack;
-    private javax.swing.JCheckBox auto_knockdown;
-    private javax.swing.JCheckBox auto_shock;
-    private javax.swing.JCheckBox auto_stunrecovery;
-    private javax.swing.JCheckBox auto_unconsciousness;
+    private javax.swing.JCheckBox autoAttack;
+    private javax.swing.JCheckBox autoKnockdown;
+    private javax.swing.JCheckBox autoShock;
+    private javax.swing.JCheckBox autoStunrecovery;
+    private javax.swing.JCheckBox autoUnconsciousness;
     private javax.swing.JButton cancelButton;
     private javax.swing.JPanel combatAutomationPanel;
-    private javax.swing.JCheckBox enemy_automated;
+    private javax.swing.JCheckBox enemyAutomated;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JSeparator jSeparator1;
     private gurpsinittool.data.GameSettings localSettings;
-    private javax.swing.JCheckBox log_defensedetails;
-    private javax.swing.JCheckBox log_statuschanges;
-    private javax.swing.JCheckBox neutral_automated;
+    private javax.swing.JCheckBox logDefenseDetails;
+    private javax.swing.JCheckBox logStatusChanges;
+    private javax.swing.JCheckBox neutralAutomated;
     private javax.swing.JButton okButton;
-    private javax.swing.JCheckBox pc_automated;
-    private javax.swing.JCheckBox special_automated;
+    private javax.swing.JCheckBox pcAutomated;
+    private javax.swing.JCheckBox specialAutomated;
     // End of variables declaration//GEN-END:variables
 }

@@ -8,11 +8,15 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.AbstractAction;
 import javax.swing.Box;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
@@ -34,21 +38,29 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.text.DefaultEditorKit;
-import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+
+import gurpsinittool.data.Actor;
 import gurpsinittool.data.ActorGroupFile;
 import gurpsinittool.data.GameMaster;
+import gurpsinittool.gca.GCACharacter;
+import gurpsinittool.gca.GCAFile;
+import gurpsinittool.gca.GCAImporter;
 import gurpsinittool.ui.ActorDetailsPanel_v2;
 import gurpsinittool.util.FileChangeEvent;
 import gurpsinittool.util.FileChangeEventListener;
+import gurpsinittool.util.MiscUtil;
 import gurpsinittool.util.SearchSupport;
 
 public class GroupManager extends JFrame 
 	implements TreeSelectionListener, ActionListener, ItemListener, ListSelectionListener {
-
+	/**
+	 * Logger
+	 */
+	private final static Logger LOG = Logger.getLogger(GroupManager.class.getName());
+	
 	// Default SVUID
 	private static final long serialVersionUID = 1L;
-
-	private static final boolean DEBUG = false;
 
 	private JSplitPane jSplitPaneVertical;
 	private JSplitPane jSplitPaneHorizontal;
@@ -62,7 +74,8 @@ public class GroupManager extends JFrame
 	private JToolBar toolbar;
 	private GroupTree groupTree;
 	
-	private JFileChooser fileChooser;
+	private JFileChooser groupFileChooser;
+	private JFileChooser gcaFileChooser;
 	private File saveAsFile;
 	private boolean tableIsClean = true;
 	private boolean treeIsClean = true;
@@ -87,6 +100,7 @@ public class GroupManager extends JFrame
 		gameMaster = new GameMaster();
 		actorDetailsPanel = new ActorDetailsPanel_v2(false);
 		groupTable = new InitTable(gameMaster, false, propertyBag);
+		groupTable.getActorTableModel().setActorList(null);
 		groupTree = new GroupTree(groupTable);
 		searchSupport = new SearchSupport(getRootPane(), groupTree, groupTable);
 		
@@ -100,11 +114,18 @@ public class GroupManager extends JFrame
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         
         // The file chooser
-        fileChooser = new JFileChooser();
-        fileChooser.setCurrentDirectory(new File("."));
-        GroupFilter defaultFilter = new GroupFilter();
-        fileChooser.addChoosableFileFilter(defaultFilter);
-        fileChooser.setFileFilter(defaultFilter);
+        groupFileChooser = new JFileChooser();
+        groupFileChooser.setCurrentDirectory(new File(propertyBag.getProperty("Manager.groupFileChooser.defaultLocation"))); 
+        GroupFilter groupFilter = new GroupFilter();
+        groupFileChooser.addChoosableFileFilter(groupFilter);
+        groupFileChooser.setFileFilter(groupFilter);
+        
+        gcaFileChooser = new JFileChooser();
+        gcaFileChooser.setCurrentDirectory(new File(propertyBag.getProperty("Manager.gcaFileChooser.defaultLocation"))); 
+        GCAFilter gcaFilter = new GCAFilter();
+        gcaFileChooser.addChoosableFileFilter(gcaFilter);
+        gcaFileChooser.setFileFilter(gcaFilter);        
+        gcaFileChooser.setMultiSelectionEnabled(true);
  
         // The menu bar
         jMenuBar = new JMenuBar();
@@ -125,6 +146,12 @@ public class GroupManager extends JFrame
         menuItem = new JMenuItem("Save", KeyEvent.VK_S);
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
         menuItem.getAccessibleContext().setAccessibleDescription("Save the group list");
+        menuItem.addActionListener(this);
+        jMenu.add(menuItem);
+        jMenu.addSeparator();
+        menuItem = new JMenuItem("Import GCA4...", KeyEvent.VK_I);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, ActionEvent.CTRL_MASK));
+        menuItem.getAccessibleContext().setAccessibleDescription("Import a GCA4 character file");
         menuItem.addActionListener(this);
         jMenu.add(menuItem);
         jMenuBar.add(jMenu);
@@ -224,7 +251,7 @@ public class GroupManager extends JFrame
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-    	if (DEBUG) { System.out.println("GroupManager: actionPerformed: Received action command " + e.getActionCommand()); }
+    	if (LOG.isLoggable(Level.FINE)) {LOG.fine("Received action command " + e.getActionCommand()); }
     	if ("Save As...".equals(e.getActionCommand())) { // Save group list with prompt for the file name
     		saveGroupFile(null);
     	}
@@ -237,21 +264,24 @@ public class GroupManager extends JFrame
     	else if ("New".equals(e.getActionCommand()) && querySaveChanges()) { // Create new group list
           	newGroupFile();
     	}
+    	else if ("Import GCA4...".equals(e.getActionCommand())) { // Import GCA4 character
+    		userImportGCA4Files();
+    	}
 	}
 
 	@Override
 	public void itemStateChanged(ItemEvent e) {
-    	if (DEBUG) { System.out.println("GroupManager: itemStateChanged: Received item state changed " + e.toString()); }
+		if (LOG.isLoggable(Level.FINE)) {LOG.fine(" Received item state changed " + e.toString()); }
     	JMenuItem source = (JMenuItem) e.getSource();
     	if ("Actor Details".equals(source.getText())) { // Show/hide the actor details panel
          	boolean selected = (e.getStateChange() == ItemEvent.SELECTED);
-         	if (DEBUG) { System.out.println("GroupManager: itemStateChanged: View/Actor Details item state changed. Selected = " + selected); }
+         	if (LOG.isLoggable(Level.FINER)) {LOG.finer("View/Actor Details item state changed. Selected = " + selected); }
          	propertyBag.setProperty("Manager.actorDetails.visible", String.valueOf(selected));
          	layoutActorPanel();
     	}
     	else if ("Auto-fit columns".equals(source.getText())) { // Auto-fit columns automatically
          	boolean selected = (e.getStateChange() == ItemEvent.SELECTED);
-         	if (DEBUG) { System.out.println("GroupManager: itemStateChanged: Tools/Auto-fit columns item state changed. Selected = " + selected); }
+         	if (LOG.isLoggable(Level.FINER)) {LOG.finer("Tools/Auto-fit columns item state changed. Selected = " + selected); }
          	propertyBag.setProperty("Manager.groupTable.autoResize", String.valueOf(selected));
          	if (selected)
          		groupTable.autoSizeColumns();
@@ -260,12 +290,12 @@ public class GroupManager extends JFrame
 	
 	@Override
 	public void valueChanged(TreeSelectionEvent e) {
-		if (DEBUG) { System.out.println("GroupManager: valueChanged: TreeSelectionEvent: " + e.toString()); }
+		if (LOG.isLoggable(Level.FINER)) {LOG.finer("TreeSelectionEvent: " + e.toString()); }
 		// Stop editing the table, if editing is currently in progress
 		if(groupTable.getCellEditor() != null) { groupTable.getCellEditor().stopCellEditing(); }
 		InitTableModel tableModel = groupTable.getActorTableModel();
 		if (groupTree.getLastSelectedPathComponent() != null) {
-			if (DEBUG) { System.out.println("GroupManager: valueChanged: Current Selection: " + groupTree.getLastSelectedPathComponent().toString()); }
+			if (LOG.isLoggable(Level.FINER)) {LOG.finer("Current Selection: " + groupTree.getLastSelectedPathComponent().toString()); }
 			GroupTreeNode node = (GroupTreeNode) groupTree.getLastSelectedPathComponent();
 			if (node.isGroup()) { // If current selection is a group, display the actors
 				tableModel.setActorList(node.getActorList());
@@ -277,7 +307,7 @@ public class GroupManager extends JFrame
 			}
 		}
 		else {
-			if (DEBUG) { System.out.println("GroupManager: valueChanged - Current Selection: null"); }
+			if (LOG.isLoggable(Level.FINER)) {LOG.finer("Current Selection: null"); }
 			groupTable.setVisible(false);
 			tableModel.setActorList(null);
 		}
@@ -318,7 +348,7 @@ public class GroupManager extends JFrame
 	 * use querySaveChanges() if you want to query the user to save changes.
 	 */
 	public void newGroupFile() {
-		if (DEBUG) { System.out.println("GroupManager: newGroupFile: Creating new group list"); }
+		if (LOG.isLoggable(Level.FINE)) {LOG.fine("Creating new group list"); }
     	groupTree.setNewModel();
     	saveAsFile = null;
     	groupTree.setClean();
@@ -333,15 +363,15 @@ public class GroupManager extends JFrame
 	 */
 	public boolean loadGroupFile(File file) {
 		if (file == null) {
-        	if (DEBUG) { System.out.println("GroupManager: loadGroupFile: Opening file: Displaying file chooser"); }
-			int retVal = fileChooser.showOpenDialog(this);
+			if (LOG.isLoggable(Level.FINE)) {LOG.fine("Opening file: Displaying file chooser"); }        	
+			int retVal = groupFileChooser.showOpenDialog(this);
 			if (retVal == JFileChooser.APPROVE_OPTION) {
-				file = fileChooser.getSelectedFile();
+				file = groupFileChooser.getSelectedFile();
 			}
 			else { return false; }
 		}
-		if (DEBUG) { System.out.println("GroupManager: loadGroupFile: Opening file: " + file.getName()); }
-    	ActorGroupFile.OpenActorGroupTree(groupTree, file);
+		if (LOG.isLoggable(Level.FINE)) {LOG.fine("Opening file: " + file.getName()); }
+    	ActorGroupFile.openActorGroupTree(groupTree, file);
     	saveAsFile = file;
 		groupTree.setClean();
 		groupTable.getActorTableModel().setClean();
@@ -355,11 +385,11 @@ public class GroupManager extends JFrame
 	 * @return whether the save was completed successfully.
 	 */
 	 public boolean saveGroupFile(File file) {
-	    	if (file == null) { // Pick file
-	    		int retVal = fileChooser.showSaveDialog(this);
-            	if (DEBUG) { System.out.println("GroupManager: saveGroupFile: Displaying file chooser"); }
+	    	if (file == null) { // Pick file	    		
+	    		int retVal = groupFileChooser.showSaveDialog(this);
+	    		if (LOG.isLoggable(Level.FINE)) {LOG.fine("Displaying file chooser"); }
 	    		if (retVal == JFileChooser.APPROVE_OPTION) {
-	    			file = fileChooser.getSelectedFile();
+	    			file = groupFileChooser.getSelectedFile();
 	        		if (!file.toString().contains(".")) { file = new File(file.toString() + ".igroup"); }
 	        		if (file.exists ()) {
 	                    int response = JOptionPane.showConfirmDialog (null,
@@ -374,14 +404,73 @@ public class GroupManager extends JFrame
 	    		}
 	    	}
 	    	// save group list
-         	if (DEBUG) { System.out.println("GroupManager: saveGroupFile: Saving group list as file: " + file.getName()); }
-    		ActorGroupFile.SaveActorGroupTree(groupTree, file);
+	    	if (LOG.isLoggable(Level.FINE)) {LOG.fine("Saving group list as file: " + file.getName()); }
+    		ActorGroupFile.saveActorGroupTree(groupTree, file);
     		groupTree.setClean();
     		groupTable.getActorTableModel().setClean();
     		super.setTitle("Groups Manager - " + file.getName());
     		saveAsFile = file;
     		
     		return true;
+	 }
+	 
+	 /**
+	  * Show the user a file chooser to import GCA4 files
+	  * @return if any files were imported
+	  */
+	 public boolean userImportGCA4Files() {
+		 if (LOG.isLoggable(Level.FINE)) {LOG.fine("Opening file: Displaying file chooser"); }			
+		 int retVal = gcaFileChooser.showOpenDialog(this);
+		 if (retVal == JFileChooser.APPROVE_OPTION) {
+			 File [] files = gcaFileChooser.getSelectedFiles();
+			 if (files.length == 0) {
+				 if (LOG.isLoggable(Level.FINE)) {LOG.fine("No files selected!"); }
+				 return false;
+			 }
+			 boolean successful = false;
+			 for (int i = 0; i < files.length; i++) {
+				 if (importGCA4File(files[i])) {
+					 successful = true;
+				 } else {
+					 if (LOG.isLoggable(Level.INFO)) {LOG.info("Unable to import file '" + files[i].getPath() + "'"); }
+				 }
+			 }
+			 return successful;
+		 }
+		 else { 
+			 if (LOG.isLoggable(Level.FINE)) {LOG.fine("User cancelled operation"); }
+			 return false; 
+		 }
+	 }
+	 /**
+	  * Import a GCA4 character file
+	  * @param file - the file to load from. Open File dialog used if file is null.
+	  * @return whether the load was completed successfully.
+	  */
+	 public boolean importGCA4File(File file) {
+		 if (file == null) {
+			 if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Given null file!"); }			
+			 return false;
+		 }
+		 if (LOG.isLoggable(Level.FINE)) {LOG.fine("Opening file: " + file.getName()); }
+		 Actor importedActor;
+		 try {
+			 importedActor = GCAImporter.importActor(file);
+		 } catch (FileNotFoundException e) {
+			 if (LOG.isLoggable(Level.SEVERE)) {LOG.log(Level.SEVERE, e.getMessage(), e);}
+			 return false;
+		 }
+
+		 // Check if there is no valid selected group currently
+		 if (groupTable.getActorTableModel().getRowCount() == 0) {
+			 if (LOG.isLoggable(Level.FINE)) {LOG.fine("Creating new group to hold imported actor!"); }
+			 GroupTreeNode newGroup = groupTree.addNode("GCA4 Import", true);
+			 TreePath groupPath = new TreePath(newGroup.getPath());
+			 groupTree.getSelectionModel().setSelectionPath(groupPath);			 			
+		 } 		
+		 if (LOG.isLoggable(Level.FINE)) {LOG.fine("Adding imported actor to currently selected group"); }
+		 groupTable.getActorTableModel().addActor(importedActor, groupTable.getActorTableModel().getRowCount()-1);
+		 return true;
 	 }
 	    	
 	 /**
@@ -424,7 +513,12 @@ public class GroupManager extends JFrame
 			 propertyBag.setProperty("Manager.size.width", "620"); }
 		 if (!propertyBag.containsKey("Manager.size.height")) {
 			 propertyBag.setProperty("Manager.size.height", "450"); }
-
+		 if (!propertyBag.containsKey("Manager.groupFileChooser.defaultLocation") 
+				 || !Files.isDirectory(Paths.get(propertyBag.getProperty("Manager.groupFileChooser.defaultLocation")))) {
+			 propertyBag.setProperty("Manager.groupFileChooser.defaultLocation", "."); }
+		 if (!propertyBag.containsKey("Manager.gcaFileChooser.defaultLocation") 
+				 || !Files.isDirectory(Paths.get(propertyBag.getProperty("Manager.gcaFileChooser.defaultLocation")))) {
+			 propertyBag.setProperty("Manager.gcaFileChooser.defaultLocation", "."); }
 	 }
 	 
 	 /**
@@ -440,6 +534,8 @@ public class GroupManager extends JFrame
 		 propertyBag.setProperty("Manager.location.y", String.valueOf(getLocation().y));
 		 propertyBag.setProperty("Manager.size.width", String.valueOf(getSize().width));
 		 propertyBag.setProperty("Manager.size.height", String.valueOf(getSize().height));
+		 propertyBag.setProperty("Manager.groupFileChooser.defaultLocation", groupFileChooser.getCurrentDirectory().getPath());
+		 propertyBag.setProperty("Manager.gcaFileChooser.defaultLocation", gcaFileChooser.getCurrentDirectory().getPath());
 		 // Optional properties
 		 if (saveAsFile != null) { propertyBag.setProperty("Manager.currentLoadedFile", saveAsFile.getAbsolutePath());}
 		 else { propertyBag.remove("Manager.currentLoadedFile");}
@@ -453,22 +549,22 @@ public class GroupManager extends JFrame
 
 		@Override
 		public void fileChangeOccured(FileChangeEvent evt) {
-			if (DEBUG) { System.out.println("GroupManager: FileChangeOccured."); }
+			if (LOG.isLoggable(Level.FINER)) {LOG.finer("FileChangeOccured."); }
 		}
 	
 		@Override
 		public void fileCleanStatusChanged(FileChangeEvent evt) {
 			Object source = evt.getSource();
 			if (source instanceof InitTableModel) {
-				if (DEBUG) { System.out.println("GroupManager: FileCleanStatusChanged: ActorTableModel " + evt.isClean); }
-				tableIsClean = evt.isClean;
+				if (LOG.isLoggable(Level.FINE)) {LOG.fine("ActorTableModel " + evt.isClean()); }
+				tableIsClean = evt.isClean();
 			}
 			else if (source instanceof GroupTree) {
-				if (DEBUG) { System.out.println("GroupManager: FileCleanStatusChanged: GroupTree " + evt.isClean); }
-				treeIsClean = evt.isClean;
+				if (LOG.isLoggable(Level.FINE)) {LOG.fine("GroupTree " + evt.isClean()); }
+				treeIsClean = evt.isClean();
 			}
 			else {
-				if (DEBUG) { System.out.println("GroupManager: FileCleanStatusChanged: UNKNOWN " + evt.isClean); }
+				if (LOG.isLoggable(Level.WARNING)) {LOG.warning("UNKNOWN " + evt.isClean()); }
 			}
 	
 			if (tableIsClean && treeIsClean) {
@@ -497,12 +593,12 @@ public class GroupManager extends JFrame
 
 		@Override
 		public void tableChanged(TableModelEvent evt) {
-			if (DEBUG) { System.out.println("GroupManager: TableModelChange occured."); }
+			if (LOG.isLoggable(Level.FINER)) {LOG.finer("TableModelChange occured."); }
 			// Check for auto-resize
 			if (evt.getType() == TableModelEvent.UPDATE && evt.getFirstRow() == TableModelEvent.HEADER_ROW 
 					&& evt.getColumn() == TableModelEvent.ALL_COLUMNS) { // Changed column structure
 				// skip
-				if (DEBUG) { System.out.println("    Detected structure change- skipping"); }
+				if (LOG.isLoggable(Level.FINER)) {LOG.finer("    Detected structure change- skipping"); }
 			} else {
 				if(Boolean.valueOf(propertyBag.getProperty("Manager.groupTable.autoResize")))
 					groupTable.autoSizeColumns();
@@ -519,6 +615,17 @@ public class GroupManager extends JFrame
 		@Override
 		public String getDescription() {
 			return "InitTool Group Set (*.igroup)";
+		}
+	}
+	
+	private class GCAFilter extends FileFilter {
+		@Override
+		public boolean accept(File f) { 
+			return (f.isDirectory() || f.toString().endsWith(".gca4"));
+		}
+		@Override
+		public String getDescription() {
+			return "GURPS Character Assistant 4 (*.gca4)";
 		}
 	}
 

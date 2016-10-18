@@ -2,38 +2,45 @@ package gurpsinittool.data;
 
 import gurpsinittool.data.HitLocations.HitLocation;
 import gurpsinittool.util.DieRoller;
+import gurpsinittool.util.MiscUtil;
 
 import java.text.ParseException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Damage {
-
-	public int BasicDamage;
-	public double ArmorDivisor;
-	public boolean Explosive; // 'ex' keyword. Only used for diffuse max damage currently. Stand-in for Explosive, Wide Area and Cone attacks
+	/**
+	 * Logger
+	 */
+	private final static Logger LOG = Logger.getLogger(Damage.class.getName());
+	
+	public int basicDamage;
+	public double armorDivisor;
+	public boolean explosive; // 'ex' keyword. Only used for diffuse max damage currently. Stand-in for Explosive, Wide Area and Cone attacks
 
 	// _ => -
 	// 4 => +
 	public enum DamageType {aff, burn, cor, cr, cut, fat, imp, pi_, pi, pi4, pi44, spec, tbb, tox};
-	public DamageType Type;
+	public DamageType type;
 	
 	public Damage(int basic, DamageType type) {
 		this(basic,1,type,false);
 	}
 
 	public Damage(int basic, double divisor, DamageType type, boolean explosive) {
-		BasicDamage=basic;
-		ArmorDivisor=divisor;
-		Type = type;
-		Explosive = explosive;
+		basicDamage=basic;
+		armorDivisor=divisor;
+		this.type = type;
+		this.explosive = explosive;
 		
 		// Apply minimum damage based on type
-		int min_damage = (type==DamageType.cr)?0:1;
-		BasicDamage = (BasicDamage < min_damage)?min_damage:BasicDamage;
+		int minDamage = (type==DamageType.cr)?0:1;
+		basicDamage = (basicDamage < minDamage)?minDamage:basicDamage;
 	}
 	
-	public static Damage ParseDamage(String damage) throws ParseException {
+	public static Damage parseDamage(String damage) throws ParseException {
 		Matcher matcher;
 		Pattern empty = Pattern.compile("^$");
 		Pattern numdivtype = Pattern.compile("^(\\d+)\\s*(\\(([\\d\\.]+)\\))?\\s*([^d\\d\\s]+)?\\s*(ex)?$"); // x (2) cr 
@@ -45,7 +52,7 @@ public class Damage {
 		else if ((matcher = numdivtype.matcher(damage)).matches()) {
 			int num = Integer.parseInt(matcher.group(1));
 			double div = (matcher.group(3) != null)?Double.parseDouble(matcher.group(3)):1;
-			DamageType type = (matcher.group(4) != null)?ParseType(matcher.group(4)):DamageType.cut;
+			DamageType type = (matcher.group(4) != null)?parseType(matcher.group(4)):DamageType.cut;
 			boolean explosive = (matcher.group(5) != null)?true:false;
 			return new Damage(num, div, type, explosive);
 		}
@@ -53,7 +60,7 @@ public class Damage {
 			int dice = Integer.parseInt(matcher.group(1));
 			int adds = (matcher.group(2)==null)?0:Integer.parseInt(matcher.group(2));
 			double div = (matcher.group(4) != null)?Double.parseDouble(matcher.group(4)):1;
-			DamageType type = (matcher.group(5) != null)?ParseType(matcher.group(5)):DamageType.cut;
+			DamageType type = (matcher.group(5) != null)?parseType(matcher.group(5)):DamageType.cut;
 			boolean explosive = (matcher.group(6) != null)?true:false;
 			return new Damage(DieRoller.rollDiceAdds(dice, adds), div, type, explosive);
 		}
@@ -63,39 +70,39 @@ public class Damage {
 		}
 	}
 	
-	public double DamageMultiplier() {
-		return DamageMultiplier(Type);
+	public double damageMultiplier() {
+		return damageMultiplier(type);
 	}
-	public double DamageMultiplier(HitLocation location) {
-		return location.DamageMultiplier(Type);
+	public double damageMultiplier(HitLocation location) {
+		return location.damageMultiplier(type);
 	}
-	public double DamageMultiplierHomogenous() {
-		return DamageMultiplierHomogenous(Type);
+	public double damageMultiplierHomogenous() {
+		return damageMultiplierHomogenous(type);
 	}
-	public double DamageMultiplierHomogenous(HitLocation location) {
-		double locmult = location.DamageMultiplier(Type);
-		if (locmult > DamageMultiplier()) // If the hit location increases the multiplier, use it
+	public double damageMultiplierHomogenous(HitLocation location) {
+		double locmult = location.damageMultiplier(type);
+		if (locmult > damageMultiplier()) // If the hit location increases the multiplier, use it
 			return locmult;
-		return DamageMultiplierHomogenous();
+		return damageMultiplierHomogenous();
 	}
-	public double DamageMultiplierUnliving() {
-		return DamageMultiplierUnliving(Type);
+	public double damageMultiplierUnliving() {
+		return damageMultiplierUnliving(type);
 	}
-	public double DamageMultiplierUnliving(HitLocation location) {
-		double locmult = location.DamageMultiplier(Type);
-		if (locmult > DamageMultiplier()) // If the hit location increases the multiplier, use it
+	public double damageMultiplierUnliving(HitLocation location) {
+		double locmult = location.damageMultiplier(type);
+		if (locmult > damageMultiplier()) // If the hit location increases the multiplier, use it
 			return locmult;
-		return DamageMultiplierUnliving();
+		return damageMultiplierUnliving();
 	}
-	public int DamageMaxDiffuse() {
+	public int damageMaxDiffuse() {
 		// TODO: support ex/cone/wide area attacks
-		if (Explosive)
+		if (explosive)
 			return Integer.MAX_VALUE;
 		else 
-			return DamageMaxDiffuse(Type);
+			return damageMaxDiffuse(type);
 	}
 	
-	public static DamageType ParseType(String type) throws ParseException {
+	public static DamageType parseType(String type) throws ParseException {
 		type = type.replace('-', '_');
 		type = type.replace('+', '4');
 
@@ -107,7 +114,7 @@ public class Damage {
 		}
 	}	
 	
-	public static double DamageMultiplier(DamageType type) {
+	public static double damageMultiplier(DamageType type) {
 		switch (type) {
 		case pi_:
 			return 0.5;
@@ -129,11 +136,11 @@ public class Damage {
 		case aff:
 			return 0; // Fatigue, Special, Affliction not current supported
 		}
-		System.out.println("-E- Damage:DamageMultiplier: unhandled type! " + type.toString());
+		if (LOG.isLoggable(Level.SEVERE)) {LOG.severe("Unhandled type! " + type.toString());}
 		return 0;
 	}
 	
-	public static double DamageMultiplierUnliving(DamageType type) {
+	public static double damageMultiplierUnliving(DamageType type) {
 		switch (type) {
 		case pi_:
 			return 0.2;
@@ -157,11 +164,11 @@ public class Damage {
 		case aff:
 			return 0; // Fatigue, Special, Affliction not current supported
 		}
-		System.out.println("-E- DamageMultiplierUnliving: unhandled type! " + type.toString());
+		if (LOG.isLoggable(Level.SEVERE)) {LOG.severe("Unhandled type! " + type.toString());}
 		return 0;
 	}
 	
-	public static double DamageMultiplierHomogenous(DamageType type) {
+	public static double damageMultiplierHomogenous(DamageType type) {
 		switch (type) {
 		case pi_:
 			return 0.1;
@@ -185,11 +192,11 @@ public class Damage {
 		case aff:
 			return 0; // Fatigue, Special, Affliction not current supported
 		}
-		System.out.println("-E- Damage:DamageMultiplierHomogenous: unhandled type! " + type.toString());
+		if (LOG.isLoggable(Level.SEVERE)) {LOG.severe("Unhandled type! " + type.toString());}
 		return 0;
 	}
 	
-	public static int DamageMaxDiffuse(DamageType type) {
+	public static int damageMaxDiffuse(DamageType type) {
 		switch (type) {
 		case pi_:
 		case pi:
@@ -209,7 +216,7 @@ public class Damage {
 		case aff:
 			return 0; // Fatigue, Special, Affliction not current supported
 		}
-		System.out.println("-E- DamageMaxDiffuse: unhandled type! " + type.toString());
+		if (LOG.isLoggable(Level.SEVERE)) {LOG.severe("Unhandled type! " + type.toString());}
 		return 0;
 	}
 }

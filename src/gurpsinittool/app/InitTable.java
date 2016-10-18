@@ -70,7 +70,7 @@ import gurpsinittool.data.ActorBase.BasicTrait;
 import gurpsinittool.ui.ColumnCustomizer;
 import gurpsinittool.ui.CriticalTablesDialog;
 import gurpsinittool.ui.OptionsWindow;
-import gurpsinittool.util.GAction;
+import gurpsinittool.util.AbstractGAction;
 import gurpsinittool.util.MiscUtil;
 import sun.swing.table.DefaultTableCellHeaderRenderer;
 
@@ -173,19 +173,19 @@ public class InitTable extends BasicTable {
     		Action action = entry.getValue();
     		
     		// Determine which way to go
-    		boolean all_set = true;
-    		boolean all_unset = true;
+    		boolean allSet = true;
+    		boolean allUnset = true;
     		int[] rows = getSelectedRows();
         	Actor[] actors = tableModel.getActors(rows);
         	for (Actor a : actors) {
     			if (a.hasStatus(status))
-    				all_unset = false;
+    				allUnset = false;
     			else
-    				all_set = false;    				
+    				allSet = false;    				
     		}
-    		if (all_set)
+    		if (allSet)
     			action.putValue(Action.SMALL_ICON, new ImageIcon(GITApp.class.getResource("/resources/images/tick.png"), "Tick"));
-    		else if (all_unset)
+    		else if (allUnset)
     			action.putValue(Action.SMALL_ICON, null);    		 
     		else
     			action.putValue(Action.SMALL_ICON, new ImageIcon(GITApp.class.getResource("/resources/images/shape_square.png"), "Squar"));    		 
@@ -468,7 +468,7 @@ public class InitTable extends BasicTable {
 	  */
 	 private void setDefaultProperties() {
 		 if (!propertyBag.containsKey(propertyPrefix + ".tableModel.columnNames")) {
-			 propertyBag.setProperty(propertyPrefix + ".tableModel.columnNames", String.join(";", ColumnCustomizer.defaultColumns)); }
+			 propertyBag.setProperty(propertyPrefix + ".tableModel.columnNames", String.join(";", ColumnCustomizer.DEFAULT_COLUMNS)); }
 		 // columnCustomizerWindow
 		 if (!propertyBag.containsKey(propertyPrefix + ".columnCustomizer.location.x")) {
 			 propertyBag.setProperty(propertyPrefix + ".columnCustomizer.location.x", "110"); }
@@ -571,15 +571,15 @@ public class InitTable extends BasicTable {
 			// Special formatting
 			// Custom rendering for various columns
 			if (columnName.equals("Move") || columnName.equals("Dodge")) {				
-				int Injury = a.getTraitValueInt(BasicTrait.Injury);
-				int Fatigue = a.getTraitValueInt(BasicTrait.Fatigue);
-				int HP = a.getTraitValueInt(BasicTrait.HP);
-				int FP = a.getTraitValueInt(BasicTrait.FP);
+				int injury = a.getTraitValueInt(BasicTrait.Injury);
+				int fatigue = a.getTraitValueInt(BasicTrait.Fatigue);
+				int hitPoints = a.getTraitValueInt(BasicTrait.HP);
+				int fatiguePoints = a.getTraitValueInt(BasicTrait.FP);
 				
-				if (Injury > 2*HP/3 || Fatigue > 2*FP/3) {					
+				if (injury > 2*hitPoints/3 || fatigue > 2*fatiguePoints/3) {					
 					int currentValue = a.getTraitValueInt(columnName);
 					int newValue;
-					if (Injury > 2*HP/3 && Fatigue > 2*FP/3) {
+					if (injury > 2*hitPoints/3 && fatigue > 2*fatiguePoints/3) {
 						newValue = (int) Math.ceil((double)currentValue/4);
 						c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/exclamation.png"), "Greatly reduced state"));
 					} else {
@@ -590,11 +590,11 @@ public class InitTable extends BasicTable {
 					MiscUtil.setLabelBold(c);
 				}
 			} else if (columnName.equals("HT")) {
-				int Injury = a.getTraitValueInt(BasicTrait.Injury);
-				int HP = a.getTraitValueInt(BasicTrait.HP);
-				HP = Math.max(HP, 1); // Minimum HP = 1 for calc purposes
-				if (Injury >= HP) {
-					int penalty = (int) (-1*(Math.floor((double)Injury/HP)-1));
+				int injury = a.getTraitValueInt(BasicTrait.Injury);
+				int hitPoints = a.getTraitValueInt(BasicTrait.HP);
+				hitPoints = Math.max(hitPoints, 1); // Minimum HP = 1 for calc purposes
+				if (injury >= hitPoints) {
+					int penalty = (int) (-1*(Math.floor((double)injury/hitPoints)-1));
 					if (penalty < 0) {
 						MiscUtil.setLabelBold(c);
 						c.setText(c.getText() + " [" + penalty + "]");
@@ -738,7 +738,7 @@ public class InitTable extends BasicTable {
 			public boolean parseIsValid(String text) {
 				String result = internalParse(text);
 				try {
-		        	new Integer(result);
+		        	Integer.valueOf(result);
 		        	return true;
 		        } catch (NumberFormatException e) {
 		        	return false;
@@ -755,9 +755,9 @@ public class InitTable extends BasicTable {
 				working = working.trim();
 				Matcher matcher = pattern.matcher(working);
 				while (matcher.matches()) {
-					Integer first = new Integer(matcher.group(1));
+					Integer first = Integer.valueOf(matcher.group(1));
 					String operator = matcher.group(2);
-					Integer second = new Integer(matcher.group(3));
+					Integer second = Integer.valueOf(matcher.group(3));
 					if (operator.equals("+")) { first += second; }
 					else { first -= second; }
 					// Check if we need to continue

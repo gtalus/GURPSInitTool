@@ -226,8 +226,7 @@ public class TraitTableModel extends AbstractTableModel implements PropertyChang
 		// Listen to events and fire appropriate events
 		if (e.getSource() != currentActor) {
 			System.err.println ("TraitTableModel:propertyChange: source of event is not current actor! Shouldn't happen!");
-		} else {
-			System.out.println("HERE: property = " + e.getPropertyName() + ", " + e.getOldValue() + ", " + e.getNewValue());
+		} else {		
 			// See if it's a trait
 			if(e.getPropertyName().startsWith("trait.")) { // New trait or value changed
 				String name = e.getPropertyName().replaceFirst("^trait.", "");
@@ -237,8 +236,7 @@ public class TraitTableModel extends AbstractTableModel implements PropertyChang
 						System.err.println("TraitTableModel: propertyChange: newly created trait is not custom! " + name);
 					if (displayedTraitKeys.contains(name))
 						System.err.println("TraitTableModel: propertyChange: newly created trait already in list of displayed traits! " + name);
-					displayedTraitKeys.add(name);
-					System.out.println("HERE: new trait");
+					displayedTraitKeys.add(name);					
 					fireTableRowsInserted(displayedTraitKeys.size()-1, displayedTraitKeys.size()-1);
 				} else if (e.getNewValue() == null) { // deleted trait
 					if (!displayedTraitKeys.contains(name))
@@ -249,16 +247,14 @@ public class TraitTableModel extends AbstractTableModel implements PropertyChang
 				} else if (Actor.isCustomTrait(name)) { // Value changed for custom trait
 					if (!displayedTraitKeys.contains(name))
 						System.err.println("TraitTableModel: propertyChange: changed trait not in display traits list! " + name);
-					fireTableCellUpdated(displayedTraitKeys.indexOf(name), columns.Value.ordinal());
-					System.out.println("HERE: value change");
+					fireTableCellUpdated(displayedTraitKeys.indexOf(name), columns.Value.ordinal());				
 				}
 			} else if ("traitName".equals(e.getPropertyName())) { // Trait name change
 				if (!displayedTraitKeys.contains(e.getOldValue()))
 					System.err.println("TraitTableModel: propertyChange: renamed trait original name not in display traits list! " + e.getOldValue());
 				int index = displayedTraitKeys.indexOf(e.getOldValue());
 				displayedTraitKeys.set(index, (String)e.getNewValue());
-				fireTableCellUpdated(index, columns.Name.ordinal());
-				System.out.println("HERE: trait rename");
+				fireTableCellUpdated(index, columns.Name.ordinal());			
 			}			
 		}
 	}

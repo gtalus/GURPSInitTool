@@ -58,13 +58,13 @@ public class AttackTableModel extends AbstractTableModel {
 		Attack attack = currentActor.getAttack(rowIndex);
 		switch (columns.values()[columnIndex]) {
 		case Name:
-			return attack.Name;
+			return attack.name;
 		case Skill:
-			return attack.Skill;
+			return attack.skill;
 		case Damage:
-			return attack.Damage;
+			return attack.damage;
 		case Unbalanced:
-			return attack.Unbalanced;
+			return attack.unbalanced;
 		default:
 			return null;
 		}
@@ -95,16 +95,16 @@ public class AttackTableModel extends AbstractTableModel {
         Attack a = currentActor.getAttack(row);
 		switch (columns.values()[col]) {
 		case Name:
-			a.Name = (String) value;
+			a.name = (String) value;
 			break;
 		case Skill:
-			a.Skill = (Integer) value;
+			a.skill = (Integer) value;
 			break;
 		case Damage:
-			a.Damage = (String) value;
+			a.damage = (String) value;
 			break;
 		case Unbalanced:
-			a.Unbalanced = (Boolean) value;
+			a.unbalanced = (Boolean) value;
 		}
 		currentActor.setAttack(a, row);
 		// Update the entire row, since changing state or type may affect formatting for all cells in the row.

@@ -10,6 +10,8 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,6 +23,7 @@ import gurpsinittool.app.GroupTreeNode;
 import gurpsinittool.data.ActorBase.ActorStatus;
 import gurpsinittool.data.ActorBase.ActorType;
 import gurpsinittool.data.ActorBase.BasicTrait;
+import gurpsinittool.util.MiscUtil;
 
 /**
  * This class encapsulates all file IO for saving/loading actor groups & lists
@@ -28,8 +31,10 @@ import gurpsinittool.data.ActorBase.BasicTrait;
  *
  */
 public class ActorGroupFile {
-
-	private static final boolean DEBUG = false;
+	/**
+	 * Logger
+	 */
+	private final static Logger LOG = Logger.getLogger(ActorGroupFile.class.getName());
 
 	public static int currentSchemaVer = 5; // Schema version. Incremented when major changes to format are made
 	
@@ -38,7 +43,7 @@ public class ActorGroupFile {
 	 * @param groupTree : the GroupTree to populate. Overwrites previous contents.
 	 * @param openFile : the file to load
 	 */
-	public static void OpenActorGroupTree(GroupTree groupTree, File openFile) {
+	public static void openActorGroupTree(GroupTree groupTree, File openFile) {
 		// Open the file
 		FileReader file;
 		BufferedReader input;
@@ -47,13 +52,13 @@ public class ActorGroupFile {
 			input = new BufferedReader(file);
 		}
 		catch (Exception e) {
-			System.err.println("Error: " + e.getMessage());
+			if (LOG.isLoggable(Level.SEVERE)) {LOG.log(Level.SEVERE, "Error: " + e.getMessage(), e);}
 			return;
 		}
 		
 		DefaultTreeModel treeModel = groupTree.setNewModel();//new DefaultTreeModel(new GroupTreeNode("Groups",false));
 		// Start reading the file contents
-  		if (DEBUG) { System.out.println("ActorGroupFile: Reading input file: " + openFile.getPath()); }   	
+		if (LOG.isLoggable(Level.INFO)) {LOG.info("Reading input file: " + openFile.getPath()); }   	
 		try {
 			String line;
 			Matcher matcher;
@@ -62,11 +67,11 @@ public class ActorGroupFile {
 			line = input.readLine();
 			if (!(matcher = startFile.matcher(line)).matches()) {
 				input.close();
-				System.err.println("Error: first line does not specify start of ActorGroupList!");
+				if (LOG.isLoggable(Level.WARNING)) {LOG.warning("First line does not specify start of ActorGroupList!");}
 				return;
 			}
 			int schemaVer = Integer.parseInt(matcher.group(1));
-			if (DEBUG) { System.out.println("ActorGroupFile: Found start of Group List, schema version: " + schemaVer); }   
+			if (LOG.isLoggable(Level.FINE)) {LOG.fine("Found start of Group List, schema version: " + schemaVer);}   
 			
 			switch (schemaVer) {
 				case 0:
@@ -88,7 +93,7 @@ public class ActorGroupFile {
 					readSchema5(input,treeModel);
 					break;
 				default:
-					System.err.println("ActorGroupFile: Unknown schema version: " + schemaVer + "!");
+					if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Unknown schema version: " + schemaVer + "!");}
 			}
 			
 			input.close();
@@ -109,7 +114,7 @@ public class ActorGroupFile {
 	 * @param groupTree : The GroupTree to get the Actor & hierarchy data from
 	 * @param filename : File to save to
 	 */
-	public static void SaveActorGroupTree(GroupTree groupTree, File saveFile) {
+	public static void saveActorGroupTree(GroupTree groupTree, File saveFile) {
 		StringBuffer buffer = new StringBuffer();
 		
 		// Traverse tree
@@ -123,7 +128,7 @@ public class ActorGroupFile {
 				currentNodes.remove(0);
 				currentPositions.remove(0);
 				buffer.append("</GroupFolder>\n");
-	      		if (DEBUG) { System.out.println("ActorGroupFile: End of folder"); }   	
+				if (LOG.isLoggable(Level.FINER)) {LOG.finer("End of folder"); }   	
 			}
 			else {
 				GroupTreeNode node = (GroupTreeNode) currentNodes.get(0).getChildAt(currentPositions.get(0));
@@ -132,13 +137,13 @@ public class ActorGroupFile {
 					buffer.append("<GroupFolder name=\"" + node.toString() + "\">\n");
 					currentNodes.add(0, node);
 					currentPositions.add(0,0);
-		      		if (DEBUG) { System.out.println("ActorGroupFile: Start of folder: " + node.toString()); }   	
+					if (LOG.isLoggable(Level.FINER)) {LOG.finer("Start of folder: " + node.toString()); }   	
 				}
 				else { // Group
 					buffer.append("<ActorGroup name=\"" + node.toString() + "\">\n");
 					ArrayList<Actor> actorList = node.getActorList();
 					for(int i = 0; i < actorList.size()-1; i++) {
-						buffer.append(SerializeActor(actorList.get(i)));
+						buffer.append(serializeActor(actorList.get(i)));
 					}
 					buffer.append("</ActorGroup>\n");
 				}
@@ -155,7 +160,7 @@ public class ActorGroupFile {
 			out.close();
 		}
 		catch (Exception e) {
-			System.err.println("Error: " + e.getMessage());
+			if (LOG.isLoggable(Level.SEVERE)) {LOG.log(Level.SEVERE, "Error: " + e.getMessage(), e);}
 		}
 	}
 	
@@ -164,7 +169,7 @@ public class ActorGroupFile {
 	 * @param actor : the Actor to serialize
 	 * @return A string with the serialized Actor
 	 */
-	public static String SerializeActor(Actor actor) {
+	public static String serializeActor(Actor actor) {
 		StringWriter stringWriter = new StringWriter();
 		stringWriter.append("<Actor"
 				+ " name=\"" + actor.getTraitValue(BasicTrait.Name) + "\""
@@ -175,27 +180,27 @@ public class ActorGroupFile {
 		
 		// Serialize traits
 		for (String traitName : actor.getAllTraitNames()) {
-			stringWriter.append(SerializeTrait(traitName, actor.getTraitValue(traitName)));
+			stringWriter.append(serializeTrait(traitName, actor.getTraitValue(traitName)));
 		}
 				
 		for (int i=0; i < actor.getNumAttacks(); ++i) {
-			stringWriter.append(SerializeAttack(actor.getAttack(i)));
+			stringWriter.append(serializeAttack(actor.getAttack(i)));
 		}
 		
 		stringWriter.append("</Actor>\n");
 		return stringWriter.toString();
 	}
 	
-	public static String SerializeTrait(String traitName, String value) {
+	public static String serializeTrait(String traitName, String value) {
 		return "<" + traitName + ">" + value + "</" + traitName + ">\n";
 	}
 	
-	public static String SerializeAttack(Attack attack) {
+	public static String serializeAttack(Attack attack) {
 		StringWriter stringWriter = new StringWriter();
-		stringWriter.append("<Attack name=\"" + attack.Name
-				+ "\" skill=\"" + attack.Skill
-				+ "\" damage=\"" + attack.Damage
-				+ "\" unbalanced=\"" + attack.Unbalanced
+		stringWriter.append("<Attack name=\"" + attack.name
+				+ "\" skill=\"" + attack.skill
+				+ "\" damage=\"" + attack.damage
+				+ "\" unbalanced=\"" + attack.unbalanced
 				+ "\" />\n");
 		return stringWriter.toString();
 	}
@@ -222,7 +227,7 @@ public class ActorGroupFile {
 		Matcher matcher;
 		Pattern states = Pattern.compile("^\\[(.*)\\]$");
 		if (!(matcher = states.matcher(stateString)).matches()) {
-			System.err.println("Error: stateString does not conform to pattern! " + stateString);
+			if (LOG.isLoggable(Level.WARNING)) {LOG.warning("stateString does not conform to pattern! " + stateString);}
 		} else {
 			for (String part: matcher.group(1).split(", ")) {
 				if (part.length() > 0)
@@ -257,20 +262,20 @@ public class ActorGroupFile {
 				
 			line = input.readLine();
 			if (!(matcher = startFolder.matcher(line)).matches()) {
-				System.err.println("Error: second line does not specify start of base folder!");
+				if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Second line does not specify start of base folder!");}
 				return;
 			}
 			while( (line = input.readLine()) != null) {
 				if ((matcher = startFolder.matcher(line)).matches()) {
 					String name = matcher.group(1);
-					if (DEBUG) { System.out.println("ActorGroupFile: Found start of folder. Name: " + name); }   
+					if (LOG.isLoggable(Level.FINER)) {LOG.finer("Found start of folder. Name: " + name); }   
 					GroupTreeNode newNode = new GroupTreeNode(name, false);
 					currentNode.add(newNode);
 					currentNode = newNode;
 				}
 				else if ((matcher = startGroup.matcher(line)).matches()) {
 					String name = matcher.group(1);
-					if (DEBUG) { System.out.println("ActorGroupFile: Found start of group. Name: " + name); }  
+					if (LOG.isLoggable(Level.FINER)) {LOG.finer("Found start of group. Name: " + name); }  
 					GroupTreeNode newNode = new GroupTreeNode(name, true);
 					currentNode.add(newNode);
 					currentNode = newNode;
@@ -291,7 +296,7 @@ public class ActorGroupFile {
 						}
 						else if ((matcher = attack.matcher(line)).matches()) {
 							currentActor.addAttack(new Attack(matcher.group(1), Integer.parseInt(matcher.group(2)), matcher.group(3), Boolean.parseBoolean(matcher.group(4))));
-							if (DEBUG) { System.out.println("ActorGroupFile: Found attack for actor. Name: " + aName); }   	
+							if (LOG.isLoggable(Level.FINER)) {LOG.finer("Found attack for actor. Name: " + aName); }   	
 						}
 						else if ((matcher = trait.matcher(line)).matches()) {
 							if (matcher.group(1).equals(matcher.group(3))) {
@@ -299,9 +304,9 @@ public class ActorGroupFile {
 									currentActor.addTrait(matcher.group(1), matcher.group(2));
 								else 
 									currentActor.setTrait(matcher.group(1), matcher.group(2));
-								if (DEBUG) { System.out.println("ActorGroupFile: Found trait for actor. Actor: " + aName + ", Trait: " + matcher.group(1) + ", Value: " + matcher.group(2)); }
+								if (LOG.isLoggable(Level.FINER)) {LOG.finer("Found trait for actor. Actor: " + aName + ", Trait: " + matcher.group(1) + ", Value: " + matcher.group(2)); }
 							} else {
-								System.err.println("ActorGroupFile: start/end tags do not match! " + line);
+								if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Start/end tags do not match! " + line);}
 							}
 						}
 						else if ((matcher = startTrait.matcher(line)).matches()) {
@@ -312,19 +317,19 @@ public class ActorGroupFile {
 								if ((matcher = endTrait.matcher(line)).matches()) {
 									traitValue.append(matcher.group(1));
 									if (!traitName.equals(matcher.group(2))) {
-										System.err.println("ActorGroupFile: multiline start/end tags do not match! Start: " + traitName + ", End: " + matcher.group(2));
+										if (LOG.isLoggable(Level.INFO)) {LOG.info("Multiline start/end tags do not match! Start: " + traitName + ", End: " + matcher.group(2));}
 									}
 									if (!currentActor.hasTrait(traitName))
 										currentActor.addTrait(traitName, traitValue.toString());
 									else
 										currentActor.setTrait(traitName, traitValue.toString());
-									if (DEBUG) { System.out.println("ActorGroupFile: Found multiline trait for actor. Actor: " + aName + ", Trait: " + traitName + ", Value: " + traitValue); }   	
+									if (LOG.isLoggable(Level.FINER)) {LOG.finer("Found multiline trait for actor. Actor: " + aName + ", Trait: " + traitName + ", Value: " + traitValue); }   	
 									break;
 								}	
 								traitValue.append(line + "\n");
 							}
 						}
-						else { System.out.println("ActorGroupFile: -W- Cannot parse line inside Actor: " + line); }   	
+						else { if (LOG.isLoggable(Level.INFO)) {LOG.info("Cannot parse line inside Actor: " + line);} }   	
 					}
 				}
 				else if ((matcher = endFolder.matcher(line)).matches()) {
@@ -334,14 +339,14 @@ public class ActorGroupFile {
 					currentNode = (GroupTreeNode) currentNode.getParent();
 				}
 				else if ((matcher = endFile.matcher(line)).matches()) {
-		      		if (DEBUG) { System.out.println("ActorGroupFile: Found end of Group List"); }   	
+					if (LOG.isLoggable(Level.FINER)) {LOG.finer("Found end of Group List"); }   	
 		      		break;
 				}
-				else { System.out.println("ActorGroupFile: -W- Cannot parse line: " + line); }   	
+				else { if (LOG.isLoggable(Level.INFO)) {LOG.info("Cannot parse line: " + line);} }   	
 			}
 		}
 	    catch (IOException ex){
-	        ex.printStackTrace();
+	    	if (LOG.isLoggable(Level.SEVERE)) {LOG.log(Level.SEVERE, ex.getMessage(), ex);}
 	        return;
 	    }
 	}
@@ -371,7 +376,7 @@ public class ActorGroupFile {
 				
 			line = input.readLine();
 			if (!(matcher = startFolder.matcher(line)).matches()) {
-				System.err.println("Error: second line does not specify start of base folder!");
+				if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Second line does not specify start of base folder!");}
 				return;
 			}
 			while( (line = input.readLine()) != null) {
@@ -404,11 +409,11 @@ public class ActorGroupFile {
 						}
 						else if ((matcher = attack.matcher(line)).matches()) {
 							currentActor.addAttack(new Attack(matcher.group(1), Integer.parseInt(matcher.group(2)), matcher.group(3), Boolean.parseBoolean(matcher.group(4))));
-							if (DEBUG) { System.out.println("ActorGroupFile: Found attack for actor. Name: " + aName); }   	
+							if (LOG.isLoggable(Level.FINER)) {LOG.finer("Found attack for actor. Name: " + aName); }   	
 						}
 						else if ((matcher = notes.matcher(line)).matches()) {
 							currentActor.setTrait(BasicTrait.Notes, matcher.group(1));
-							if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getTraitValue(BasicTrait.Notes)); }   	
+							if (LOG.isLoggable(Level.FINER)) {LOG.finer("Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getTraitValue(BasicTrait.Notes)); }   	
 						}
 						else if ((matcher = startNotes.matcher(line)).matches()) {
 							StringBuilder actorNotes = new StringBuilder(matcher.group(1) + "\n");
@@ -417,13 +422,13 @@ public class ActorGroupFile {
 								if ((matcher = endNotes.matcher(line)).matches()) {
 									actorNotes.append(matcher.group(1));
 									currentActor.setTrait(BasicTrait.Notes, actorNotes.toString());
-									if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getTraitValue(BasicTrait.Notes)); }   	
+									if (LOG.isLoggable(Level.FINER)) {LOG.finer("Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getTraitValue(BasicTrait.Notes)); }   	
 									break;
 								}	
 								actorNotes.append(line + "\n");
 							}
 						}
-						else { System.out.println("ActorGroupFile: -W- Cannot parse line inside Actor: " + line); }   	
+						else { if (LOG.isLoggable(Level.INFO)) {LOG.info("Cannot parse line inside Actor: " + line);} }   	
 					}
 				}
 				else if ((matcher = endFolder.matcher(line)).matches()) {
@@ -433,10 +438,10 @@ public class ActorGroupFile {
 					currentNode = (GroupTreeNode) currentNode.getParent();
 				}
 				else if ((matcher = endFile.matcher(line)).matches()) {
-		      		if (DEBUG) { System.out.println("ActorGroupFile: Found end of Group List"); }   	
+					if (LOG.isLoggable(Level.FINER)) {LOG.finer("Found end of Group List"); }   	
 		      		break;
 				}
-				else { System.out.println("ActorGroupFile: -W- Cannot parse line: " + line); }   	
+				else { if (LOG.isLoggable(Level.INFO)) {LOG.info("Cannot parse line: " + line);} }   	
 			}
 		}
 	    catch (IOException ex){
@@ -470,7 +475,7 @@ public class ActorGroupFile {
 				
 			line = input.readLine();
 			if (!(matcher = startFolder.matcher(line)).matches()) {
-				System.err.println("Error: second line does not specify start of base folder!");
+				if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Second line does not specify start of base folder!");}
 				return;
 			}
 			while( (line = input.readLine()) != null) {
@@ -503,11 +508,11 @@ public class ActorGroupFile {
 						}
 						else if ((matcher = attack.matcher(line)).matches()) {
 							currentActor.addAttack(new Attack(matcher.group(1), Integer.parseInt(matcher.group(2)), matcher.group(3), Boolean.parseBoolean(matcher.group(4))));
-							if (DEBUG) { System.out.println("ActorGroupFile: Found attack for actor. Name: " + aName); }   	
+							if (LOG.isLoggable(Level.FINER)) {LOG.finer("Found attack for actor. Name: " + aName); }   	
 						}
 						else if ((matcher = notes.matcher(line)).matches()) {
 							currentActor.setTrait(BasicTrait.Notes, matcher.group(1));
-							if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getTraitValue(BasicTrait.Notes)); }   	
+							if (LOG.isLoggable(Level.FINER)) {LOG.finer("Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getTraitValue(BasicTrait.Notes)); }   	
 						}
 						else if ((matcher = startNotes.matcher(line)).matches()) {
 							StringBuilder actorNotes = new StringBuilder(matcher.group(1) + "\n");
@@ -516,13 +521,13 @@ public class ActorGroupFile {
 								if ((matcher = endNotes.matcher(line)).matches()) {
 									actorNotes.append(matcher.group(1));
 									currentActor.setTrait(BasicTrait.Notes,  actorNotes.toString());
-									if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getTraitValue(BasicTrait.Notes)); }   	
+									if (LOG.isLoggable(Level.FINER)) {LOG.finer("Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getTraitValue(BasicTrait.Notes)); }   	
 									break;
 								}	
 								actorNotes.append(line + "\n");
 							}
 						}
-						else { System.out.println("ActorGroupFile: -W- Cannot parse line inside Actor: " + line); }   	
+						else { if (LOG.isLoggable(Level.INFO)) {LOG.info("Cannot parse line inside Actor: " + line);} }   	
 					}
 				}
 				else if ((matcher = endFolder.matcher(line)).matches()) {
@@ -532,14 +537,14 @@ public class ActorGroupFile {
 					currentNode = (GroupTreeNode) currentNode.getParent();
 				}
 				else if ((matcher = endFile.matcher(line)).matches()) {
-		      		if (DEBUG) { System.out.println("ActorGroupFile: Found end of Group List"); }   	
+					if (LOG.isLoggable(Level.FINER)) {LOG.finer("Found end of Group List"); }   	
 		      		break;
 				}
-				else { System.out.println("ActorGroupFile: -W- Cannot parse line: " + line); }   	
+				else { if (LOG.isLoggable(Level.INFO)) {LOG.info("Cannot parse line: " + line);} }   	
 			}
 		}
 	    catch (IOException ex){
-	        ex.printStackTrace();
+	    	if (LOG.isLoggable(Level.SEVERE)) {LOG.log(Level.SEVERE, ex.getMessage(), ex);}
 	        return;
 	    }
 	}
@@ -568,7 +573,7 @@ public class ActorGroupFile {
 				
 			line = input.readLine();
 			if (!(matcher = startFolder.matcher(line)).matches()) {
-				System.err.println("Error: second line does not specify start of base folder!");
+				if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Second line does not specify start of base folder!");}
 				return;
 			}
 			while( (line = input.readLine()) != null) {
@@ -598,7 +603,7 @@ public class ActorGroupFile {
 						}
 						else if ((matcher = notes.matcher(line)).matches()) {
 							currentActor.setTrait(BasicTrait.Notes, matcher.group(1));
-							if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getTraitValue(BasicTrait.Notes)); }   	
+							if (LOG.isLoggable(Level.FINER)) {LOG.finer("Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getTraitValue(BasicTrait.Notes)); }   	
 						}
 						else if ((matcher = startNotes.matcher(line)).matches()) {
 							StringBuilder actorNotes = new StringBuilder(matcher.group(1) + "\n");
@@ -607,13 +612,13 @@ public class ActorGroupFile {
 								if ((matcher = endNotes.matcher(line)).matches()) {
 									actorNotes.append(matcher.group(1));
 									currentActor.setTrait(BasicTrait.Notes, actorNotes.toString());
-									if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getTraitValue(BasicTrait.Notes)); }   	
+									if (LOG.isLoggable(Level.FINER)) {LOG.finer("Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getTraitValue(BasicTrait.Notes)); }   	
 									break;
 								}	
 								actorNotes.append(line + "\n");
 							}
 						}
-						else if (DEBUG) { System.out.println("ActorGroupFile: Cannot parse line inside Actor: " + line); }   	
+						else if (LOG.isLoggable(Level.INFO)) {LOG.info("Cannot parse line inside Actor: " + line); }   	
 					}
 				}
 				else if ((matcher = endFolder.matcher(line)).matches()) {
@@ -623,14 +628,14 @@ public class ActorGroupFile {
 					currentNode = (GroupTreeNode) currentNode.getParent();
 				}
 				else if ((matcher = endFile.matcher(line)).matches()) {
-		      		if (DEBUG) { System.out.println("ActorGroupFile: Found end of Group List"); }   	
+					if (LOG.isLoggable(Level.FINER)) {LOG.finer("Found end of Group List"); }   	
 		      		break;
 				}
-				else if (DEBUG) { System.out.println("ActorGroupFile: Cannot parse line: " + line); }   	
+				else if (LOG.isLoggable(Level.INFO)) {LOG.info("Cannot parse line: " + line); }   	
 			}
 		}
 	    catch (IOException ex){
-	        ex.printStackTrace();
+	    	if (LOG.isLoggable(Level.SEVERE)) {LOG.log(Level.SEVERE, ex.getMessage(), ex);}
 	        return;
 	    }
 	}
@@ -659,7 +664,7 @@ public class ActorGroupFile {
 				
 			line = input.readLine();
 			if (!(matcher = startFolder.matcher(line)).matches()) {
-				System.err.println("Error: second line does not specify start of base folder!");
+				if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Second line does not specify start of base folder!");}
 				return;
 			}
 			while( (line = input.readLine()) != null) {
@@ -688,7 +693,7 @@ public class ActorGroupFile {
 						}
 						else if ((matcher = notes.matcher(line)).matches()) {
 							currentActor.setTrait(BasicTrait.Notes, matcher.group(1));
-							if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getTraitValue(BasicTrait.Notes)); }   	
+							if (LOG.isLoggable(Level.FINER)) {LOG.finer("Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getTraitValue(BasicTrait.Notes)); }   	
 						}
 						else if ((matcher = startNotes.matcher(line)).matches()) {
 							StringBuilder actorNotes = new StringBuilder(matcher.group(1) + "\n");
@@ -697,13 +702,13 @@ public class ActorGroupFile {
 								if ((matcher = endNotes.matcher(line)).matches()) {
 									actorNotes.append(matcher.group(1));
 									currentActor.setTrait(BasicTrait.Notes, actorNotes.toString());
-									if (DEBUG) { System.out.println("ActorGroupFile: Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getTraitValue(BasicTrait.Notes)); }   	
+									if (LOG.isLoggable(Level.FINER)) {LOG.finer("Found notes for actor. Name: " + aName + ", Notes: " + currentActor.getTraitValue(BasicTrait.Notes)); }   	
 									break;
 								}	
 								actorNotes.append(line + "\n");
 							}
 						}
-						else if (DEBUG) { System.out.println("ActorGroupFile: Cannot parse line inside Actor: " + line); }   	
+						else if (LOG.isLoggable(Level.INFO)) {LOG.info("Cannot parse line inside Actor: " + line); }   	
 					}
 				}
 				else if ((matcher = endFolder.matcher(line)).matches()) {
@@ -713,14 +718,14 @@ public class ActorGroupFile {
 					currentNode = (GroupTreeNode) currentNode.getParent();
 				}
 				else if ((matcher = endFile.matcher(line)).matches()) {
-		      		if (DEBUG) { System.out.println("ActorGroupFile: Found end of Group List"); }   	
+					if (LOG.isLoggable(Level.FINER)) {LOG.finer("Found end of Group List"); }   	
 		      		break;
 				}
-				else if (DEBUG) { System.out.println("ActorGroupFile: Cannot parse line: " + line); }   	
+				else if (LOG.isLoggable(Level.INFO)) {LOG.info("Cannot parse line: " + line); }
 			}
 		}
 	    catch (IOException ex){
-	        ex.printStackTrace();
+	    	if (LOG.isLoggable(Level.SEVERE)) {LOG.log(Level.SEVERE, ex.getMessage(), ex);}
 	        return;
 	    }
 	}
@@ -746,7 +751,7 @@ public class ActorGroupFile {
 				
 			line = input.readLine();
 			if (!(matcher = startFolder.matcher(line)).matches()) {
-				System.err.println("Error: second line does not specify start of base folder!");
+				if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Second line does not specify start of base folder!");}
 				return;
 			}
 			while( (line = input.readLine()) != null) {
@@ -775,14 +780,14 @@ public class ActorGroupFile {
 					currentNode = (GroupTreeNode) currentNode.getParent();
 				}
 				else if ((matcher = endFile.matcher(line)).matches()) {
-		      		if (DEBUG) { System.out.println("ActorGroupFile: Found end of Group List"); }   	
+					if (LOG.isLoggable(Level.FINER)) {LOG.finer("Found end of Group List"); }   	
 		      		break;
 				}
-				else if (DEBUG) { System.out.println("ActorGroupFile: Cannot parse line: " + line); }   	
+				else if (LOG.isLoggable(Level.INFO)) {LOG.info("Cannot parse line: " + line); }   	
 			}
 		}
 	    catch (IOException ex){
-	        ex.printStackTrace();
+	    	if (LOG.isLoggable(Level.SEVERE)) {LOG.log(Level.SEVERE, ex.getMessage(), ex);}
 	        return;
 	    }
 	}
@@ -791,12 +796,12 @@ public class ActorGroupFile {
 	 * Basic legacy constructor specifying 'all' options
 	 */
 	public static Actor createLegacyActor(String name, HashSet<ActorStatus> status, ActorType type, int ht, int hp, int damage, int fp, int fatigue, 
-			int move, int parry, int block, int dodge, int dr, int db, int shield_dr, int shield_hp, int default_attack) {
+			int move, int parry, int block, int dodge, int dr, int db, int shieldDR, int shieldHP, int defaultAttack) {
 		Actor a = new Actor();
 		a.setType(type);
 		a.setTrait(BasicTrait.Name, name);
 		a.setAllStatuses(status);
-		a.setDefaultAttack(default_attack);
+		a.setDefaultAttack(defaultAttack);
 		
 		a.setTrait(BasicTrait.HT, ht);
 		a.setTrait(BasicTrait.HP, hp);
@@ -809,8 +814,8 @@ public class ActorGroupFile {
 		a.setTrait(BasicTrait.Dodge, dodge);
 		a.setTrait(BasicTrait.DR, dr);
 		a.setTrait(BasicTrait.Shield_DB, db);
-		a.setTrait(BasicTrait.Shield_DR, shield_dr);
-		a.setTrait(BasicTrait.Shield_HP, shield_hp);
+		a.setTrait(BasicTrait.Shield_DR, shieldDR);
+		a.setTrait(BasicTrait.Shield_HP, shieldHP);
 		
 		return a;
 	}

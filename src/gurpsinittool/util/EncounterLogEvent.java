@@ -2,17 +2,33 @@ package gurpsinittool.util;
 
 import java.util.EventObject;
 
+/**
+ * Event object which encapsulates encounter log messages
+ * @author dcsmall
+ *
+ */
 public class EncounterLogEvent extends EventObject {
 	// Default serialization UID
 	private static final long serialVersionUID = 1L;
 
-	public String logMsg;
+	/**
+	 * The log message
+	 */
+	private final String logMsg;
 	
-	public EncounterLogEvent(Object source) {
-		super(source);
+	/**
+	 * Get the event log message
+	 * @return the event log message
+	 */
+	public String getLogMsg() {
+		return logMsg;
 	}
-	
-	public EncounterLogEvent(Object source, String message) {
+	/**
+	 * Constructor
+	 * @param source - source of the event
+	 * @param message - log message
+	 */
+	public EncounterLogEvent(final Object source, final String message) {
 		super(source);
 		logMsg = message;
 	}

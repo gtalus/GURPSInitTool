@@ -4,11 +4,14 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import gurpsinittool.data.ActorBase.BasicTrait;
 import gurpsinittool.data.Defense.DefenseResult;
 import gurpsinittool.data.Defense.DefenseType;
 import gurpsinittool.util.DieRoller;
+import gurpsinittool.util.MiscUtil;
 
 /** 
  * Encapsulates a single actor in the current encounter.
@@ -18,7 +21,11 @@ import gurpsinittool.util.DieRoller;
 public class Actor extends ActorBase {
 	
 	private static final long serialVersionUID = 1L;
-
+	/**
+	 * Logger
+	 */
+	private final static Logger LOG = Logger.getLogger(Actor.class.getName());
+	
 	public Actor() {
 		super();
 	}
@@ -26,39 +33,39 @@ public class Actor extends ActorBase {
 		super(anActor);
 	}
 	
-	public void NextTurn() {
+	public void nextTurn() {
 		setTemp("numParry", 0);
 		setTemp("numBlock", 0);
 		// Shock
-		if (settings.AUTO_SHOCK) {
+		if (settings.autoShock) {
 			int injury =  getTempInt("shock.next");
-			int injury_per_shock = (int) getTraitValueInt(BasicTrait.HP) / 10;
-			injury_per_shock = (injury_per_shock==0)?1:injury_per_shock; // Minimum 1
-			int LHPT = hasTrait("High Pain Threshold")?0:(hasTrait("Low Pain Threshold")?2:1);
-			setTemp("shock", LHPT * Math.min((int)injury/injury_per_shock,4));
+			int injuryPerShock = (int) getTraitValueInt(BasicTrait.HP) / 10;
+			injuryPerShock = (injuryPerShock==0)?1:injuryPerShock; // Minimum 1
+			int shockMultiplier = hasTrait("High Pain Threshold")?0:(hasTrait("Low Pain Threshold")?2:1);
+			setTemp("shock", shockMultiplier * Math.min((int)injury/injuryPerShock,4));
 		}
 		setTemp("shock.next", 0);
-		int Injury = getTraitValueInt(BasicTrait.Injury);
-		int HP = getTraitValueInt(BasicTrait.HP);
-		int HT = getTraitValueInt(BasicTrait.HT);
+		int injury = getTraitValueInt(BasicTrait.Injury);
+		int hitPoints = getTraitValueInt(BasicTrait.HP);
+		int health = getTraitValueInt(BasicTrait.HT);
 
 		// Resolve auto actions at start of actor's turn:
 		if (isTypeAutomated() && !(hasStatus(ActorStatus.Unconscious) 
 				|| hasStatus(ActorStatus.Disabled) 
 				|| hasStatus(ActorStatus.Dead)
 				|| hasStatus(ActorStatus.Waiting))) { // Do AUTO actions
-			if (settings.AUTO_UNCONSCIOUS && Injury >= HP) { 
-				int penalty = (int) (-1*(Math.floor((double)Injury/HP)-1));
+			if (settings.autoUnconscious && injury >= hitPoints) { 
+				int penalty = (int) (-1*(Math.floor((double)injury/hitPoints)-1));
 				int result = DieRoller.roll3d6();
-				String details = "(HT: " + HT + ", penalty: " + penalty + ", roll: " + result + ")";
-				if (DieRoller.isFailure(result, HT+penalty)) {
+				String details = "(HT: " + health + ", penalty: " + penalty + ", roll: " + result + ")";
+				if (DieRoller.isFailure(result, health+penalty)) {
 					logEventTypeName("<b><font color=red>failed</font></b> consciousness roll " + details);
 					setAllStatuses(new HashSet<ActorStatus>(Arrays.asList(ActorStatus.Unconscious, ActorStatus.Prone, ActorStatus.Disarmed)));
 				} else {
 					logEventTypeName("passed consciousness roll " + details);
 				}
 			}
-			if (settings.AUTO_STUNRECOVERY) {
+			if (settings.autoStunRecovery) {
 				removeStatus(ActorStatus.StunRecovr); // This was from last turn, so recovered this turn
 				if (hasStatus(ActorStatus.StunMental)) {
 					int recoverTarget = getTraitValueInt(BasicTrait.IQ);
@@ -84,15 +91,15 @@ public class Actor extends ActorBase {
 					}
 				}
 			}
-			if (settings.AUTO_ATTACK && hasStatus(ActorStatus.Attacking) && !isStunned())
-				Attack();
+			if (settings.autoAttack && hasStatus(ActorStatus.Attacking) && !isStunned())
+				attack();
 		}
 	}
 
 	/**
 	 * Reset actor state- Active, 0 Injury, 0 fatigue, numParry/numBlock/shieldDamage = 0
 	 */
-	public void Reset() {
+	public void reset() {
 		clearStatuses();
 		setTrait(BasicTrait.Injury, "0");
 		setTrait(BasicTrait.Fatigue, "0");
@@ -114,66 +121,66 @@ public class Actor extends ActorBase {
     //================================================================================
     // Attack Support
     //================================================================================
-	public void Attack(int num) {
+	public void attack(int num) {
 		if (num < 0 || num >= attacks.size()) {
-			System.out.println("-W- Actor:Attack: invalid attack attempted: id # " +String.valueOf(num));
+			if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Invalid attack attempted: id # " +String.valueOf(num));}
 			return;
 		}
 		Attack attack = attacks.get(num);
-		int eff_skill = attack.Skill;
-		// Positoin
+		int effSkill = attack.skill;
+		// Position
 		if (hasStatus(ActorStatus.Prone))
-			eff_skill -= 4;
+			effSkill -= 4;
 		else if (hasStatus(ActorStatus.Kneeling)) 
-			eff_skill -= 2;
-		if(settings.AUTO_SHOCK)
-			eff_skill -= getTempInt("shock");
+			effSkill -= 2;
+		if(settings.autoShock)
+			effSkill -= getTempInt("shock");
 		int roll = DieRoller.roll3d6();
-		int margin = eff_skill - roll;
-		String hit_miss;
-		String crit_string = "";
-		if (DieRoller.isCritFailure(roll, eff_skill)) {
-			hit_miss = "<b><font color=red>Critical miss</font></b>";
-			CriticalTables.Entry crit_result = CriticalTables.getRandomEntry(CriticalTables.critical_miss);
-			crit_string = "<br/> <i><font color=gray><b>Critical Miss Table Result:</b>" + crit_result.notes + "</font></i>";
+		int margin = effSkill - roll;
+		String hitOrMiss;
+		String critString = "";
+		if (DieRoller.isCritFailure(roll, effSkill)) {
+			hitOrMiss = "<b><font color=red>Critical miss</font></b>";
+			CriticalTables.Entry critResult = CriticalTables.getRandomEntry(CriticalTables.criticalMiss);
+			critString = "<br/> <i><font color=gray><b>Critical Miss Table Result:</b>" + critResult.notes + "</font></i>";
 		}
-		else if (DieRoller.isCritSuccess(roll, eff_skill)) {
-			hit_miss = "<b><font color=blue>Critical hit</font></b>";
-			CriticalTables.Entry crit_result = CriticalTables.getRandomEntry(CriticalTables.critical_hit);
-			crit_string = "<br/> <i><font color=gray><b>Critical Hit Table Result:</b>" + crit_result.notes + "</font></i>";
+		else if (DieRoller.isCritSuccess(roll, effSkill)) {
+			hitOrMiss = "<b><font color=blue>Critical hit</font></b>";
+			CriticalTables.Entry critResult = CriticalTables.getRandomEntry(CriticalTables.criticalHit);
+			critString = "<br/> <i><font color=gray><b>Critical Hit Table Result:</b>" + critResult.notes + "</font></i>";
 		}
-		else if (DieRoller.isSuccess(roll, eff_skill))
-			hit_miss = "<b>hit</b>";
+		else if (DieRoller.isSuccess(roll, effSkill))
+			hitOrMiss = "<b>hit</b>";
 		else 
-			hit_miss = "miss";
-		boolean isHit = DieRoller.isSuccess(roll, eff_skill);
-		if (attack.Unbalanced) {
+			hitOrMiss = "miss";
+		boolean isHit = DieRoller.isSuccess(roll, effSkill);
+		if (attack.unbalanced) {
 			setTemp("numParry", getTempInt("numParry")+1);
 		}
 		
 
 		String damageStr;
 		try {
-			Damage damage = Damage.ParseDamage(attack.Damage);
+			Damage damage = Damage.parseDamage(attack.damage);
 			String armorDivStr = "";
-			if (damage.ArmorDivisor != 1) {
-				if (damage.ArmorDivisor == (int) damage.ArmorDivisor)
-					armorDivStr = "(" + String.format("%d", (int)damage.ArmorDivisor) + ")";
+			if (damage.armorDivisor != 1) {
+				if (damage.armorDivisor == (int) damage.armorDivisor)
+					armorDivStr = "(" + String.format("%d", (int)damage.armorDivisor) + ")";
 				else
-					armorDivStr = "(" + String.format("%s", damage.ArmorDivisor) + ")";
+					armorDivStr = "(" + String.format("%s", damage.armorDivisor) + ")";
 			}	
-			damageStr = (isHit?"<font color=red><b>":"") + damage.BasicDamage + armorDivStr + " " + damage.Type + (isHit?"</b></font>":"") + " (" + attack.Damage + ")";
+			damageStr = (isHit?"<font color=red><b>":"") + damage.basicDamage + armorDivStr + " " + damage.type + (isHit?"</b></font>":"") + " (" + attack.damage + ")";
 		} catch (ParseException e) {
-			damageStr = (isHit?"<font color=red><b>":"") + "'" + attack.Damage + "'" + (isHit?"</b></font>":"");
+			damageStr = (isHit?"<font color=red><b>":"") + "'" + attack.damage + "'" + (isHit?"</b></font>":"");
 			//logEventError("Unable to parse damage string in attack '" + attack.Name + "'");
 			//return;
 		}
 		
 				
-		logEventTypeName("attacks with " + attack.Name + ": " + hit_miss +  " (" + roll + "/" + eff_skill + "=" + margin + ") for damage " + damageStr + crit_string);
+		logEventTypeName("attacks with " + attack.name + ": " + hitOrMiss +  " (" + roll + "/" + effSkill + "=" + margin + ") for damage " + damageStr + critString);
 	}
 	
-	public void Attack() {
+	public void attack() {
 		if (attacks.size() < 1) {
 			logEventTypeName("<i><font color=gray>has no attacks defined!</font></i>");
 			return;
@@ -182,26 +189,26 @@ public class Actor extends ActorBase {
 			logEventError("has invalid default attack: " + defaultAttack);
 			return;
 		}
-		Attack(defaultAttack);		
+		attack(defaultAttack);		
 	}
 	
     //================================================================================
     // Defense Support
     //================================================================================
-	public String Defend(Defense defense) {
+	public String defend(Defense defense) {
 		startCompoundEdit();			
-		RecordDefenseAttempt(defense);
-		LogDefenseResults(defense);
-		ProcessDefenseResults(defense);
-		KnockdownStunningCheck(defense);
+		recordDefenseAttempt(defense);
+		logDefenseResults(defense);
+		processDefenseResults(defense);
+		knockdownStunningCheck(defense);
 		endCompoundEdit("Defend");
 		return "";
 	}
 	
 	// Process the impact of attempting the defense itself (fatigue, number of Parries this turn, etc)
-	private void RecordDefenseAttempt(Defense defense) {
-		int Fatigue = getTraitValueInt(BasicTrait.Fatigue);
-		setTrait(BasicTrait.Fatigue, String.valueOf(Fatigue+defense.fatigue));
+	private void recordDefenseAttempt(Defense defense) {
+		int fatigue = getTraitValueInt(BasicTrait.Fatigue);
+		setTrait(BasicTrait.Fatigue, String.valueOf(fatigue+defense.fatigue));
 
 		// Process shield damage/injury/fatigue
 		setTemp("shieldDamage", getTempInt("shieldDamage") + defense.shieldDamage);
@@ -216,7 +223,7 @@ public class Actor extends ActorBase {
 		}
 	}
 
-	private void LogDefenseResults(Defense defense) {
+	private void logDefenseResults(Defense defense) {
 		// Defense description
 		String resultType = (defense.result == DefenseResult.CritSuccess)?"<b><font color=blue>critically</font></b>"
 				:(defense.result == DefenseResult.Success)?"successfully"
@@ -257,7 +264,7 @@ public class Actor extends ActorBase {
 			damageDescription += " <b>Shield damaged " + defense.shieldDamage + ".</b>";
 
 		logEventTypeName(defenseDescription + damageDescription);
-		if (settings.LOG_DEFENSEDETAILS) {
+		if (settings.logDefenseDetails) {
 			// Defense details: #/turn, posture, EE, retreat, side, stunned, shield, other. effective/roll
 			String details = "defense details: " + defense.type.toString() + defenseNumberReport(defense.type);
 			ArrayList<String> additional = new ArrayList<String>();
@@ -300,7 +307,7 @@ public class Actor extends ActorBase {
 		return result;
 	}
 
-	private void ProcessDefenseResults(Defense defense) {
+	private void processDefenseResults(Defense defense) {
 		// Apply injury
 		setTrait(BasicTrait.Injury, String.valueOf(getTraitValueInt(BasicTrait.Injury)+defense.injury));
 
@@ -309,9 +316,9 @@ public class Actor extends ActorBase {
 			
 			switch (defense.type) {
 			case Parry:
-				CriticalTables.Entry crit_result = CriticalTables.getRandomEntry(CriticalTables.critical_miss);
-				String crit_string = "<i><font color=gray><b>Critical Miss Table Result:</b>" + crit_result.notes + "</font></i>";
-				logEventTypeName(crit_string);
+				CriticalTables.Entry critResult = CriticalTables.getRandomEntry(CriticalTables.criticalMiss);
+				String critString = "<i><font color=gray><b>Critical Miss Table Result:</b>" + critResult.notes + "</font></i>";
+				logEventTypeName(critString);
 				break;
 			case Block:
 				logEventTypeName("Loses grip on shield, must ready before next block");
@@ -322,7 +329,7 @@ public class Actor extends ActorBase {
 				setPosture(ActorStatus.Prone);
 				break;
 			case None:
-				System.err.println("-E- unexpected 'None' defense type for critical failure!");
+				if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Unexpected 'None' defense type for critical failure!");}
 				break;
 			}
 			
@@ -333,18 +340,18 @@ public class Actor extends ActorBase {
 		}
 	}
 	
-    private void KnockdownStunningCheck(Defense defense) {
-    	int HT = getTraitValueInt(BasicTrait.HT);
-    	int HP = getTraitValueInt(BasicTrait.HP);
+    private void knockdownStunningCheck(Defense defense) {
+    	int health = getTraitValueInt(BasicTrait.HT);
+    	int hitPoints = getTraitValueInt(BasicTrait.HP);
     	//Whenever you suffer a major wound, and whenever you are struck in the head (skull, face, or eye) 
     	// or vitals for enough injury to cause a shock penalty, you must make an immediate HT roll to avoid 
     	// knockdown and stunning.
     	// (Also including groin here, based on common house-rule)
  		if (defense.cripplingInjury || 
  				defense.majorWound ||
- 				(defense.injury >= HP/10.0 && (defense.location.headWound || defense.location.knockdownPenalty < 0))) {
+ 				(defense.injury >= hitPoints/10.0 && (defense.location.headWound || defense.location.knockdownPenalty < 0))) {
  
- 			int effHT = HT;
+ 			int effHT = health;
  			String knockdownDescription = "";
  			if (defense.cripplingInjury) {
  				effHT += defense.location.knockdownPenalty;
@@ -359,7 +366,7 @@ public class Actor extends ActorBase {
  			int roll = DieRoller.roll3d6();
  			boolean success = DieRoller.isSuccess(roll, effHT);
  			logEventTypeName("Knockdown/Stunning check" + knockdownDescription + ": rolled " + roll + " against " + effHT + " => " + (!success?"<b>failed</b>":"succeeded"));
- 			if (isTypeAutomated() && settings.AUTO_KNOCKDOWNSTUN) {
+ 			if (isTypeAutomated() && settings.autoKnockdownStun) {
  				if (!success) {
  					addStatus(ActorStatus.StunPhys); // Check for mental stun and don't add this in that case?
  					removeStatus(ActorStatus.StunRecovr);

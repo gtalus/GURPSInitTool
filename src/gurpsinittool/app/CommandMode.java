@@ -23,9 +23,9 @@ public class CommandMode implements AWTEventListener {
 	DefenseDialog defense;
 	GameMaster gameMaster;
 	
-	HashMap<Integer, Action> PressedMap = new HashMap<Integer, Action>();
-	HashMap<Character, Action> TypedMap = new HashMap<Character, Action>();
-	HashMap<Character, Action> DefenseMap = new HashMap<Character, Action>();
+	HashMap<Integer, Action> pressedMap = new HashMap<Integer, Action>();
+	HashMap<Character, Action> typedMap = new HashMap<Character, Action>();
+	HashMap<Character, Action> defenseMap = new HashMap<Character, Action>();
 
 
 	public CommandMode(GITApp theApp, DefenseDialog defense, SearchSupport search, GameMaster gameMaster) {
@@ -35,49 +35,49 @@ public class CommandMode implements AWTEventListener {
 		this.gameMaster = gameMaster;
 		
 		//TypedMap.put('a', theApp.actionAttack);
-		TypedMap.put('k', gameMaster.actionAttack);
+		typedMap.put('k', gameMaster.actionAttack);
 		// different types of attacks (non-default, manual table selection)
 		// Currently indexed starting at 1
-		TypedMap.put('1', gameMaster.new AttackNumAction(0));
-		TypedMap.put('2', gameMaster.new AttackNumAction(1));
-		TypedMap.put('3', gameMaster.new AttackNumAction(2));
-		TypedMap.put('4', gameMaster.new AttackNumAction(3));
-		TypedMap.put('5', gameMaster.new AttackNumAction(4));
-		TypedMap.put('6', gameMaster.new AttackNumAction(5));
-		TypedMap.put('7', gameMaster.new AttackNumAction(6));
-		TypedMap.put('8', gameMaster.new AttackNumAction(7));
-		TypedMap.put('9', gameMaster.new AttackNumAction(8));
-		TypedMap.put('0', gameMaster.new AttackNumAction(9));
-		TypedMap.put('d', gameMaster.actionDefend);
+		typedMap.put('1', gameMaster.new AttackNumAction(0));
+		typedMap.put('2', gameMaster.new AttackNumAction(1));
+		typedMap.put('3', gameMaster.new AttackNumAction(2));
+		typedMap.put('4', gameMaster.new AttackNumAction(3));
+		typedMap.put('5', gameMaster.new AttackNumAction(4));
+		typedMap.put('6', gameMaster.new AttackNumAction(5));
+		typedMap.put('7', gameMaster.new AttackNumAction(6));
+		typedMap.put('8', gameMaster.new AttackNumAction(7));
+		typedMap.put('9', gameMaster.new AttackNumAction(8));
+		typedMap.put('0', gameMaster.new AttackNumAction(9));
+		typedMap.put('d', gameMaster.actionDefend);
 		
-		TypedMap.put('s', gameMaster.actionPostureStanding);
-		TypedMap.put('n', gameMaster.actionPostureKneeling);
-		TypedMap.put('p', gameMaster.actionPostureProne);
-		TypedMap.put('h', gameMaster.actionStatusTogglePhysicalStun);
-		TypedMap.put('m', gameMaster.actionStatusToggleMentalStun);
-		TypedMap.put('r', gameMaster.actionStatusToggleRecoveringStun);
-		TypedMap.put('a', gameMaster.actionStatusToggleAttacking);
-		TypedMap.put('i', gameMaster.actionStatusToggleDisarmed);
-		TypedMap.put('u', gameMaster.actionStatusToggleUnconscious);
-		TypedMap.put('x', gameMaster.actionStatusToggleDead);
+		typedMap.put('s', gameMaster.actionPostureStanding);
+		typedMap.put('n', gameMaster.actionPostureKneeling);
+		typedMap.put('p', gameMaster.actionPostureProne);
+		typedMap.put('h', gameMaster.actionStatusTogglePhysicalStun);
+		typedMap.put('m', gameMaster.actionStatusToggleMentalStun);
+		typedMap.put('r', gameMaster.actionStatusToggleRecoveringStun);
+		typedMap.put('a', gameMaster.actionStatusToggleAttacking);
+		typedMap.put('i', gameMaster.actionStatusToggleDisarmed);
+		typedMap.put('u', gameMaster.actionStatusToggleUnconscious);
+		typedMap.put('x', gameMaster.actionStatusToggleDead);
 		
 		//actionTagSelectedActors
 		//actionRemoveTagSelectedActors
-		TypedMap.put('t', gameMaster.actionTagActors);
+		typedMap.put('t', gameMaster.actionTagActors);
 		//TypedMap.put('c', theApp.actionToggleCommandMode); // BROKEN!i
 		
 		//TypedMap.put('', theApp.actionOpenCriticalTables);
-		TypedMap.put('g', theApp.actionOpenGroupManager);	
+		typedMap.put('g', theApp.actionOpenGroupManager);	
 		
 		// Search: '/' (start/end)
-		TypedMap.put('.', search.actionNextMatch);
-		TypedMap.put('>', search.actionNextMatch);
-		TypedMap.put(',', search.actionPrevMatch);
-		TypedMap.put('<', search.actionPrevMatch);
+		typedMap.put('.', search.actionNextMatch);
+		typedMap.put('>', search.actionNextMatch);
+		typedMap.put(',', search.actionPrevMatch);
+		typedMap.put('<', search.actionPrevMatch);
 	
-		PressedMap.put(KeyEvent.VK_RIGHT, gameMaster.actionNextActor);
-		PressedMap.put(KeyEvent.VK_DOWN, gameMaster.actionEndRound);
-		PressedMap.put(KeyEvent.VK_UP, gameMaster.actionNextRound);
+		pressedMap.put(KeyEvent.VK_RIGHT, gameMaster.actionNextActor);
+		pressedMap.put(KeyEvent.VK_DOWN, gameMaster.actionEndRound);
+		pressedMap.put(KeyEvent.VK_UP, gameMaster.actionNextRound);
 		
 		// Defense dialog
 //		
@@ -90,20 +90,20 @@ public class CommandMode implements AWTEventListener {
 //		damage edit
 //		location: Torso Skull Face Leg Knee Arm Hand Foot Neck Vitals Eye Groin
 //		
-		DefenseMap.put('p', defense.parryDefenseAction);
-		DefenseMap.put('b', defense.blockDefenseAction);
-		DefenseMap.put('g', defense.dodgeDefenseAction);
-		DefenseMap.put('n', defense.noDefenseAction);
+		defenseMap.put('p', defense.parryDefenseAction);
+		defenseMap.put('b', defense.blockDefenseAction);
+		defenseMap.put('g', defense.dodgeDefenseAction);
+		defenseMap.put('n', defense.noDefenseAction);
 
-		DefenseMap.put('e', defense.eeAction);
-		DefenseMap.put('r', defense.retreatAction);
-		DefenseMap.put('s', defense.sideAction);
-		DefenseMap.put('t', defense.stunAction);
-		DefenseMap.put('h', defense.shieldAction);
-		DefenseMap.put('d', defense.deceptiveAction);
-		DefenseMap.put('o', defense.deceptiveAction);
-		DefenseMap.put('D', defense.reverseDeceptiveAction);
-		DefenseMap.put('O', defense.reverseDeceptiveAction);
+		defenseMap.put('e', defense.eeAction);
+		defenseMap.put('r', defense.retreatAction);
+		defenseMap.put('s', defense.sideAction);
+		defenseMap.put('t', defense.stunAction);
+		defenseMap.put('h', defense.shieldAction);
+		defenseMap.put('d', defense.deceptiveAction);
+		defenseMap.put('o', defense.deceptiveAction);
+		defenseMap.put('D', defense.reverseDeceptiveAction);
+		defenseMap.put('O', defense.reverseDeceptiveAction);
 		
 		//
 //		// Actions
@@ -133,8 +133,8 @@ public class CommandMode implements AWTEventListener {
 						(defense.damageTextField.hasFocus() && !defense.damageTextField.getText().isEmpty())) {
 					return; // let the key go through
 				} else if (key.getID()==KeyEvent.KEY_TYPED) {
-					if (DefenseMap.containsKey(key.getKeyChar())) {			
-						DefenseMap.get(key.getKeyChar()).actionPerformed(null);
+					if (defenseMap.containsKey(key.getKeyChar())) {			
+						defenseMap.get(key.getKeyChar()).actionPerformed(null);
 						key.consume();
 					}
 				}				
@@ -155,15 +155,15 @@ public class CommandMode implements AWTEventListener {
 					} 
 					if(key.getID()==KeyEvent.KEY_PRESSED){ //Handle key presses
 						if (defense.isVisible()) {
-						} else if (PressedMap.containsKey(key.getKeyCode())) {
-							PressedMap.get(key.getKeyCode()).actionPerformed(null);
+						} else if (pressedMap.containsKey(key.getKeyCode())) {
+							pressedMap.get(key.getKeyCode()).actionPerformed(null);
 						}
 						key.consume();
 					} else if (key.getID()==KeyEvent.KEY_TYPED) {
 						if (key.getKeyChar() == '/') {
 							search.requestFocus();
-						} else if (TypedMap.containsKey(key.getKeyChar())) {
-							TypedMap.get(key.getKeyChar()).actionPerformed(null);
+						} else if (typedMap.containsKey(key.getKeyChar())) {
+							typedMap.get(key.getKeyChar()).actionPerformed(null);
 						} 
 						key.consume();
 					} else if (key.getID()==KeyEvent.KEY_RELEASED) {

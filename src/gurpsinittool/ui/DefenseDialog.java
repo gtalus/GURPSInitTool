@@ -8,6 +8,8 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -28,6 +30,7 @@ import gurpsinittool.data.HitLocations;
 import gurpsinittool.data.ActorBase.BasicTrait;
 import gurpsinittool.data.DR;
 import gurpsinittool.util.DieRoller;
+import gurpsinittool.util.MiscUtil;
 
 /**
  *
@@ -35,7 +38,11 @@ import gurpsinittool.util.DieRoller;
  */
 @SuppressWarnings("serial")
 public class DefenseDialog extends javax.swing.JDialog {
-
+	/**
+	 * Logger
+	 */
+	private final static Logger LOG = Logger.getLogger(DefenseDialog.class.getName());
+	
 	Actor actor; // The actor making the defense
 	public Defense defense; // Defense options, inputs, and results (including the game logic to calculate them)
 
@@ -473,7 +480,7 @@ public class DefenseDialog extends javax.swing.JDialog {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel8)
-                                    .addComponent(drTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                    .addComponent(drTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)))
                             .addComponent(noneButton)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -560,13 +567,13 @@ public class DefenseDialog extends javax.swing.JDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
-    	System.out.println("DefenseDialog: OK!");
+    	if (LOG.isLoggable(Level.FINE)) {LOG.fine("DefenseDialog: OK!");}
     	valid = true;
     	setVisible(false);
     }//GEN-LAST:event_okButtonActionPerformed
 
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
-    	System.out.println("DefenseDialog: CANCEL!");
+    	if (LOG.isLoggable(Level.FINE)) {LOG.fine("DefenseDialog: CANCEL!");}
     	valid = false;
     	setVisible(false);
     }//GEN-LAST:event_cancelButtonActionPerformed
@@ -703,14 +710,14 @@ public class DefenseDialog extends javax.swing.JDialog {
     	int effParry = actor.getCurrentDefenseValue(DefenseType.Parry);
     	int effBlock = actor.getCurrentDefenseValue(DefenseType.Block);
     	int effDodge = actor.getCurrentDefenseValue(DefenseType.Dodge);
-    	int Parry = actor.getTraitValueInt(BasicTrait.Parry);
-    	int Block = actor.getTraitValueInt(BasicTrait.Block);
-    	int Dodge = actor.getTraitValueInt(BasicTrait.Dodge);
+    	int parry = actor.getTraitValueInt(BasicTrait.Parry);
+    	int block = actor.getTraitValueInt(BasicTrait.Block);
+    	int dodge = actor.getTraitValueInt(BasicTrait.Dodge);
 
     	// Report base if different
-    	parryNote.setText(effParry + (effParry!=Parry?" (base: " + Parry + ")":""));
-    	blockNote.setText(effBlock + (effBlock!=Block?" (base: " + Block + ")":""));
-    	dodgeNote.setText(effDodge + (effDodge!=Dodge?" (base: " + Dodge + ")":""));
+    	parryNote.setText(effParry + (effParry!=parry?" (base: " + parry + ")":""));
+    	blockNote.setText(effBlock + (effBlock!=block?" (base: " + block + ")":""));
+    	dodgeNote.setText(effDodge + (effDodge!=dodge?" (base: " + dodge + ")":""));
     	
     	// Sync defense initial options to dialog components
     	switch (defense.type) {
@@ -734,16 +741,16 @@ public class DefenseDialog extends javax.swing.JDialog {
     	stunnedCheck.setSelected(defense.stunned);
     	shieldCheckBox.setSelected(defense.shield);
     	
-       	int ShieldDB = actor.getTraitValueInt(BasicTrait.Shield_DB);
-        int ShieldDR = actor.getTraitValueInt(BasicTrait.Shield_DR);
-    	int ShieldHP = actor.getTraitValueInt(BasicTrait.Shield_HP);
-    	String DR = actor.getTraitValue(BasicTrait.DR);
-    	db.setText("DB: " + ShieldDB);
-    	db.setToolTipText("DR: " + ShieldDR + " HP: " + (ShieldHP-actor.getTempInt("shieldDamage")) + "/" + ShieldHP);
-    	shieldCheckBox.setToolTipText("DR: " + ShieldDR + " HP: " + (ShieldHP-actor.getTempInt("shieldDamage")) + "/" + ShieldHP);
+       	int shieldDB = actor.getTraitValueInt(BasicTrait.Shield_DB);
+        int shieldDR = actor.getTraitValueInt(BasicTrait.Shield_DR);
+    	int shieldHP = actor.getTraitValueInt(BasicTrait.Shield_HP);
+    	String dr = actor.getTraitValue(BasicTrait.DR);
+    	db.setText("DB: " + shieldDB);
+    	db.setToolTipText("DR: " + shieldDR + " HP: " + (shieldHP-actor.getTempInt("shieldDamage")) + "/" + shieldHP);
+    	shieldCheckBox.setToolTipText("DR: " + shieldDR + " HP: " + (shieldHP-actor.getTempInt("shieldDamage")) + "/" + shieldHP);
     	//shield_dr.setText("DR: " + ShieldDR);
     	//shield_hp.setText("HP: " + (ShieldHP-actor.getTempInt("shieldDamage")) + "/" + ShieldHP);
-    	drTextField.setText(DR);
+    	drTextField.setText(dr);
     	damageTextField.setText("");
     	
     	// Set position
@@ -809,7 +816,7 @@ public class DefenseDialog extends javax.swing.JDialog {
     	} else if (noneButton.isSelected()) {
     		defense.type = DefenseType.None;
     	} else {
-    		System.out.println("-E- DefenseDialog: updateDefenseSettings: no defense selected!");
+    		if (LOG.isLoggable(Level.WARNING)) {LOG.warning("No defense selected!");}
     	}
     	
     	defense.ee = eeCheck.isSelected();
@@ -837,23 +844,23 @@ public class DefenseDialog extends javax.swing.JDialog {
     		rollTextField.setForeground(Color.BLACK);
     	} catch (Exception e) {
     		rollTextField.setForeground(Color.RED);
-    		System.out.println("-W- DefenseDialog.parseInputFields: Error parsing roll field! '" + rollTextField.getText() + "': " + e.getMessage());
+    		if (LOG.isLoggable(Level.INFO)) {LOG.info("Error parsing roll field! '" + rollTextField.getText() + "': " + e.getMessage());}
     		parseSuccess = false;
     	}    
     	try { // Get dr- set text to red and print error message if fails
-    		defense.override_dr = DR.ParseDR(drTextField.getText());
+    		defense.overrideDR = DR.parseDR(drTextField.getText());
     		drTextField.setForeground(Color.BLACK);
     	} catch (Exception e) {
     		drTextField.setForeground(Color.RED);
-    		System.out.println("-W- DefenseDialog.parseInputFields: Error parsing dr field! '" + drTextField.getText() + "': " + e.getMessage());
+    		if (LOG.isLoggable(Level.INFO)) {LOG.info("Error parsing dr field! '" + drTextField.getText() + "': " + e.getMessage());}
     		parseSuccess = false;
     	}    	
     	try { // Get damage- set text to red and print error message if fails
-    		defense.damage = Damage.ParseDamage(damageTextField.getText());
+    		defense.damage = Damage.parseDamage(damageTextField.getText());
     		damageTextField.setForeground(Color.BLACK);
     	} catch (Exception e) {
    			damageTextField.setForeground(Color.RED);
-    		System.out.println("-W- DefenseDialog.parseInputFields: Error parsing damage field! '" + damageTextField.getText() + "': " + e.getMessage());
+   			if (LOG.isLoggable(Level.INFO)) {LOG.info("Error parsing damage field! '" + damageTextField.getText() + "': " + e.getMessage());}
     		parseSuccess = false;
     	}
     	defense.location = HitLocations.getLocationFromName((String) locationCombo.getSelectedItem());

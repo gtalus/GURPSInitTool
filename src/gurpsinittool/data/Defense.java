@@ -25,7 +25,7 @@ public class Defense {
 	
 	// Key Inputs
 	public int roll; // The defense roll
-	public DR override_dr; // Override the actor's base DR
+	public DR overrideDR; // Override the actor's base DR
 	public Damage damage; // The amount of damage inflicted
 	public HitLocation location; // The location of the attack and the location of any injury sustained. 
 	// NOTE: location may change based on injury tolerance (ie attack to vitals against 'No Vitals' 
@@ -48,8 +48,8 @@ public class Defense {
 		int effParry = actor.getCurrentDefenseValue(DefenseType.Parry);
     	int effBlock = actor.getCurrentDefenseValue(DefenseType.Block);
     	int effDodge = actor.getCurrentDefenseValue(DefenseType.Dodge);
-    	int ShieldDB = actor.getTraitValueInt(BasicTrait.Shield_DB);
-    	int ShieldHP = actor.getTraitValueInt(BasicTrait.Shield_HP);
+    	int shieldDB = actor.getTraitValueInt(BasicTrait.Shield_DB);
+    	int shieldHP = actor.getTraitValueInt(BasicTrait.Shield_HP);
     	
 		// Pick the best by default
     	if ((effParry > effDodge) && (effParry >= effBlock)) {
@@ -61,7 +61,7 @@ public class Defense {
     	}
     	
     	// Set default options
-    	shield = (ShieldDB > 0 && actor.getTempInt("shieldDamage") < ShieldHP);
+    	shield = (shieldDB > 0 && actor.getTempInt("shieldDamage") < shieldHP);
     	if (actor.isStunned())
     		stunned = true;
     	// Set position
@@ -119,7 +119,7 @@ public class Defense {
 	 * @param actor
 	 */
 	private void calcDefenseResult(Actor actor) {
-		int shield_db = shield ? actor.getTraitValueInt(BasicTrait.Shield_DB) : 0;
+		int shieldDB = shield ? actor.getTraitValueInt(BasicTrait.Shield_DB) : 0;
 
 		// CritSuccess, Success, ShieldHit, Failure
 		if (type == DefenseType.None) { // No attempted defense
@@ -130,7 +130,7 @@ public class Defense {
 			result = DefenseResult.CritFailure;
 		} else if (DieRoller.isFailure(roll, effectiveDefense)) { // Hit
 			result = DefenseResult.Failure;
-		} else if (DieRoller.isFailure(roll, effectiveDefense - shield_db)) { // Shield Hit
+		} else if (DieRoller.isFailure(roll, effectiveDefense - shieldDB)) { // Shield Hit
 			result = DefenseResult.ShieldHit;
 		}  else {
 			result = DefenseResult.Success;
@@ -189,9 +189,9 @@ public class Defense {
 
     	// Calculate injury
     	// 
-    	int ShieldDR = actor.getTraitValueInt(BasicTrait.Shield_DR);
-    	int ShieldHP = actor.getTraitValueInt(BasicTrait.Shield_HP);
-    	int HP = actor.getTraitValueInt(BasicTrait.HP);
+    	int shieldDR = actor.getTraitValueInt(BasicTrait.Shield_DR);
+    	int shieldHP = actor.getTraitValueInt(BasicTrait.Shield_HP);
+    	int hitPoints = actor.getTraitValueInt(BasicTrait.HP);
     	ArrayList<String> tolerances = actor.getTraitValueArray("Injury Tolerance"); // Empty array if actor does not have this trait
     	switch (result) {
     	case CritSuccess:
@@ -199,37 +199,37 @@ public class Defense {
     		return;
     	case ShieldHit:
     		// Calculate shield damage
-    		int shieldBasicDamage = (int) (damage.BasicDamage - Math.floor(ShieldDR/damage.ArmorDivisor));
+    		int shieldBasicDamage = (int) (damage.basicDamage - Math.floor(shieldDR/damage.armorDivisor));
     		// Apply min/max values
-    		shieldBasicDamage = Math.min((int)Math.ceil(ShieldHP/4), shieldBasicDamage);
+    		shieldBasicDamage = Math.min((int)Math.ceil(shieldHP/4), shieldBasicDamage);
     		shieldBasicDamage = Math.max(0, shieldBasicDamage);
-    		shieldDamage = (int) (Math.floor(shieldBasicDamage*damage.DamageMultiplierHomogenous()));
+    		shieldDamage = (int) (Math.floor(shieldBasicDamage*damage.damageMultiplierHomogenous()));
     		// Min damage 1 if any got through DR
     		shieldDamage = (shieldDamage <= 0 && shieldBasicDamage > 0)?1:shieldDamage; 
     		// Calculate total cover DR provided (including armor divisor)
-    		coverDR = (int) (Math.floor((ShieldDR + Math.ceil(ShieldHP/4))/damage.ArmorDivisor));
+    		coverDR = (int) (Math.floor((shieldDR + Math.ceil(shieldHP/4))/damage.armorDivisor));
     	case Failure:
     	case CritFailure:
     		// Calculate actual basic damage to the target, including any cover DR
-			int totalDR = override_dr.getDRforType(damage.Type) + location.extraDR;
-    		int basicDamage = (int) (damage.BasicDamage - coverDR - Math.floor(totalDR/damage.ArmorDivisor));
+			int totalDR = overrideDR.getDRforType(damage.type) + location.extraDR;
+    		int basicDamage = (int) (damage.basicDamage - coverDR - Math.floor(totalDR/damage.armorDivisor));
 			basicDamage = Math.max(0, basicDamage);
 			// Calculate injury to the target
-			double damageMultiplier = damage.DamageMultiplier(location);
+			double damageMultiplier = damage.damageMultiplier(location);
 			if (tolerances.contains("homogenous"))
-				damageMultiplier = damage.DamageMultiplierHomogenous(location);
+				damageMultiplier = damage.damageMultiplierHomogenous(location);
 			else if (tolerances.contains("unliving"))
-				damageMultiplier = damage.DamageMultiplierUnliving(location);
+				damageMultiplier = damage.damageMultiplierUnliving(location);
  			injury = (int) (basicDamage*damageMultiplier); 
     		injury = (injury <= 0 && basicDamage > 0)?1:injury; // Min damage 1 if any got through DR
     		// Diffuse
     		if(tolerances.contains("diffuse")) {
-    			int maxDamage = damage.DamageMaxDiffuse();
+    			int maxDamage = damage.damageMaxDiffuse();
     			injury = (injury > maxDamage)?maxDamage:injury;
     		}
     		// Check for crippling
     		if (location.cripplingThreshold != 0) {
-    			int cripplingThreshold = (int) Math.floor(HP * location.cripplingThreshold + 1.00001);
+    			int cripplingThreshold = (int) Math.floor(hitPoints * location.cripplingThreshold + 1.00001);
     			if (injury >= cripplingThreshold) {
     				injury = cripplingThreshold;
     				cripplingInjury = true;
@@ -237,7 +237,7 @@ public class Defense {
     			}
     		} 
     		else { // Check for major wound
-    			int majorWoundThreshold = (int) Math.floor(HP * 1/2 + 1.00001);
+    			int majorWoundThreshold = (int) Math.floor(hitPoints * 1/2 + 1.00001);
     			if (injury >= majorWoundThreshold) {
     				majorWound = true;
     			}
