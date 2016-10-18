@@ -1,9 +1,15 @@
 package gurpsinittool.data;
 
 import java.text.DecimalFormat;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class StrengthTables {
-
+	/**
+	 * Logger
+	 */
+	private final static Logger LOG = Logger.getLogger(StrengthTables.class.getName());
+	
 	public static String getBasicLift(int strength) {
 		return (new DecimalFormat("#.#").format(basicLift(strength))); // + " lbs";
 	}
@@ -35,62 +41,62 @@ public class StrengthTables {
 			lift = basicLift*10;
 			break;
 		default:
-			System.err.println("StrengthTables:getEncumbrance: invalid enc_level: " + encLevel);	
+			if (LOG.isLoggable(Level.WARNING)) { LOG.warning("Invalid enc_level: " + encLevel);	}
 		}
 		return (new DecimalFormat("#.#").format(lift)); // + " lbs";
 	}
 
 	public static String getBasicDamageThrust(int strength) {
 		if (strength == 0) {
-			return DiceAdds(0,0);
+			return diceAdds(0,0);
 		} else if(strength <= 10) {
-			return DiceAdds(1,-6+(strength-1)/2);
+			return diceAdds(1,-6+(strength-1)/2);
 		} else if (strength <= 40) {
-			return DiceAdds(1+(strength-11)/8,((strength-11)%8)/2-1);
+			return diceAdds(1+(strength-11)/8,((strength-11)%8)/2-1);
 		} else if (strength > 40 && strength < 45 ) {
-			return DiceAdds(4,1);
+			return diceAdds(4,1);
 		} else if (strength >= 45 && strength < 50) {
-			return DiceAdds(5,0);
+			return diceAdds(5,0);
 		} else if (strength >= 50 && strength < 55) {
-			return DiceAdds(5,2);
+			return diceAdds(5,2);
 		} else if (strength >= 55 && strength < 60) {
-			return DiceAdds(6,0);
+			return diceAdds(6,0);
 		} else if (strength >= 60 && strength < 65) {
-			return DiceAdds(7,-1);
+			return diceAdds(7,-1);
 		} else if (strength >= 65 && strength < 70) {
-			return DiceAdds(7,1);
+			return diceAdds(7,1);
 		} else if (strength >= 70) {
-			return DiceAdds(1+strength/10,(strength%10<5?0:2));
+			return diceAdds(1+strength/10,(strength%10<5?0:2));
 		} else {
-			System.err.println("StrengthTables::getBasicDamageThrust: Unsupported strength: " + strength);
+			if (LOG.isLoggable(Level.WARNING)) { LOG.warning("Unsupported strength: " + strength);}
 			return "err";
 		}
 	}
 	
 	public static String getBasicDamageSwing(int strength) {
 		if (strength == 0) {
-			return DiceAdds(0,0);
+			return diceAdds(0,0);
 		} else if(strength <= 8) {
-			return DiceAdds(1,-5+(strength-1)/2);
+			return diceAdds(1,-5+(strength-1)/2);
 		} else if (strength <= 40) {
-			return DiceAdds(1+(strength-9)/4,((strength-9)%4)-1);
+			return diceAdds(1+(strength-9)/4,((strength-9)%4)-1);
 		} else if (strength > 40 && strength < 45 ) {
-			return DiceAdds(7,-1);
+			return diceAdds(7,-1);
 		} else if (strength >= 45 && strength < 50) {
-			return DiceAdds(7,1);
+			return diceAdds(7,1);
 		} else if (strength >= 50 && strength < 55) {
-			return DiceAdds(8,-1);
+			return diceAdds(8,-1);
 		} else if (strength >= 55 && strength < 60) {
-			return DiceAdds(8,1);
+			return diceAdds(8,1);
 		} else if (strength >= 60) {
-			return DiceAdds(3+strength/10,(strength%10<5?0:2));
+			return diceAdds(3+strength/10,(strength%10<5?0:2));
 		} else {
-			System.err.println("StrengthTables::getBasicDamageThrust: Unsupported strength: " + strength);
+			if (LOG.isLoggable(Level.WARNING)) { LOG.warning("Unsupported strength: " + strength);}
 			return "err";
 		}
 	}
 	
-	public static String DiceAdds(int dice, int adds) {
+	public static String diceAdds(int dice, int adds) {
 		if (dice == 0 && adds == 0) {
 			return "";
 		} else if (adds == 0) {

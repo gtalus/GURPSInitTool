@@ -1,50 +1,79 @@
 package gurpsinittool.data;
 
 import java.text.ParseException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 
 import gurpsinittool.data.Damage.DamageType;
 
 public class DR {
-
+	/**
+	 * Logger
+	 */
+	private final static Logger LOG = Logger.getLogger(DR.class.getName());
+	
 	private	int base;
-	private int cr_mod;
+	private int crMod;
+	private boolean flexible; // is the armor flexible. Currently has no effect
+	
 	//private int imp_mod;
 	// something more flexible: based on DamageType enum
 	//public enum DamageType {aff, burn, cor, cr, cut, fat, imp, pi_, pi, pi4, pi44, spec, tbb, tox};
 	
-	public DR(int base) {
-		this(base, 0);
+	public DR(final int base) {
+		this(base, 0, false);
 	}
 
-	public DR(int base, int cr_mod) {
+	public DR(final int base, final boolean flexible) {
+		this(base, 0, flexible);
+	}
+
+	public DR(final int base, final int crMod, final boolean flexible) {
 		this.base = base;
-		this.cr_mod = cr_mod;
+		this.crMod = crMod;
+		this.flexible = flexible;
+		if (LOG.isLoggable(Level.FINE)) {LOG.fine("Created DR: " + base + ", " + crMod + ", " + flexible);}
 	}
 	
-	public static DR ParseDR(String DRString) throws ParseException {
+	public static DR parseDR(String drString) throws ParseException {	
 		Matcher matcher;
-		Pattern empty = Pattern.compile("^$");
-		Pattern num = Pattern.compile("^(\\d+)$");
-		Pattern split = Pattern.compile("^(\\d+)/(\\d+)$");
+		final Pattern empty = Pattern.compile("^$");
+		final Pattern drPat = Pattern.compile("^(\\d+)(?:/(\\d+))?(\\*)?(?:\\+(\\d+))?$");
+		//Pattern num = Pattern.compile("^(\\d+)(\\*)?$");
+		//Pattern split = Pattern.compile("^(\\d+)/(\\d+)(\\*)?$");
 
-		if ((matcher = empty.matcher(DRString)).matches()) {
+		if ((matcher = empty.matcher(drString)).matches()) {
 			return new DR(0);
 		}
-		else if ((matcher = num.matcher(DRString)).matches()) {
+//		else if ((matcher = num.matcher(drString)).matches()) {
+//			int base = Integer.parseInt(matcher.group(1));
+//			boolean flexible = "*".equals(matcher.group(2));
+//			return new DR(base, flexible);
+//		}
+//		else if ((matcher = split.matcher(drString)).matches()) {
+//			int base = Integer.parseInt(matcher.group(1));
+//			int crNum = Integer.parseInt(matcher.group(2));
+//			boolean flexible = "*".equals(matcher.group(3));
+//			return new DR(base,crNum-base,flexible);
+//		}
+		else if ((matcher = drPat.matcher(drString)).matches()) {
 			int base = Integer.parseInt(matcher.group(1));
-			return new DR(base);
-		}
-		else if ((matcher = split.matcher(DRString)).matches()) {
-			int base = Integer.parseInt(matcher.group(1));
-			int cr_num = Integer.parseInt(matcher.group(2));
-			return new DR(base,cr_num-base);
+			int crMod = 0;
+			if (matcher.group(2) != null) {
+				final int crNum = Integer.parseInt(matcher.group(2));
+				crMod = crNum-base;
+			}
+			boolean flexible = "*".equals(matcher.group(3));
+			if (matcher.group(4) != null) {
+				final int bonus = Integer.parseInt(matcher.group(4));
+				base += bonus;
+			}
+			return new DR(base,crMod,flexible);
 		}
 		else {
-			//System.out.println("-W- DR:ParseDR: unable to parse string! " + DRString);
-			throw new ParseException("ParseDR: Unable to parse string: " + DRString, 0);
+			throw new ParseException("ParseDR: Unable to parse string: " + drString, 0);
 		}
 	}
 	
@@ -65,9 +94,9 @@ public class DR {
 		case imp:
 			return base;
 		case cr:
-			return base+cr_mod;
+			return base+crMod;
 		}
-		System.out.println("-E- DR:getDRforType: unhandled type! " + type.toString());
+		if (LOG.isLoggable(Level.SEVERE)) {LOG.severe("Unhandled type! " + type.toString());}
 		return 0;
 	}	
 }

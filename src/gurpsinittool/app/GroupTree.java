@@ -7,6 +7,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.DropMode;
 import javax.swing.JMenuItem;
@@ -26,15 +28,15 @@ import javax.swing.tree.TreeSelectionModel;
 import javax.swing.undo.AbstractUndoableEdit;
 import javax.swing.undo.UndoableEditSupport;
 
-public class GroupTree extends JTree 
-	implements ActionListener {
-
-	// Default SVUID
-	private static final long serialVersionUID = 1L;
+@SuppressWarnings("serial")
+public class GroupTree extends JTree implements ActionListener {
+	/**
+	 * Logger
+	 */
+	private final static Logger LOG = Logger.getLogger(GroupTree.class.getName());
+	
 	private UndoableEditSupport mUes = new UndoableEditSupport();
 	protected CleanFileChangeEventSource mCfces = new CleanFileChangeEventSource(this);
-
-	private static final boolean DEBUG = false;
 	
 	private DefaultMutableTreeNode rootNode;
 	private DefaultTreeModel treeModel;
@@ -83,19 +85,19 @@ public class GroupTree extends JTree
     }
 	
 	public void actionPerformed(ActionEvent e) {
-    	if (DEBUG) { System.out.println("GroupTree: actionPerformed: Received action command " + e.getActionCommand()); }
+		if (LOG.isLoggable(Level.FINE)) {LOG.fine("Received action command " + e.getActionCommand()); }
     	if ("New Folder".equals(e.getActionCommand())) { // Add folder
 			DefaultMutableTreeNode newFolder = addNode("New Folder...", false);
 			TreePath folderPath = new TreePath(newFolder.getPath());
 			selectionModel.setSelectionPath(folderPath);
-	    	if (DEBUG) { System.out.println("GroupTree: actionPerformed: Added new node. User object " + newFolder.getUserObject().getClass()); }
+			if (LOG.isLoggable(Level.FINE)) {LOG.fine("Added new node. User object " + newFolder.getUserObject().getClass()); }
 	    	startEditingAtPath(folderPath);	
     	}
 		else if ("New Group".equals(e.getActionCommand())) { // Add group
 			DefaultMutableTreeNode newGroup = addNode("New Group...", true);
 			TreePath groupPath = new TreePath(newGroup.getPath());
 			selectionModel.setSelectionPath(groupPath);
-	    	if (DEBUG) { System.out.println("GroupTree: actionPerformed: Added new node. User object " + newGroup.getUserObject().getClass()); }
+			if (LOG.isLoggable(Level.FINE)) {LOG.fine("Added new node. User object " + newGroup.getUserObject().getClass()); }
 	    	startEditingAtPath(groupPath);
 		}
 		else if ("Delete".equals(e.getActionCommand())) { // Delete selected rows
@@ -141,8 +143,6 @@ public class GroupTree extends JTree
 		treeModel.insertNodeInto(node, parentNode, position);
 	    mUes.postEdit(new NodeEdit(node, true));
 	}
-
-
     
     /**
      * Determine where a new node should be placed, based on the current selection
@@ -154,12 +154,12 @@ public class GroupTree extends JTree
     	TreePath selectionPath = getSelectionPath();
     	if (selectionPath == null) {
 	        //There is no selection. Insert after the last child of the root node
-        	if (DEBUG) { System.out.println("GroupTree: insertObjectAtSelection: Inserting child at root node " + rootNode.getChildCount()); }
+    		if (LOG.isLoggable(Level.FINE)) {LOG.fine("Inserting child at root node " + rootNode.getChildCount()); }
     		treeModel.insertNodeInto(child, rootNode, rootNode.getChildCount());
 	    } 
     	else {
     		GroupTreeNode node = (GroupTreeNode) selectionPath.getLastPathComponent();
-        	if (DEBUG) { System.out.println("GroupTree: insertObjectAtSelection: Inserting child. Selection is node: " + node.toString()); }
+    		if (LOG.isLoggable(Level.FINE)) {LOG.fine("Inserting child. Selection is node: " + node.toString()); }
    		
     		if (node.getAllowsChildren()) { // insert after last child node
     			treeModel.insertNodeInto(child, node, node.getChildCount());
@@ -213,7 +213,7 @@ public class GroupTree extends JTree
  	@Override
  	public final void setModel(final TreeModel newModel) {
  		if (treeModel != null && !GroupTreeModel.class.isInstance(newModel)) { // Allow if model is null (as in constructor)
- 			System.err.println("-E- GroupTree: setModel: model must be a GroupTreeModel!");
+ 			if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Model must be a GroupTreeModel!");}
  			//return;
  		}
  		super.setModel(newModel);
@@ -327,22 +327,22 @@ public class GroupTree extends JTree
 
 		@Override
 		public void treeNodesChanged(TreeModelEvent evt) {
-        	if (DEBUG) { System.out.println("GroupTreeModelListener: treeNodesChanged."); }
+			if (LOG.isLoggable(Level.FINER)) {LOG.finer("treeNodesChanged."); }
 			setDirty();
 		}
 		@Override
 		public void treeNodesInserted(TreeModelEvent evt) {
-        	if (DEBUG) { System.out.println("GroupTreeModelListener: treeNodesInserted."); }
+			if (LOG.isLoggable(Level.FINER)) {LOG.finer("treeNodesInserted."); }
 			setDirty();
 		}
 		@Override
 		public void treeNodesRemoved(TreeModelEvent evt) {
-        	if (DEBUG) { System.out.println("GroupTreeModelListener: treeNodesRemoved."); }
+			if (LOG.isLoggable(Level.FINER)) {LOG.finer("treeNodesRemoved."); }
 			setDirty();
 		}
 		@Override
 		public void treeStructureChanged(TreeModelEvent evt) {
-        	if (DEBUG) { System.out.println("GroupTreeModelListener: treeStructureChanged."); }
+			if (LOG.isLoggable(Level.FINER)) {LOG.finer("treeStructureChanged."); }
 			//setDirty();
 		}
     }

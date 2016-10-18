@@ -33,15 +33,15 @@
                               <Component id="jScrollPane1" pref="121" max="32767" attributes="0"/>
                               <EmptySpace min="-2" max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="1" max="-2" attributes="0">
-                                  <Component id="MoveDownButton" alignment="0" max="32767" attributes="0"/>
-                                  <Component id="MoveUpButton" alignment="0" max="32767" attributes="0"/>
-                                  <Component id="AddButton" alignment="0" max="32767" attributes="0"/>
-                                  <Component id="RemoveButton" alignment="0" max="32767" attributes="0"/>
-                                  <Component id="CustomTraitButton" alignment="0" max="32767" attributes="0"/>
+                                  <Component id="moveDownButton" alignment="0" max="32767" attributes="0"/>
+                                  <Component id="moveUpButton" alignment="0" max="32767" attributes="0"/>
+                                  <Component id="addButton" alignment="0" max="32767" attributes="0"/>
+                                  <Component id="removeButton" alignment="0" max="32767" attributes="0"/>
+                                  <Component id="customTraitButton" alignment="0" max="32767" attributes="0"/>
                               </Group>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
-                              <Component id="ResetButton" min="-2" pref="115" max="-2" attributes="0"/>
+                              <Component id="resetButton" min="-2" pref="115" max="-2" attributes="0"/>
                               <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                           </Group>
                       </Group>
@@ -49,17 +49,12 @@
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" alignment="0" attributes="0">
                               <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
-                              <Component id="OKButton" min="-2" pref="61" max="-2" attributes="0"/>
+                              <Component id="okButton" min="-2" pref="61" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
-                              <Component id="CancelButton" min="-2" max="-2" attributes="0"/>
+                              <Component id="cancelButton" min="-2" max="-2" attributes="0"/>
                           </Group>
-                          <Group type="102" alignment="0" attributes="0">
-                              <Group type="103" groupAlignment="1" attributes="0">
-                                  <Component id="jScrollPane2" alignment="0" pref="0" max="32767" attributes="0"/>
-                                  <Component id="jLabel2" alignment="0" max="32767" attributes="0"/>
-                              </Group>
-                              <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-                          </Group>
+                          <Component id="jScrollPane2" alignment="0" pref="0" max="32767" attributes="0"/>
+                          <Component id="jLabel2" alignment="0" max="32767" attributes="0"/>
                       </Group>
                   </Group>
               </Group>
@@ -78,15 +73,15 @@
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" attributes="0">
-                      <Component id="AddButton" min="-2" max="-2" attributes="0"/>
+                      <Component id="addButton" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="RemoveButton" min="-2" max="-2" attributes="0"/>
+                      <Component id="removeButton" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                      <Component id="CustomTraitButton" min="-2" max="-2" attributes="0"/>
+                      <Component id="customTraitButton" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                      <Component id="MoveUpButton" min="-2" max="-2" attributes="0"/>
+                      <Component id="moveUpButton" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="MoveDownButton" min="-2" max="-2" attributes="0"/>
+                      <Component id="moveDownButton" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="0" pref="131" max="32767" attributes="0"/>
                   </Group>
                   <Component id="jScrollPane1" max="32767" attributes="0"/>
@@ -94,9 +89,9 @@
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="OKButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="CancelButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="ResetButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="okButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cancelButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="resetButton" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
           </Group>
       </Group>
@@ -154,28 +149,28 @@
         </Component>
       </SubComponents>
     </Container>
-    <Component class="javax.swing.JButton" name="AddButton">
+    <Component class="javax.swing.JButton" name="addButton">
       <Properties>
         <Property name="text" type="java.lang.String" value="Add &gt;"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="AddButtonActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="addButtonActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JButton" name="OKButton">
+    <Component class="javax.swing.JButton" name="okButton">
       <Properties>
         <Property name="text" type="java.lang.String" value="OK"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="OKButtonActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="okButtonActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JButton" name="CancelButton">
+    <Component class="javax.swing.JButton" name="cancelButton">
       <Properties>
         <Property name="text" type="java.lang.String" value="Cancel"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="CancelButtonActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cancelButtonActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel1">
@@ -186,36 +181,36 @@
         <Property name="text" type="java.lang.String" value="Available Basic Traits"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JButton" name="RemoveButton">
+    <Component class="javax.swing.JButton" name="removeButton">
       <Properties>
         <Property name="text" type="java.lang.String" value="&lt; Remove"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="RemoveButtonActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="removeButtonActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JButton" name="MoveUpButton">
+    <Component class="javax.swing.JButton" name="moveUpButton">
       <Properties>
         <Property name="text" type="java.lang.String" value="Move Up"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="MoveUpButtonActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="moveUpButtonActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JButton" name="MoveDownButton">
+    <Component class="javax.swing.JButton" name="moveDownButton">
       <Properties>
         <Property name="text" type="java.lang.String" value="Move Down"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="MoveDownButtonActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="moveDownButtonActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JButton" name="ResetButton">
+    <Component class="javax.swing.JButton" name="resetButton">
       <Properties>
         <Property name="text" type="java.lang.String" value="Reset to Default"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="ResetButtonActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="resetButtonActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel2">
@@ -226,12 +221,12 @@
         <Property name="text" type="java.lang.String" value="Displayed Traits Order"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JButton" name="CustomTraitButton">
+    <Component class="javax.swing.JButton" name="customTraitButton">
       <Properties>
         <Property name="text" type="java.lang.String" value="Add Custom Trait"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="CustomTraitButtonActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="customTraitButtonActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>

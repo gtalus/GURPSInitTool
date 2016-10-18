@@ -58,7 +58,7 @@ public class ParsingFieldParserFactory {
 			@Override
 			public boolean parseIsValid(String text) {
 				try {
-					DR.ParseDR(text);
+					DR.parseDR(text);
 					return true;
 				} catch (ParseException e) {
 					return false;
@@ -68,7 +68,7 @@ public class ParsingFieldParserFactory {
 			@Override
 			public Object parseText(String text) {
 				try {					
-					return DR.ParseDR(text);
+					return DR.parseDR(text);
 				} catch (ParseException e) {
 					return null;
 				}
@@ -81,7 +81,7 @@ public class ParsingFieldParserFactory {
 			@Override
 			public boolean parseIsValid(String text) {
 				try {
-					Damage.ParseDamage(text);
+					Damage.parseDamage(text);
 					return true;
 				} catch (ParseException e) {
 					return false;
@@ -91,7 +91,7 @@ public class ParsingFieldParserFactory {
 			@Override
 			public Object parseText(String text) {
 				try {					
-					return Damage.ParseDamage(text);
+					return Damage.parseDamage(text);
 				} catch (ParseException e) {
 					return null;
 				}

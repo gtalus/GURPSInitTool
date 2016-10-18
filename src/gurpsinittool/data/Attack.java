@@ -7,10 +7,10 @@ public class Attack implements Serializable {
 	// Default SVUID
 	private static final long serialVersionUID = 1L;
 
-	public String Name;
-	public int Skill;
-	public String Damage; // Ex: 2d+2 cut, 2d(2) pi-
-	public boolean Unbalanced;
+	public String name;
+	public int skill;
+	public String damage; // Ex: 2d+2 cut, 2d(2) pi-
+	public boolean unbalanced;
 	
 	//public DiceAdds Damage;
 	// _ => -
@@ -23,23 +23,23 @@ public class Attack implements Serializable {
 	 * Default constructor
 	 */
 	public Attack() {
-		Name = "New Attack";
-		Skill = 10;
-		Damage = "1d cut";
-		Unbalanced = false;
+		name = "New Attack";
+		skill = 10;
+		damage = "1d cut";
+		unbalanced = false;
 	}
 	
 	/**
 	 * Basic constructor specifying all options
 	 */	
 	public Attack(String name, int skill, String damage, boolean unbalanced) {
-		Name = name;
-		Skill = skill;
-		Damage = damage;
-		Unbalanced = unbalanced;
+		this.name = name;
+		this.skill = skill;
+		this.damage = damage;
+		this.unbalanced = unbalanced;
 	}
 
 	public Attack(Attack attack) {
-		this(attack.Name, attack.Skill, attack.Damage, attack.Unbalanced);
+		this(attack.name, attack.skill, attack.damage, attack.unbalanced);
 	}
 }

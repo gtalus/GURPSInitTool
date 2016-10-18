@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,7 +38,6 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
@@ -57,27 +58,23 @@ import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
-
 import gurpsinittool.app.textfield.ParsingField;
 import gurpsinittool.app.textfield.ParsingFieldParser;
 import gurpsinittool.app.textfield.ParsingFieldParserFactory;
-import gurpsinittool.data.*;
-//import gurpsinittool.test.RandomData;
+import gurpsinittool.data.Actor;
 import gurpsinittool.data.ActorBase.ActorStatus;
 import gurpsinittool.data.ActorBase.ActorType;
 import gurpsinittool.data.ActorBase.BasicTrait;
+import gurpsinittool.data.GameMaster;
 import gurpsinittool.ui.ColumnCustomizer;
-import gurpsinittool.ui.CriticalTablesDialog;
-import gurpsinittool.ui.OptionsWindow;
-import gurpsinittool.util.GAction;
 import gurpsinittool.util.MiscUtil;
-import sun.swing.table.DefaultTableCellHeaderRenderer;
 
 @SuppressWarnings("serial")
 public class InitTable extends BasicTable {
-
-	private static final boolean DEBUG = true;
+	/**
+	 * Logger
+	 */
+	private final static Logger LOG = Logger.getLogger(InitTable.class.getName());
 
 	private JPopupMenu popupMenu;
 	private JPopupMenu headerPopupMenu;
@@ -120,7 +117,7 @@ public class InitTable extends BasicTable {
      * Auto re-size the column widths to optimally fit information
      */
     public void autoSizeColumns() {
-    	if (DEBUG) { System.out.println("autoSizeColumns: starting."); }
+    	if (LOG.isLoggable(Level.FINE)) {LOG.fine("Starting."); }
     	//this.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
     	TableColumn column = null;
     	for (int i = 0; i < this.getColumnCount(); i++) {
@@ -150,7 +147,6 @@ public class InitTable extends BasicTable {
     	//this.resizeAndRepaint();
     }
     
-    // TODO: re-visit the location of this function - should it be in game logic? Not sure (it is more on the GUI side, I think).
     /**
      * Convenience method to create menu items for the table's menus.
      * @param text - Text of the menu item
@@ -173,19 +169,19 @@ public class InitTable extends BasicTable {
     		Action action = entry.getValue();
     		
     		// Determine which way to go
-    		boolean all_set = true;
-    		boolean all_unset = true;
+    		boolean allSet = true;
+    		boolean allUnset = true;
     		int[] rows = getSelectedRows();
         	Actor[] actors = tableModel.getActors(rows);
         	for (Actor a : actors) {
     			if (a.hasStatus(status))
-    				all_unset = false;
+    				allUnset = false;
     			else
-    				all_set = false;    				
+    				allSet = false;    				
     		}
-    		if (all_set)
+    		if (allSet)
     			action.putValue(Action.SMALL_ICON, new ImageIcon(GITApp.class.getResource("/resources/images/tick.png"), "Tick"));
-    		else if (all_unset)
+    		else if (allUnset)
     			action.putValue(Action.SMALL_ICON, null);    		 
     		else
     			action.putValue(Action.SMALL_ICON, new ImageIcon(GITApp.class.getResource("/resources/images/shape_square.png"), "Squar"));    		 
@@ -282,16 +278,16 @@ public class InitTable extends BasicTable {
 		        actColumnIndex = i;
 			} else if (columnName.equals("Speed")) {
 				getColumnModel().getColumn(i).setCellEditor(new InitTableCellEditor(ParsingFieldParserFactory.FloatParser()));
-			} else if (columnName.equals("Move") || columnName.equals("HT") || columnName.equals("HP") || columnName.equals("FP")) {
-				getColumnModel().getColumn(i).setCellEditor(new InitTableCellEditor(ParsingFieldParserFactory.IntegerParser()));
 			} else if (columnName.equals("Injury") || columnName.equals("Fatigue")) {
 				getColumnModel().getColumn(i).setCellEditor(new InitTableDamageCellEditor());			    
 			} else if (columnName.equals("Status")) {
 		        getColumnModel().getColumn(i).setCellEditor(new InitTableStatusListCellEditor());
 			} else if (columnName.equals("Type")) {
 				getColumnModel().getColumn(i).setCellEditor(new InitTableTypeListCellEditor());
-			}else if (columnName.equals("Name")) {
+			} else if (columnName.equals("Name")) {
 				getColumnModel().getColumn(i).setCellEditor(new InitTableStringCellEditor(1));
+			} else if (Actor.isBasicTrait(columnName)) { // All other basic traits are integers
+				getColumnModel().getColumn(i).setCellEditor(new InitTableCellEditor(ParsingFieldParserFactory.IntegerParser()));
 			} else {
 				// use default: InitTableStringCellEditor(2)
 			}
@@ -364,10 +360,10 @@ public class InitTable extends BasicTable {
 	@Override
 	public void tableChanged(TableModelEvent e) {
 		super.tableChanged(e);
-		if (DEBUG) { System.out.println("InitTable: tableChanged: got event: " + e + ", type=" + e.getType()); }
+		if (LOG.isLoggable(Level.FINE)) {LOG.fine("Got event: " + e + ", type=" + e.getType()); }
 		if (e.getType() == TableModelEvent.UPDATE && e.getFirstRow() == TableModelEvent.HEADER_ROW 
 				&& e.getColumn() == TableModelEvent.ALL_COLUMNS) {
-			if (DEBUG) { System.out.println("    Detected data structure change"); }
+			if (LOG.isLoggable(Level.FINE)) {LOG.fine("    Detected data structure change"); }
 			initializeColumnHandling();
 			autoSizeColumns();
 		}
@@ -468,7 +464,7 @@ public class InitTable extends BasicTable {
 	  */
 	 private void setDefaultProperties() {
 		 if (!propertyBag.containsKey(propertyPrefix + ".tableModel.columnNames")) {
-			 propertyBag.setProperty(propertyPrefix + ".tableModel.columnNames", String.join(";", ColumnCustomizer.defaultColumns)); }
+			 propertyBag.setProperty(propertyPrefix + ".tableModel.columnNames", String.join(";", ColumnCustomizer.DEFAULT_COLUMNS)); }
 		 // columnCustomizerWindow
 		 if (!propertyBag.containsKey(propertyPrefix + ".columnCustomizer.location.x")) {
 			 propertyBag.setProperty(propertyPrefix + ".columnCustomizer.location.x", "110"); }
@@ -571,15 +567,15 @@ public class InitTable extends BasicTable {
 			// Special formatting
 			// Custom rendering for various columns
 			if (columnName.equals("Move") || columnName.equals("Dodge")) {				
-				int Injury = a.getTraitValueInt(BasicTrait.Injury);
-				int Fatigue = a.getTraitValueInt(BasicTrait.Fatigue);
-				int HP = a.getTraitValueInt(BasicTrait.HP);
-				int FP = a.getTraitValueInt(BasicTrait.FP);
+				int injury = a.getTraitValueInt(BasicTrait.Injury);
+				int fatigue = a.getTraitValueInt(BasicTrait.Fatigue);
+				int hitPoints = a.getTraitValueInt(BasicTrait.HP);
+				int fatiguePoints = a.getTraitValueInt(BasicTrait.FP);
 				
-				if (Injury > 2*HP/3 || Fatigue > 2*FP/3) {					
+				if (injury > 2*hitPoints/3 || fatigue > 2*fatiguePoints/3) {					
 					int currentValue = a.getTraitValueInt(columnName);
 					int newValue;
-					if (Injury > 2*HP/3 && Fatigue > 2*FP/3) {
+					if (injury > 2*hitPoints/3 && fatigue > 2*fatiguePoints/3) {
 						newValue = (int) Math.ceil((double)currentValue/4);
 						c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/exclamation.png"), "Greatly reduced state"));
 					} else {
@@ -590,11 +586,11 @@ public class InitTable extends BasicTable {
 					MiscUtil.setLabelBold(c);
 				}
 			} else if (columnName.equals("HT")) {
-				int Injury = a.getTraitValueInt(BasicTrait.Injury);
-				int HP = a.getTraitValueInt(BasicTrait.HP);
-				HP = Math.max(HP, 1); // Minimum HP = 1 for calc purposes
-				if (Injury >= HP) {
-					int penalty = (int) (-1*(Math.floor((double)Injury/HP)-1));
+				int injury = a.getTraitValueInt(BasicTrait.Injury);
+				int hitPoints = a.getTraitValueInt(BasicTrait.HP);
+				hitPoints = Math.max(hitPoints, 1); // Minimum HP = 1 for calc purposes
+				if (injury >= hitPoints) {
+					int penalty = (int) (-1*(Math.floor((double)injury/hitPoints)-1));
 					if (penalty < 0) {
 						MiscUtil.setLabelBold(c);
 						c.setText(c.getText() + " [" + penalty + "]");
@@ -673,7 +669,7 @@ public class InitTable extends BasicTable {
 		
 		@Override
 	    public void focusGained(FocusEvent evt) {
-	    	if (DEBUG) { System.out.println("InitTable: Focus gained on " + evt.toString()); }
+			if (LOG.isLoggable(Level.FINE)) {LOG.fine("Focus gained on " + evt.toString()); }
 	    	// check for modifications in the base Actor
 	    	// This hack is only needed if setClickCountToStart = 1, since in that 
 	    	// case the table is not updated in time when there is a modification on focus lost
@@ -692,7 +688,7 @@ public class InitTable extends BasicTable {
 
 		@Override
 		public void focusLost(FocusEvent evt) {
-			if (DEBUG) { System.out.println("InitTable: Focus lost on " + evt.toString()); }
+			if (LOG.isLoggable(Level.FINE)) {LOG.fine("Focus lost on " + evt.toString()); }
 			stopCellEditing();
 		}
 		
@@ -705,8 +701,6 @@ public class InitTable extends BasicTable {
 	 */
 	class InitTableDamageCellEditor extends DefaultCellEditor {
 		ParsingField tf;
-		
-		private static final boolean DEBUG = true;
 		
 		public InitTableDamageCellEditor() {
 			super(new ParsingField());
@@ -738,7 +732,7 @@ public class InitTable extends BasicTable {
 			public boolean parseIsValid(String text) {
 				String result = internalParse(text);
 				try {
-		        	new Integer(result);
+		        	Integer.valueOf(result);
 		        	return true;
 		        } catch (NumberFormatException e) {
 		        	return false;
@@ -755,9 +749,9 @@ public class InitTable extends BasicTable {
 				working = working.trim();
 				Matcher matcher = pattern.matcher(working);
 				while (matcher.matches()) {
-					Integer first = new Integer(matcher.group(1));
+					Integer first = Integer.valueOf(matcher.group(1));
 					String operator = matcher.group(2);
-					Integer second = new Integer(matcher.group(3));
+					Integer second = Integer.valueOf(matcher.group(3));
 					if (operator.equals("+")) { first += second; }
 					else { first -= second; }
 					// Check if we need to continue
@@ -781,14 +775,14 @@ public class InitTable extends BasicTable {
 			
 			@Override
 			public void remove(FilterBypass fb, int offs, int length) throws BadLocationException {
-				System.out.println("InitTableDamageCellEditor: DamageDocumentFilter: Remove: offs: " + offs + ", len:" + length + ".");
+				if (LOG.isLoggable(Level.FINER)) {LOG.finer("Remove: offs: " + offs + ", len:" + length + ".");}
 				startingNew = false;
 				super.remove(fb, offs, length);
 			}
 			
 			@Override
 			public void insertString(FilterBypass fb, int offs, String str, javax.swing.text.AttributeSet a) throws BadLocationException {
-				System.out.println("InitTableDamageCellEditor: DamageDocumentFilter: Insert:" + str + ".");
+				if (LOG.isLoggable(Level.FINER)) {LOG.finer("Insert:" + str + ".");}
 				
 				//if (str.matches("[\\d\\+-]+")) {
 					super.insertString(fb, offs, str, a);
@@ -797,7 +791,7 @@ public class InitTable extends BasicTable {
 			
 			@Override
 			public void replace(FilterBypass fb, int offs, int length, String str, javax.swing.text.AttributeSet a) throws BadLocationException {
-				System.out.println("InitTableDamageCellEditor: DamageDocumentFilter: Replace: '" + str + "', Offs=" + offs + ", Length=" + length + ".");
+				if (LOG.isLoggable(Level.FINER)) {LOG.finer("Replace: '" + str + "', Offs=" + offs + ", Length=" + length + ".");}
 				
 				//if (str.matches("[\\d\\+-]+")) {
 					if (hasFocus || firstEdit || (length > 0)) {
@@ -821,13 +815,13 @@ public class InitTable extends BasicTable {
 			@Override
 			public void focusGained(FocusEvent arg0) {
 				hasFocus = true;
-				System.out.println("InitTableDamageCellEditor: DamageDocumentFilter: TextField focus gained.");
+				if (LOG.isLoggable(Level.FINE)) {LOG.fine("TextField focus gained.");}
 			}
 	
 			@Override
 			public void focusLost(FocusEvent arg0) {
 				hasFocus = false;
-				System.out.println("InitTableDamageCellEditor: DamageDocumentFilter: TextField focus lost.");
+				if (LOG.isLoggable(Level.FINE)) {LOG.fine("TextField focus lost.");}
 			}
 		}
 	}
@@ -1114,17 +1108,16 @@ public class InitTable extends BasicTable {
 	    	if (e.getClickCount() == 2) {
 		        // Determine if cursor is the resize cursor
 		        Cursor currentCursor = getTableHeader().getCursor();
-				System.out.println("MouseClickListener: checkResize: double-click detected. Type is " + currentCursor.getType() + " (" + currentCursor.toString() + ")");
+		        if (LOG.isLoggable(Level.FINER)) {LOG.finer("Double-click detected. Type is " + currentCursor.getType() + " (" + currentCursor.toString() + ")");}
 				
 				if (currentCursor.getType() == Cursor.E_RESIZE_CURSOR) {
 					autoSizeColumns();
-					System.out.println("MouseClickListener: checkResize: auto-sizing columns.");
+					if (LOG.isLoggable(Level.FINER)) {LOG.finer("Auto-sizing columns.");}
 				}
 	    	}
 	    }
 	}
 	
-	@SuppressWarnings("serial")
 	abstract public class TableColumnAction extends AbstractAction {
 		private TableColumn column;
 		private String name;

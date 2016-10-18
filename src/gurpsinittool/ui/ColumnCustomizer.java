@@ -7,12 +7,8 @@ package gurpsinittool.ui;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
-
-import com.sun.nio.file.SensitivityWatchEventModifier;
 
 import gurpsinittool.app.InitTableModel;
 import gurpsinittool.data.ActorBase.BasicTrait;
@@ -20,12 +16,13 @@ import gurpsinittool.data.ActorBase.CalculatedTrait;
 import gurpsinittool.util.MiscUtil;
 
 /**
- *
+ * UI component used for customizing columns in an InitTable
  * @author dcsmall
  */
+@SuppressWarnings("serial")
 public class ColumnCustomizer extends javax.swing.JFrame {
 
-	public static final ArrayList<String> defaultColumns = new ArrayList<String>(Arrays.asList("Act", "Name", "Speed", "Move", "HT", "HP", "Injury", "FP", "Fatigue", "Status"));
+	public static final ArrayList<String> DEFAULT_COLUMNS = new ArrayList<String>(Arrays.asList("Act", "Name", "Speed", "Move", "HT", "HP", "Injury", "FP", "Fatigue", "Status"));
 	private InitTableModel tableModel;
 	
 	private DefaultListModel<String> availableTraitsModel;
@@ -105,16 +102,16 @@ public class ColumnCustomizer extends javax.swing.JFrame {
         availableTraitsList = new javax.swing.JList<String>();
         jScrollPane2 = new javax.swing.JScrollPane();
         displayedTraitsList = new javax.swing.JList<String>();
-        AddButton = new javax.swing.JButton();
-        OKButton = new javax.swing.JButton();
-        CancelButton = new javax.swing.JButton();
+        addButton = new javax.swing.JButton();
+        okButton = new javax.swing.JButton();
+        cancelButton = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
-        RemoveButton = new javax.swing.JButton();
-        MoveUpButton = new javax.swing.JButton();
-        MoveDownButton = new javax.swing.JButton();
-        ResetButton = new javax.swing.JButton();
+        removeButton = new javax.swing.JButton();
+        moveUpButton = new javax.swing.JButton();
+        moveDownButton = new javax.swing.JButton();
+        resetButton = new javax.swing.JButton();
         jLabel2 = new javax.swing.JLabel();
-        CustomTraitButton = new javax.swing.JButton();
+        customTraitButton = new javax.swing.JButton();
 
         setTitle("InitTool Column Customizer");
 
@@ -127,65 +124,65 @@ public class ColumnCustomizer extends javax.swing.JFrame {
         displayedTraitsList.setModel(new DefaultListModel<String>());
         jScrollPane2.setViewportView(displayedTraitsList);
 
-        AddButton.setText("Add >");
-        AddButton.addActionListener(new java.awt.event.ActionListener() {
+        addButton.setText("Add >");
+        addButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                AddButtonActionPerformed(evt);
+                addButtonActionPerformed(evt);
             }
         });
 
-        OKButton.setText("OK");
-        OKButton.addActionListener(new java.awt.event.ActionListener() {
+        okButton.setText("OK");
+        okButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                OKButtonActionPerformed(evt);
+                okButtonActionPerformed(evt);
             }
         });
 
-        CancelButton.setText("Cancel");
-        CancelButton.addActionListener(new java.awt.event.ActionListener() {
+        cancelButton.setText("Cancel");
+        cancelButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                CancelButtonActionPerformed(evt);
+                cancelButtonActionPerformed(evt);
             }
         });
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel1.setText("Available Basic Traits");
 
-        RemoveButton.setText("< Remove");
-        RemoveButton.addActionListener(new java.awt.event.ActionListener() {
+        removeButton.setText("< Remove");
+        removeButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                RemoveButtonActionPerformed(evt);
+                removeButtonActionPerformed(evt);
             }
         });
 
-        MoveUpButton.setText("Move Up");
-        MoveUpButton.addActionListener(new java.awt.event.ActionListener() {
+        moveUpButton.setText("Move Up");
+        moveUpButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                MoveUpButtonActionPerformed(evt);
+                moveUpButtonActionPerformed(evt);
             }
         });
 
-        MoveDownButton.setText("Move Down");
-        MoveDownButton.addActionListener(new java.awt.event.ActionListener() {
+        moveDownButton.setText("Move Down");
+        moveDownButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                MoveDownButtonActionPerformed(evt);
+                moveDownButtonActionPerformed(evt);
             }
         });
 
-        ResetButton.setText("Reset to Default");
-        ResetButton.addActionListener(new java.awt.event.ActionListener() {
+        resetButton.setText("Reset to Default");
+        resetButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                ResetButtonActionPerformed(evt);
+                resetButtonActionPerformed(evt);
             }
         });
 
         jLabel2.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel2.setText("Displayed Traits Order");
 
-        CustomTraitButton.setText("Add Custom Trait");
-        CustomTraitButton.addActionListener(new java.awt.event.ActionListener() {
+        customTraitButton.setText("Add Custom Trait");
+        customTraitButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                CustomTraitButtonActionPerformed(evt);
+                customTraitButtonActionPerformed(evt);
             }
         });
 
@@ -203,26 +200,23 @@ public class ColumnCustomizer extends javax.swing.JFrame {
                                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 121, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                    .addComponent(MoveDownButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(MoveUpButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(AddButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(RemoveButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(CustomTraitButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                                    .addComponent(moveDownButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(moveUpButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(addButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(removeButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(customTraitButton, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(ResetButton, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(resetButton, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(0, 0, Short.MAX_VALUE)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(0, 0, Short.MAX_VALUE)
-                                .addComponent(OKButton, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(okButton, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(CancelButton))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                                    .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addGap(0, 0, 0)))))
+                                .addComponent(cancelButton))
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                            .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -235,52 +229,52 @@ public class ColumnCustomizer extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(AddButton)
+                        .addComponent(addButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(RemoveButton)
+                        .addComponent(removeButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(CustomTraitButton)
+                        .addComponent(customTraitButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(MoveUpButton)
+                        .addComponent(moveUpButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(MoveDownButton)
+                        .addComponent(moveDownButton)
                         .addGap(0, 131, Short.MAX_VALUE))
                     .addComponent(jScrollPane1)
                     .addComponent(jScrollPane2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(OKButton)
-                    .addComponent(CancelButton)
-                    .addComponent(ResetButton)))
+                    .addComponent(okButton)
+                    .addComponent(cancelButton)
+                    .addComponent(resetButton)))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void AddButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AddButtonActionPerformed
+    private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
      	for (String selected: availableTraitsList.getSelectedValuesList()) {
     		availableTraitsModel.removeElement(selected);
     		displayedTraitsModel.addElement(selected);
     	}
-    }//GEN-LAST:event_AddButtonActionPerformed
+    }//GEN-LAST:event_addButtonActionPerformed
 
-    private void RemoveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RemoveButtonActionPerformed
+    private void removeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeButtonActionPerformed
      	for (String selected: displayedTraitsList.getSelectedValuesList()) {
     		displayedTraitsModel.removeElement(selected);
     		availableTraitsModel.addElement(selected);
     	}
-    }//GEN-LAST:event_RemoveButtonActionPerformed
+    }//GEN-LAST:event_removeButtonActionPerformed
 
-    private void CustomTraitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CustomTraitButtonActionPerformed
+    private void customTraitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_customTraitButtonActionPerformed
     	// Show dialog
     	String customTraitName = (String)JOptionPane.showInputDialog(this, "Trait Name:", "Add Custom Trait", JOptionPane.PLAIN_MESSAGE);
     	if (customTraitName != null) {
     		// Add the trait to the display list
     		displayedTraitsModel.addElement(customTraitName);
     	}
-    }//GEN-LAST:event_CustomTraitButtonActionPerformed
+    }//GEN-LAST:event_customTraitButtonActionPerformed
 
-    private void MoveUpButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MoveUpButtonActionPerformed
+    private void moveUpButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_moveUpButtonActionPerformed
     	// Start at the top, and move everything up one
     	// but careful when we already have the top item selected!
     	displayedTraitsList.getSelectedIndices();
@@ -300,9 +294,9 @@ public class ColumnCustomizer extends javax.swing.JFrame {
     			displayedTraitsList.getSelectionModel().addSelectionInterval(selIndex-1, selIndex-1);
     		}
     	}
-    }//GEN-LAST:event_MoveUpButtonActionPerformed
+    }//GEN-LAST:event_moveUpButtonActionPerformed
 
-    private void MoveDownButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MoveDownButtonActionPerformed
+    private void moveDownButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_moveDownButtonActionPerformed
     	// Start at the bottom, and move everything down one
     	// but careful when we already have the bottom item selected!
     	displayedTraitsList.getSelectedIndices();
@@ -323,42 +317,42 @@ public class ColumnCustomizer extends javax.swing.JFrame {
     			displayedTraitsList.getSelectionModel().addSelectionInterval(selIndex+1, selIndex+1);
     		}
     	}
-    }//GEN-LAST:event_MoveDownButtonActionPerformed
+    }//GEN-LAST:event_moveDownButtonActionPerformed
 
-    private void ResetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ResetButtonActionPerformed
+    private void resetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetButtonActionPerformed
         visibleColumns.clear();
-        visibleColumns.addAll(defaultColumns);
+        visibleColumns.addAll(DEFAULT_COLUMNS);
         visibleColumns.remove("Act"); // get rid of "Act" column, if present
         initializeColumnLists();
-    }//GEN-LAST:event_ResetButtonActionPerformed
+    }//GEN-LAST:event_resetButtonActionPerformed
 
-    private void OKButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_OKButtonActionPerformed
+    private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
     	Object [] displayedObjects = displayedTraitsModel.toArray();
     	String [] displayedStrings = Arrays.copyOf(displayedObjects, displayedObjects.length, String[].class);
         ArrayList<String> newVisibleColumns = new ArrayList<String>(Arrays.asList(displayedStrings));
         newVisibleColumns.add(0, "Act"); // Add "Act" column back in!
     	tableModel.setColumnList(newVisibleColumns);
     	setVisible(false);
-    }//GEN-LAST:event_OKButtonActionPerformed
+    }//GEN-LAST:event_okButtonActionPerformed
 
-    private void CancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CancelButtonActionPerformed
+    private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
         setVisible(false);
-    }//GEN-LAST:event_CancelButtonActionPerformed
+    }//GEN-LAST:event_cancelButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton AddButton;
-    private javax.swing.JButton CancelButton;
-    private javax.swing.JButton CustomTraitButton;
-    private javax.swing.JButton MoveDownButton;
-    private javax.swing.JButton MoveUpButton;
-    private javax.swing.JButton OKButton;
-    private javax.swing.JButton RemoveButton;
-    private javax.swing.JButton ResetButton;
+    private javax.swing.JButton addButton;
     private javax.swing.JList<String> availableTraitsList;
+    private javax.swing.JButton cancelButton;
+    private javax.swing.JButton customTraitButton;
     private javax.swing.JList<String> displayedTraitsList;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JButton moveDownButton;
+    private javax.swing.JButton moveUpButton;
+    private javax.swing.JButton okButton;
+    private javax.swing.JButton removeButton;
+    private javax.swing.JButton resetButton;
     // End of variables declaration//GEN-END:variables
 }

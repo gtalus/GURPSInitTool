@@ -15,15 +15,19 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.KeyboardFocusManager;
+import java.awt.Rectangle;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.text.JTextComponent;
+
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
@@ -31,6 +35,7 @@ import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 import gurpsinittool.app.*;
 import gurpsinittool.app.textfield.ParsingField;
@@ -47,13 +52,13 @@ import gurpsinittool.data.StrengthTables;
  *
  * @author dcsmall
  */
+@SuppressWarnings("serial")
 public class ActorDetailsPanel_v2 extends javax.swing.JPanel 
 	implements PropertyChangeListener{
-
-	// Default SVUID
-	private static final long serialVersionUID = 1L;
-
-	private static final boolean DEBUG = false;
+	/**
+	 * Logger
+	 */
+	private final static Logger LOG = Logger.getLogger(ActorDetailsPanel_v2.class.getName());
 	
 	private boolean isInit; // Whether we are attached to the init Table, or just the group table
 	private int actorLoading = 0; // Block for property updates while in the middle of an update
@@ -62,21 +67,22 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	private TraitTableModel traitTableModel;
 	private TraitTableModel tempTableModel;
 	private DefaultTableModel strengthTableModel;
+	private PopupStatusEditList popupStatusEditList;
 	
 	// GameMaster object
 	//public GameMaster gameMaster;
 	
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton add_attack;
-    private javax.swing.JButton add_trait;
+    private javax.swing.JButton addAttack;
+    private javax.swing.JButton addTrait;
     private javax.swing.JPanel attacks;
     private javax.swing.JTable attacksTable;
     private gurpsinittool.app.textfield.ParsingField block;
-    private javax.swing.JButton default_attack;
+    private javax.swing.JButton defaultAttack;
     private gurpsinittool.app.textfield.ParsingField dodge;
     private gurpsinittool.app.textfield.ParsingField dr;
     private gurpsinittool.app.textfield.ParsingField dx;
-    private javax.swing.JButton execute_attack;
+    private javax.swing.JButton executeAttack;
     private gurpsinittool.app.textfield.ParsingField fatigue;
     private gurpsinittool.app.textfield.ParsingField fp;
     private gurpsinittool.app.textfield.ParsingField hp;
@@ -106,7 +112,6 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
@@ -119,25 +124,27 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     private javax.swing.JToolBar jToolBar5;
     private gurpsinittool.app.textfield.ParsingField move;
     private javax.swing.JTextField name;
+    private javax.swing.JScrollPane noteScrollPane;
+    private javax.swing.JSeparator noteSeparator;
     private javax.swing.JTextArea notes;
     private gurpsinittool.app.textfield.ParsingField parry;
     private gurpsinittool.app.textfield.ParsingField per;
     private javax.swing.JButton refreshTempTable;
-    private javax.swing.JButton remove_attack;
-    private javax.swing.JButton remove_trait;
+    private javax.swing.JButton removeAttack;
+    private javax.swing.JButton removeTrait;
     private javax.swing.JButton resizeAttackTable;
     private javax.swing.JButton resizeTempTable;
     private javax.swing.JButton resizeTraitTable;
+    private gurpsinittool.app.textfield.ParsingField shieldDB;
+    private gurpsinittool.app.textfield.ParsingField shieldDR;
+    private gurpsinittool.app.textfield.ParsingField shieldHP;
     private javax.swing.JPanel shieldPanel;
-    private gurpsinittool.app.textfield.ParsingField shield_db;
-    private gurpsinittool.app.textfield.ParsingField shield_dr;
-    private gurpsinittool.app.textfield.ParsingField shield_hp;
     private javax.swing.JCheckBox showStrengthTablesCheckBox;
     private javax.swing.JCheckBox showTempCheckBox;
     private gurpsinittool.app.textfield.ParsingField sm;
     private gurpsinittool.app.textfield.ParsingField speed;
     private gurpsinittool.app.textfield.ParsingField st;
-    private javax.swing.JLabel status_label;
+    private javax.swing.JButton statusButton;
     private javax.swing.JTable strengthTable;
     private javax.swing.JPanel strengthTablesPanel;
     private javax.swing.JPanel tempPanel;
@@ -155,6 +162,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     	attackTableModel = new AttackTableModel();
     	traitTableModel = new TraitTableModel(false);
     	tempTableModel = new TraitTableModel(true);
+    	popupStatusEditList = new PopupStatusEditList();
     	
         initComponents();
     	strengthTableModel = (DefaultTableModel) strengthTable.getModel();
@@ -184,10 +192,10 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jSeparator1 = new javax.swing.JSeparator();
         attacks = new javax.swing.JPanel();
         jToolBar1 = new javax.swing.JToolBar();
-        add_attack = new javax.swing.JButton();
-        remove_attack = new javax.swing.JButton();
-        default_attack = new javax.swing.JButton();
-        execute_attack = new javax.swing.JButton();
+        addAttack = new javax.swing.JButton();
+        removeAttack = new javax.swing.JButton();
+        defaultAttack = new javax.swing.JButton();
+        executeAttack = new javax.swing.JButton();
         jSeparator2 = new javax.swing.JToolBar.Separator();
         resizeAttackTable = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
@@ -195,7 +203,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         type = new javax.swing.JComboBox();
         jLabel7 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
+        noteScrollPane = new javax.swing.JScrollPane();
         notes = new javax.swing.JTextArea();
         jLabel9 = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
@@ -208,9 +216,9 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jLabel15 = new javax.swing.JLabel();
         jLabel16 = new javax.swing.JLabel();
         jLabel17 = new javax.swing.JLabel();
-        shield_db = new gurpsinittool.app.textfield.ParsingField();
-        shield_dr = new gurpsinittool.app.textfield.ParsingField();
-        shield_hp = new gurpsinittool.app.textfield.ParsingField();
+        shieldDB = new gurpsinittool.app.textfield.ParsingField();
+        shieldDR = new gurpsinittool.app.textfield.ParsingField();
+        shieldHP = new gurpsinittool.app.textfield.ParsingField();
         jLabel8 = new javax.swing.JLabel();
         jLabel14 = new javax.swing.JLabel();
         jLabel21 = new javax.swing.JLabel();
@@ -223,11 +231,10 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jScrollPane5 = new javax.swing.JScrollPane();
         traitsTable = new BasicTable();
         jToolBar4 = new javax.swing.JToolBar();
-        add_trait = new javax.swing.JButton();
-        remove_trait = new javax.swing.JButton();
+        addTrait = new javax.swing.JButton();
+        removeTrait = new javax.swing.JButton();
         jSeparator5 = new javax.swing.JToolBar.Separator();
         resizeTraitTable = new javax.swing.JButton();
-        status_label = new javax.swing.JLabel();
         showTempCheckBox = new javax.swing.JCheckBox();
         tempPanel = new javax.swing.JPanel();
         jScrollPane6 = new javax.swing.JScrollPane();
@@ -256,6 +263,8 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         strengthTablesPanel = new javax.swing.JPanel();
         strengthTable = new javax.swing.JTable();
         showStrengthTablesCheckBox = new javax.swing.JCheckBox();
+        noteSeparator = new javax.swing.JSeparator();
+        statusButton = new javax.swing.JButton();
 
         jLabel2.setFont(jLabel2.getFont().deriveFont(jLabel2.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel2.setText("Status:");
@@ -275,54 +284,54 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jToolBar1.setFloatable(false);
         jToolBar1.setRollover(true);
 
-        add_attack.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/add.png"))); // NOI18N
-        add_attack.setToolTipText("Add new attack");
-        add_attack.setFocusable(false);
-        add_attack.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        add_attack.setIconTextGap(1);
-        add_attack.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        add_attack.addActionListener(new java.awt.event.ActionListener() {
+        addAttack.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/add.png"))); // NOI18N
+        addAttack.setToolTipText("Add new attack");
+        addAttack.setFocusable(false);
+        addAttack.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        addAttack.setIconTextGap(1);
+        addAttack.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        addAttack.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                add_attackActionPerformed(evt);
+                addAttackActionPerformed(evt);
             }
         });
-        jToolBar1.add(add_attack);
+        jToolBar1.add(addAttack);
 
-        remove_attack.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/delete.png"))); // NOI18N
-        remove_attack.setToolTipText("Remove selected attack");
-        remove_attack.setFocusable(false);
-        remove_attack.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        remove_attack.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        remove_attack.addActionListener(new java.awt.event.ActionListener() {
+        removeAttack.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/delete.png"))); // NOI18N
+        removeAttack.setToolTipText("Remove selected attack");
+        removeAttack.setFocusable(false);
+        removeAttack.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        removeAttack.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        removeAttack.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                remove_attackActionPerformed(evt);
+                removeAttackActionPerformed(evt);
             }
         });
-        jToolBar1.add(remove_attack);
+        jToolBar1.add(removeAttack);
 
-        default_attack.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/wrench_orange.png"))); // NOI18N
-        default_attack.setToolTipText("Set default attack");
-        default_attack.setFocusable(false);
-        default_attack.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        default_attack.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        default_attack.addActionListener(new java.awt.event.ActionListener() {
+        defaultAttack.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/wrench_orange.png"))); // NOI18N
+        defaultAttack.setToolTipText("Set default attack");
+        defaultAttack.setFocusable(false);
+        defaultAttack.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        defaultAttack.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        defaultAttack.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                default_attackActionPerformed(evt);
+                defaultAttackActionPerformed(evt);
             }
         });
-        jToolBar1.add(default_attack);
+        jToolBar1.add(defaultAttack);
 
-        execute_attack.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/sword.png"))); // NOI18N
-        execute_attack.setToolTipText("Execute selected attack");
-        execute_attack.setFocusable(false);
-        execute_attack.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        execute_attack.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        execute_attack.addActionListener(new java.awt.event.ActionListener() {
+        executeAttack.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/sword.png"))); // NOI18N
+        executeAttack.setToolTipText("Execute selected attack");
+        executeAttack.setFocusable(false);
+        executeAttack.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        executeAttack.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        executeAttack.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                execute_attackActionPerformed(evt);
+                executeAttackActionPerformed(evt);
             }
         });
-        jToolBar1.add(execute_attack);
+        jToolBar1.add(executeAttack);
         jToolBar1.add(jSeparator2);
 
         resizeAttackTable.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/script_code.png"))); // NOI18N
@@ -376,12 +385,11 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jLabel1.setFont(jLabel1.getFont().deriveFont(jLabel1.getFont().getStyle() | java.awt.Font.BOLD));
         jLabel1.setText("Notes:");
 
-        jScrollPane1.setPreferredSize(new java.awt.Dimension(50, 50));
-        jScrollPane1.setRequestFocusEnabled(false);
+        noteScrollPane.setPreferredSize(new java.awt.Dimension(50, 50));
+        noteScrollPane.setRequestFocusEnabled(false);
 
         notes.setFont(new java.awt.Font("Tahoma", 0, 11)); // NOI18N
         notes.setLineWrap(true);
-        notes.setRows(5);
         notes.setWrapStyleWord(true);
         notes.setName("Notes"); // NOI18N
         notes.addFocusListener(new java.awt.event.FocusAdapter() {
@@ -389,7 +397,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                 fieldFocusLost(evt);
             }
         });
-        jScrollPane1.setViewportView(notes);
+        noteScrollPane.setViewportView(notes);
 
         jLabel9.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel9.setText("HT:");
@@ -435,9 +443,9 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jLabel17.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel17.setText("HP:");
 
-        shield_db.setName("Shield_DB"); // NOI18N
-        shield_db.setParser(ParsingFieldParserFactory.IntegerParser());
-        shield_db.addFocusListener(new java.awt.event.FocusAdapter() {
+        shieldDB.setName("Shield_DB"); // NOI18N
+        shieldDB.setParser(ParsingFieldParserFactory.IntegerParser());
+        shieldDB.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
                 fieldFocusGained(evt);
             }
@@ -446,9 +454,9 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
             }
         });
 
-        shield_dr.setName("Shield_DR"); // NOI18N
-        shield_dr.setParser(ParsingFieldParserFactory.IntegerParser());
-        shield_dr.addFocusListener(new java.awt.event.FocusAdapter() {
+        shieldDR.setName("Shield_DR"); // NOI18N
+        shieldDR.setParser(ParsingFieldParserFactory.IntegerParser());
+        shieldDR.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
                 fieldFocusGained(evt);
             }
@@ -457,9 +465,9 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
             }
         });
 
-        shield_hp.setName("Shield_HP"); // NOI18N
-        shield_hp.setParser(ParsingFieldParserFactory.IntegerParser());
-        shield_hp.addFocusListener(new java.awt.event.FocusAdapter() {
+        shieldHP.setName("Shield_HP"); // NOI18N
+        shieldHP.setParser(ParsingFieldParserFactory.IntegerParser());
+        shieldHP.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
                 fieldFocusGained(evt);
             }
@@ -475,15 +483,15 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
             .addGroup(shieldPanelLayout.createSequentialGroup()
                 .addComponent(jLabel15)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(shield_db, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(shieldDB, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel16)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(shield_dr, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(shieldDR, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel17)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(shield_hp, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(shieldHP, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         shieldPanelLayout.setVerticalGroup(
@@ -492,9 +500,9 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                 .addGroup(shieldPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel17, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel16, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(shield_db, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(shield_dr, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(shield_hp, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(shieldDB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(shieldDR, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(shieldHP, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel15, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(0, 0, 0))
         );
@@ -533,30 +541,30 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         jToolBar4.setFloatable(false);
         jToolBar4.setRollover(true);
 
-        add_trait.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/add.png"))); // NOI18N
-        add_trait.setToolTipText("Add new trait");
-        add_trait.setFocusable(false);
-        add_trait.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        add_trait.setIconTextGap(1);
-        add_trait.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        add_trait.addActionListener(new java.awt.event.ActionListener() {
+        addTrait.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/add.png"))); // NOI18N
+        addTrait.setToolTipText("Add new trait");
+        addTrait.setFocusable(false);
+        addTrait.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        addTrait.setIconTextGap(1);
+        addTrait.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        addTrait.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                add_traitActionPerformed(evt);
+                addTraitActionPerformed(evt);
             }
         });
-        jToolBar4.add(add_trait);
+        jToolBar4.add(addTrait);
 
-        remove_trait.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/delete.png"))); // NOI18N
-        remove_trait.setToolTipText("Remove selected trait");
-        remove_trait.setFocusable(false);
-        remove_trait.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        remove_trait.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        remove_trait.addActionListener(new java.awt.event.ActionListener() {
+        removeTrait.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/delete.png"))); // NOI18N
+        removeTrait.setToolTipText("Remove selected trait");
+        removeTrait.setFocusable(false);
+        removeTrait.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        removeTrait.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        removeTrait.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                remove_traitActionPerformed(evt);
+                removeTraitActionPerformed(evt);
             }
         });
-        jToolBar4.add(remove_trait);
+        jToolBar4.add(removeTrait);
         jToolBar4.add(jSeparator5);
 
         resizeTraitTable.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/script_code.png"))); // NOI18N
@@ -587,8 +595,6 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                 .addGap(0, 0, 0))
         );
 
-        status_label.setText("status_label");
-
         showTempCheckBox.setSelected(true);
         showTempCheckBox.setToolTipText("");
         showTempCheckBox.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/images/bullet_toggle_plus.png"))); // NOI18N
@@ -618,7 +624,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         refreshTempTable.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         refreshTempTable.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                refresh_tempActionPerformed(evt);
+                refreshTempActionPerformed(evt);
             }
         });
         jToolBar5.add(refreshTempTable);
@@ -905,12 +911,27 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
             }
         });
 
+        noteSeparator.setCursor(new java.awt.Cursor(java.awt.Cursor.N_RESIZE_CURSOR));
+        noteSeparator.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            public void mouseDragged(java.awt.event.MouseEvent evt) {
+                noteSeparatorMouseDragged(evt);
+            }
+        });
+
+        statusButton.setText("status_button1");
+        statusButton.setMargin(new java.awt.Insets(2, 2, 2, 2));
+        statusButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                statusButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(name, javax.swing.GroupLayout.Alignment.TRAILING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(noteScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(shieldPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(attacks, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(traits, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -994,8 +1015,8 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(dr, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(18, 18, Short.MAX_VALUE)
+                            .addComponent(dr, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jLabel1)
                     .addGroup(layout.createSequentialGroup()
@@ -1008,7 +1029,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                                 .addGap(19, 19, 19)))
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(type, 0, 152, Short.MAX_VALUE)
-                            .addComponent(status_label, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                            .addComponent(statusButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(11, 11, 11)
                         .addComponent(jLabel5)
@@ -1021,7 +1042,9 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
             .addGroup(layout.createSequentialGroup()
                 .addComponent(showStrengthTablesCheckBox)
                 .addGap(0, 0, 0)
-                .addComponent(strengthTablesPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(strengthTablesPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
+            .addComponent(noteSeparator)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1034,7 +1057,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(status_label))
+                    .addComponent(statusButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1097,14 +1120,15 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(showStrengthTablesCheckBox)
                     .addComponent(strengthTablesPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(0, 0, 0)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(showTempCheckBox)
                     .addComponent(tempPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(noteSeparator, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel1)
-                .addGap(0, 0, 0)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 23, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(noteScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
             
@@ -1115,34 +1139,34 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     }//GEN-LAST:event_typeActionPerformed
 
     private void fieldFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldFocusGained
-    	if (DEBUG) { System.out.println("ActorDetailsPanel: Focus gained on " + evt.toString()); }
+    	if(LOG.isLoggable(Level.FINE)) {LOG.fine("Focus gained on " + evt.toString()); }
     	Component com =  evt.getComponent();
     	if (JFormattedTextField.class.equals(com.getClass())) {
-    		if (DEBUG) { System.out.println("ActorDetailsPanel: fieldFocusGained on a JFormattedTextField!"); }
+    		if(LOG.isLoggable(Level.FINER)) {LOG.finer("on a JFormattedTextField!"); }
     		JFormattedTextField t = (JFormattedTextField) evt.getComponent();
     		t.setText(t.getText());
     		t.selectAll();
     	} else if (ParsingField.class.equals(com.getClass())) {
-    		if (DEBUG) { System.out.println("ActorDetailsPanel: fieldFocusGained on a ActorField!"); }
+    		if(LOG.isLoggable(Level.FINER)) {LOG.finer("on a ActorField!"); }
     		ParsingField t = (ParsingField) evt.getComponent();
     		t.selectAll();
     	} else if (JComboBox.class.equals(com.getClass())) {
-    		if (DEBUG) { System.out.println("ActorDetailsPanel: fieldFocusGained on a JComboBox!"); }
+    		if(LOG.isLoggable(Level.FINER)) {LOG.finer("on a JComboBox!"); }
     	}
     	else if (JTextField.class.equals(com.getClass())) {
-    		if (DEBUG) { System.out.println("ActorDetailsPanel: fieldFocusGained on a JTextField!"); }
+    		if(LOG.isLoggable(Level.FINER)) {LOG.finer("on a JTextField!"); }
     	}
     	else if (JTextArea.class.equals(com.getClass())) {
-    		if (DEBUG) { System.out.println("ActorDetailsPanel: fieldFocusGained on a JTextArea!"); }   		
+    		if(LOG.isLoggable(Level.FINER)) {LOG.finer("on a JTextArea!"); }   		
     	}
     	else {
-    		if (DEBUG) { System.out.println("ActorDetailsPanel: fieldFocusGained on a UNKNOWN component!"); }   		
+    		if(LOG.isLoggable(Level.FINER)) {LOG.finer("on a UNKNOWN component!"); }   		
     	}
     		
     }//GEN-LAST:event_fieldFocusGained
 
     private void fieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fieldFocusLost
-    	if (DEBUG) { System.out.println("ActorDetailsPanel: fieldFocusLost (actorLoading=" + actorLoading + ") " + evt.toString()); }
+    	if(LOG.isLoggable(Level.FINE)) {LOG.fine("actorLoading=" + actorLoading + ") " + evt.toString()); }
     	if (!evt.isTemporary() && actorLoading == 0) {
     		Component source = evt.getComponent();
     		if (ParsingField.class.equals(source.getClass())) {
@@ -1155,18 +1179,35 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     			JTextArea field = (JTextArea)source;
     			setActorTraitValue(field.getName(), field.getText());
     		} else {        
-    			System.err.println("ActorDetailsPanel: fieldFocusLost: unsupported source! " + source.getClass().toString());
+    			if(LOG.isLoggable(Level.WARNING)) {LOG.warning("unsupported source! " + source.getClass().toString());}
     		}
     	}
     }//GEN-LAST:event_fieldFocusLost
     
-    private void add_traitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_add_traitActionPerformed
+    private void addTraitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addTraitActionPerformed
     	flushEdits();
-        traitTableModel.addTrait();
+    	final String traitName = traitTableModel.addTrait();
+        // Figure out what new row is
+    	final int row = traitTableModel.getTraitRow(traitName);
         resizeTableInPanel(traits, traitsTable, traitTableModel);
-    }//GEN-LAST:event_add_traitActionPerformed
 
-    private void remove_traitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_remove_traitActionPerformed
+        // Move focus to new trait name cell and delete default name
+        // Need to use invokeLater to handle asynchronous issues with editCell and requestFocus functions
+    	SwingUtilities.invokeLater(new Runnable() {
+    		@Override
+    		public void run() {
+    	    	traitsTable.changeSelection(row, TraitTableModel.columns.Name.ordinal(), false, false);
+    	    	traitsTable.editCellAt(row, TraitTableModel.columns.Name.ordinal());
+    			Component editor = traitsTable.getEditorComponent();
+    			if (editor != null) {
+    				editor.requestFocusInWindow();
+    				((JTextComponent)editor).selectAll();
+    			}
+    		}
+    	});
+    }//GEN-LAST:event_addTraitActionPerformed
+
+    private void removeTraitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeTraitActionPerformed
     	flushEdits();
     	// Convert from sorted row numbers to model row numbers
         // Most of this is not necessary, since the table has a single row selection model
@@ -1178,7 +1219,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         Arrays.sort(modelRows);
         traitTableModel.removeTraits(modelRows);
         resizeTableInPanel(traits, traitsTable, traitTableModel);
-    }//GEN-LAST:event_remove_traitActionPerformed
+    }//GEN-LAST:event_removeTraitActionPerformed
 
     private void resizeTraitTableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resizeTraitTableActionPerformed
     	resizeTableInPanel(traits, traitsTable, traitTableModel);
@@ -1188,16 +1229,16 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     	resizeTableInPanel(attacks, attacksTable, attackTableModel);
     }//GEN-LAST:event_resizeAttackTableActionPerformed
 
-    private void default_attackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_default_attackActionPerformed
+    private void defaultAttackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_defaultAttackActionPerformed
     	flushEdits();
 		if(attacksTable.getSelectedRow() == -1)
 			return;
         int modelRow = attacksTable.getRowSorter().convertRowIndexToModel(attacksTable.getSelectedRow());
         attackTableModel.setDefaultAttack(modelRow);
         resizeTableInPanel(attacks, attacksTable, attackTableModel);
-    }//GEN-LAST:event_default_attackActionPerformed
+    }//GEN-LAST:event_defaultAttackActionPerformed
 
-    private void remove_attackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_remove_attackActionPerformed
+    private void removeAttackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeAttackActionPerformed
     	flushEdits();
         // Convert from sorted row numbers to model row numbers
         // Most of this is not necessary, since the table has a single row selection model
@@ -1209,21 +1250,21 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         Arrays.sort(modelRows);
         attackTableModel.removeAttacks(modelRows);
         resizeTableInPanel(attacks, attacksTable, attackTableModel);
-    }//GEN-LAST:event_remove_attackActionPerformed
+    }//GEN-LAST:event_removeAttackActionPerformed
 
-    private void add_attackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_add_attackActionPerformed
+    private void addAttackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addAttackActionPerformed
     	flushEdits();
         attackTableModel.addAttack();
         resizeTableInPanel(attacks, attacksTable, attackTableModel);
-    }//GEN-LAST:event_add_attackActionPerformed
+    }//GEN-LAST:event_addAttackActionPerformed
 
-    private void execute_attackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_execute_attackActionPerformed
+    private void executeAttackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_executeAttackActionPerformed
     	if (attacksTable.getSelectedRow() == -1) return;
     	int modelRow = attacksTable.getRowSorter().convertRowIndexToModel(attacksTable.getSelectedRow());
     	stopCellEditing(attacksTable);
-    	actor.Attack(modelRow);
+    	actor.attack(modelRow);
        	//gameMaster.new AttackNumAction(modelRow).actionPerformed(null);
-    }//GEN-LAST:event_execute_attackActionPerformed
+    }//GEN-LAST:event_executeAttackActionPerformed
 
     private void showTempCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showTempCheckBoxActionPerformed
        	tempPanel.setVisible(showTempCheckBox.isSelected());
@@ -1240,9 +1281,9 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         resizeTableInPanel(tempPanel, tempTable, tempTableModel);
     }//GEN-LAST:event_resizeTempTableActionPerformed
 
-    private void refresh_tempActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refresh_tempActionPerformed
-        tempTableModel.setActor(actor);
-    }//GEN-LAST:event_refresh_tempActionPerformed
+    private void refreshTempActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshTempActionPerformed
+        tempTableModel.rebuildTable();
+    }//GEN-LAST:event_refreshTempActionPerformed
 
     private void showStrengthTablesCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showStrengthTablesCheckBoxActionPerformed
     	strengthTablesPanel.setVisible(showStrengthTablesCheckBox.isSelected());
@@ -1255,12 +1296,33 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
         this.doLayout();
     }//GEN-LAST:event_showStrengthTablesCheckBoxActionPerformed
 
+    private void noteSeparatorMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_noteSeparatorMouseDragged
+    	int y = -1*evt.getY();
+    	int currentHeight = noteScrollPane.getPreferredSize().height;
+    	int minimumHeight = noteScrollPane.getMinimumSize().height;
+    	int newY = currentHeight+y;
+    	newY = Math.max(minimumHeight, newY); // not less than minimum!
+    	
+    	//System.out.println("HERE: mouseDragged event, y=" + evt.getY() + ", x=" + evt.getX());
+    	Dimension preferredSize = new Dimension(noteScrollPane.getPreferredSize().width, newY);
+    	noteScrollPane.setPreferredSize(preferredSize);
+    	
+    	revalidate();
+    	//doLayout();
+    	//repaint();
+    	scrollRectToVisible(new Rectangle(0,getHeight()-1,1,1));
+    }//GEN-LAST:event_noteSeparatorMouseDragged
+
+    private void statusButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_statusButtonActionPerformed
+    	popupStatusEditList.show(actor, statusButton, 0, 0);
+    }//GEN-LAST:event_statusButtonActionPerformed
+
  
 
     /**
      * Disable the panel, setting all values to default
      */
-    protected void disableAndClearPanel() {
+    private void disableAndClearPanel() {
     	actorLoading++;
     	st.setText("");
     	st.setEnabled(false);
@@ -1296,28 +1358,26 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     	block.setEnabled(false);
     	dr.setText("");
     	dr.setEnabled(false);
-    	shield_db.setText("");
-    	shield_db.setEnabled(false);
-    	shield_dr.setText("");
-    	shield_dr.setEnabled(false);
-    	shield_hp.setText("");
-    	shield_hp.setEnabled(false);
-    	
-    	//status.setSelectedIndex(-1);
-    	//status.setEnabled(false);
-    	status_label.setText("");
+    	shieldDB.setText("");
+    	shieldDB.setEnabled(false);
+    	shieldDR.setText("");
+    	shieldDR.setEnabled(false);
+    	shieldHP.setText("");
+    	shieldHP.setEnabled(false);
+    	statusButton.setText(" ");
+    	statusButton.setEnabled(false);
     	type.setSelectedIndex(-1);
     	type.setEnabled(false);
     	name.setText("");
     	name.setBackground(new java.awt.Color(236, 233, 216));
     	name.setEnabled(false);
-    	add_trait.setEnabled(false);
-    	remove_trait.setEnabled(false);
+    	addTrait.setEnabled(false);
+    	removeTrait.setEnabled(false);
     	resizeTraitTable.setEnabled(false);
-    	add_attack.setEnabled(false);
-       	remove_attack.setEnabled(false);
-      	default_attack.setEnabled(false);
-      	execute_attack.setEnabled(false);
+    	addAttack.setEnabled(false);
+       	removeAttack.setEnabled(false);
+      	defaultAttack.setEnabled(false);
+      	executeAttack.setEnabled(false);
       	resizeAttackTable.setEnabled(false);
       	attackTableModel.setActor(null);
       	resizeTempTable.setEnabled(false);
@@ -1350,19 +1410,19 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
     	parry.setEnabled(true);
     	block.setEnabled(true);
     	dr.setEnabled(true);
-    	shield_db.setEnabled(true);
-    	shield_dr.setEnabled(true);
-    	shield_hp.setEnabled(true);
-    	//status.setEnabled(true);
+    	shieldDB.setEnabled(true);
+    	shieldDR.setEnabled(true);
+    	shieldHP.setEnabled(true);
+    	statusButton.setEnabled(true);
     	type.setEnabled(true);
     	name.setEnabled(true);
-    	add_attack.setEnabled(true);
-       	remove_attack.setEnabled(true);
-      	default_attack.setEnabled(true);
-      	if (isInit) execute_attack.setEnabled(true);
+    	addAttack.setEnabled(true);
+       	removeAttack.setEnabled(true);
+      	defaultAttack.setEnabled(true);
+      	if (isInit) executeAttack.setEnabled(true);
       	resizeAttackTable.setEnabled(true);
-      	add_trait.setEnabled(true);
-       	remove_trait.setEnabled(true);
+      	addTrait.setEnabled(true);
+       	removeTrait.setEnabled(true);
       	resizeTraitTable.setEnabled(true);
       	resizeTempTable.setEnabled(true);
       	refreshTempTable.setEnabled(true);
@@ -1375,7 +1435,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
      */
     protected void resizeTableInPanel(JPanel panel, JTable table, AbstractTableModel tableModel) {
         panel.setPreferredSize(new Dimension(0, panel.getMinimumSize().height+table.getRowHeight()*(tableModel.getRowCount())));
-        if (DEBUG) { System.out.println("resizeTableInPanel: starting."); }
+        if(LOG.isLoggable(Level.FINER)) {LOG.finer("resizing."); }
     	//this.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
     	TableColumn column = null;
     	for (int i = 0; i < table.getColumnCount(); i++) {
@@ -1410,8 +1470,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	    
 		refreshActorField(name);
 		formatActorName();
-		// TODO: clean-up / replace with editor component
-		status_label.setText(actor.getStatusesString());
+		refreshActorStatus();
 	    type.setSelectedItem(actor.getType());
 	    refreshActorField(st);
 	    refreshActorField(hp);
@@ -1430,19 +1489,36 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	    refreshActorField(parry);
 	    refreshActorField(block);
 	    refreshActorField(dr);
-	    refreshActorField(shield_db);
-	    refreshActorField(shield_dr);
-	    refreshActorField(shield_hp);	 
+	    refreshActorField(shieldDB);
+	    refreshActorField(shieldDR);
+	    refreshActorField(shieldHP);	 
 	    refreshActorField(notes);
 	    attackTableModel.setActor(actor);
 	    traitTableModel.setActor(actor);
 	    //tempTableModel.setActor(actor);
-	    resizeTableInPanel(attacks, attacksTable, attackTableModel);
-	    resizeTableInPanel(traits, traitsTable, traitTableModel);
-	    //resizeTableInPanel(tempPanel, tempTable, tempTableModel);
+	    // GUI re-size update
+	    SwingUtilities.invokeLater(new Runnable() {
+	    	@Override
+	    	public void run() {
+	    		resizeTableInPanel(attacks, attacksTable, attackTableModel);
+	    		resizeTableInPanel(traits, traitsTable, traitTableModel);
+	    		//resizeTableInPanel(tempPanel, tempTable, tempTableModel);
+	    	}
+	    });
 	    refreshActorSecondaryValues();
 		actorLoading--; // turn property updates back on
 	}
+    
+    protected void refreshActorStatus() {
+    	// TODO: maybe resize dynamically based on viewport size?
+    	int width = 130;//getWidth()-100;
+		String statusString = actor.getStatusesString();
+		if ("".equals(statusString))
+			statusString = " "; // avoid odd button display
+		else 
+			statusString = "<html><body style='width: " + width + "'><p>" + statusString + "</p></body></html>";
+		statusButton.setText(statusString);
+    }
     
     /**
      * Refresh the actor's calculated values in the display
@@ -1536,12 +1612,12 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 	public void setActor(Actor newActor) {
 		if (actor == newActor) return; // Don't be an idiot
 		if (actorLoading != 0) { // Don't allow actor change in the middle of loading
-			System.out.println("-W-: ActorDetailsPanel:setActor: actor in the middle of change/loading (" + actorLoading + ")");
+			if(LOG.isLoggable(Level.INFO)) {LOG.info("Actor in the middle of change/loading (" + actorLoading + ")"); }
 			return;
 		}
-		if (DEBUG) System.out.println("ActorDetails: setActor w/ new actor! " + 
+		if(LOG.isLoggable(Level.FINE)) {LOG.fine("Set new actor! " + 
 				((actor==null)?"[null]":"'"+actor.getTraitValue(BasicTrait.Name)+"'") + " => " +
-				((newActor==null)?"[null]":"'"+newActor.getTraitValue(BasicTrait.Name)+"'"));
+				((newActor==null)?"[null]":"'"+newActor.getTraitValue(BasicTrait.Name)+"'"));}
 		if (actor != null) {
 			actorLoading++; // Prevent loop-back into this function due to flushed edits
 			actor.removePropertyChangeListener(this);
@@ -1553,8 +1629,6 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 		attackTableModel.setActor(actor);
 	    traitTableModel.setActor(actor);
 	    tempTableModel.setActor(actor);
-	    resizeTableInPanel(attacks, attacksTable, attackTableModel);
-	    resizeTableInPanel(traits, traitsTable, traitTableModel);
 	    resizeTableInPanel(tempPanel, tempTable, tempTableModel);
 	    //resizeTableInPanel(strengthTablesPanel, strengthTable, strengthTableModel);
 		if (actor != null) {
@@ -1562,6 +1636,8 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 			enablePanel();
 			refreshActor();
 		} else {
+		    resizeTableInPanel(attacks, attacksTable, attackTableModel);
+		    resizeTableInPanel(traits, traitsTable, traitTableModel);
 			disableAndClearPanel();
 		}      
 	}
@@ -1603,10 +1679,12 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		// TODO: add some intelligence to this? Will need to create component map which allows 
+		// TODO: add some intelligence to this? Especially attack and trait tables
+		// Will potentially need to create component map which allows 
 		// a 'getComponentByName(String name)' type function to operate
-		if (DEBUG) System.out.println("ActorDetailsPanel: received actor property changed notification!");
-		refreshActor();	
+		if(LOG.isLoggable(Level.FINER)) {LOG.finer("actor property '" + e.getPropertyName() + "' changed from '" + e.getOldValue() + "' to '" + e.getNewValue() + "'");}
+		
+		refreshActor();
 	} 
 
 }

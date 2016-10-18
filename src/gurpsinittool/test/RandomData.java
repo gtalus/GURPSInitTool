@@ -2,8 +2,19 @@ package gurpsinittool.test;
 
 import java.util.Random;
 
-public class RandomData {
+/**
+ * Utility class for generating random data for testing
+ * @author dcsmall
+ *
+ */
+public final class RandomData {
 
+	/**
+	 * List of letters to use for generating random strings
+	 */
+	private static final String LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ";
+	
+	private RandomData() {} // Utility Class
 	/**
 	 * Generate some random actors for the ActorTableModel
 	 * @param actorModel : ActorTableModel to insert random actors into
@@ -37,20 +48,22 @@ public class RandomData {
 //		HashSet<ActorStatus> status = new HashSet<ActorStatus>();
 //		status.add((ActorStatus.values())[r.nextInt(ActorStatus.values().length)]);
 //		ActorType type = (ActorType.values())[r.nextInt(ActorType.values().length)];
-//		Actor random = new Actor(RandomString(), status, type, r.nextInt(20), r.nextInt(20), r.nextInt(20), r.nextInt(20), r.nextInt(20), r.nextInt(10), r.nextInt(13), r.nextInt(13), r.nextInt(13), r.nextInt(7), r.nextInt(3), r.nextInt(5), r.nextInt(30),0);
+//		Actor random = new Actor(RandomString(), status, type, r.nextInt(20), 
+//	r.nextInt(20), r.nextInt(20), r.nextInt(20), r.nextInt(20), r.nextInt(10), 
+//	r.nextInt(13), r.nextInt(13), r.nextInt(13), r.nextInt(7), r.nextInt(3), 
+//	r.nextInt(5), r.nextInt(30),0);
 //		return random;
 //	}
 	
-	public static String RandomString() {
-		Random r = new Random();	
-		String letters= "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ";
-		int length = r.nextInt(5)+5;
-		StringBuffer ret = new StringBuffer();
+
+	public static String randomString() {
+		final Random random = new Random();
+		final int length = random.nextInt(5)+5;
+		final StringBuffer ret = new StringBuffer();
 	 	for(int i=0; i<length; i++){
-	 		char chr = letters.charAt(r.nextInt(letters.length()));
+	 		final char chr = LETTERS.charAt(random.nextInt(LETTERS.length()));
 	 		ret.append(chr);
 	 	}
-
 		return ret.toString();
 	}
 

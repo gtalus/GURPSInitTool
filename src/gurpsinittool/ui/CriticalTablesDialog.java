@@ -26,6 +26,7 @@ import gurpsinittool.util.DieRoller;
  *
  * @author dcsmall
  */
+@SuppressWarnings("serial")
 public class CriticalTablesDialog extends javax.swing.JDialog {
 	
     /**
@@ -34,11 +35,11 @@ public class CriticalTablesDialog extends javax.swing.JDialog {
     public CriticalTablesDialog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
-        initCritTable(hitTable, CriticalTables.critical_hit);
-        initCritTable(missTable, CriticalTables.critical_miss);
-        initCritTable(headTable, CriticalTables.critical_head_hit);
-        initCritTable(unarmedTable, CriticalTables.critical_miss_unarmed);
-        initCritTable(locationTable, CriticalTables.hit_location);
+        initCritTable(hitTable, CriticalTables.criticalHit);
+        initCritTable(missTable, CriticalTables.criticalMiss);
+        initCritTable(headTable, CriticalTables.criticalHeadHit);
+        initCritTable(unarmedTable, CriticalTables.criticalMissUnarmed);
+        initCritTable(locationTable, CriticalTables.hitLocation);
         }
 
     /**
@@ -243,17 +244,17 @@ public class CriticalTablesDialog extends javax.swing.JDialog {
     	rollLabel.setText("Roll: " + result);
     	// Determine current data/ table
     	JScrollPane pane = (JScrollPane) jTabbedPane.getSelectedComponent();
-    	JTable current_table = (JTable) pane.getViewport().getView();
+    	JTable currentTable = (JTable) pane.getViewport().getView();
     	
     	// Original data is stored as property of table. Kind of an ugly hack. 
-    	ArrayList<Entry> current_data = (ArrayList<Entry>) current_table.getClientProperty(0);
+    	ArrayList<Entry> currentData = (ArrayList<Entry>) currentTable.getClientProperty(0);
     	
     	// Search through table for entry that matches result
-    	for(int i = 0; i < current_data.size(); ++i) {
-    		for (int j = 0; j < current_data.get(i).rolls.size(); ++j) {
-    			if (current_data.get(i).rolls.get(j) == result) {
-    				current_table.getSelectionModel().setSelectionInterval(i, i);
-    				current_table.scrollRectToVisible(current_table.getCellRect(i, 0, true));
+    	for(int i = 0; i < currentData.size(); ++i) {
+    		for (int j = 0; j < currentData.get(i).rolls.size(); ++j) {
+    			if (currentData.get(i).rolls.get(j) == result) {
+    				currentTable.getSelectionModel().setSelectionInterval(i, i);
+    				currentTable.scrollRectToVisible(currentTable.getCellRect(i, 0, true));
     			}
     		}
     	}

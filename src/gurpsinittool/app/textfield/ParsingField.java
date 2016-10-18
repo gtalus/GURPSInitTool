@@ -6,6 +6,7 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+@SuppressWarnings("serial")
 public class ParsingField extends JTextField {
 	private ParsingFieldParser parser;
 	private Color foregroundColor = Color.black;
@@ -48,11 +49,11 @@ public class ParsingField extends JTextField {
 	 * Internal class to listen to the changes in text components
 	 */
 	protected class ActorDocumentListener implements DocumentListener {
-	    public void insertUpdate(DocumentEvent e) { parse_component_text(); }
-	    public void removeUpdate(DocumentEvent e) {	parse_component_text(); }
-	    public void changedUpdate(DocumentEvent e) { parse_component_text(); }
+	    public void insertUpdate(DocumentEvent e) { parseComponentText(); }
+	    public void removeUpdate(DocumentEvent e) {	parseComponentText(); }
+	    public void changedUpdate(DocumentEvent e) { parseComponentText(); }
 	    
-	    private void parse_component_text() {
+	    private void parseComponentText() {
 	    	if (parser.parseIsValid(getText()))	    			
 	    		setForeground(foregroundColor);
 	    	else 

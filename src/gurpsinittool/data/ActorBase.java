@@ -12,19 +12,24 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.AbstractUndoableEdit;
 import javax.swing.undo.UndoableEditSupport;
 
-import gurpsinittool.data.ActorBase.CalculatedTrait;
-import gurpsinittool.data.ActorBase.HackStartCompound;
 import gurpsinittool.util.EncounterLogEvent;
 import gurpsinittool.util.EncounterLogListener;
 import gurpsinittool.util.EncounterLogSupport;
+import gurpsinittool.util.MiscUtil;
 
+@SuppressWarnings("serial")
 public class ActorBase implements Serializable {
-	private static final long serialVersionUID = 1L;
+	/**
+	 * Logger
+	 */
+	private final static Logger LOG = Logger.getLogger(ActorBase.class.getName());
 	
 	public static GameSettings settings; // Settings which determine game behavior, including automation
 
@@ -60,7 +65,7 @@ public class ActorBase implements Serializable {
 		
 		//public Trait() { name = ""; value = ""; }
 		public Trait(String name, String value) {this.name = name; this.value = value; }
-		//public Trait(Trait aTrait) {name = aTrait.name; value = aTrait.value; }
+		public Trait(Trait aTrait) {name = aTrait.name; value = aTrait.value; }
 		
 		//public int valueAsInt() {
 		//	// do the parsing/conversion here
@@ -80,7 +85,7 @@ public class ActorBase implements Serializable {
 	// Only apply to non-basic and non-calculated traits!!
 	// Alias is a list of names that are all the same thing
 	// All aliases are created equal
-	protected static final Map<String, ArrayList<String>> traitAliases;
+	protected static final Map<String, ArrayList<String>> TRAIT_ALIASES;
 	static {
 		ArrayList<ArrayList<String>> aliases = new ArrayList<ArrayList<String>>();
 		aliases.add(new ArrayList<String>(Arrays.asList("Combat Reflexes", "CR")));
@@ -93,13 +98,13 @@ public class ActorBase implements Serializable {
 		for (ArrayList<String> aliasSet: aliases) {
 			for (String alias: aliasSet) {
 				if (aMap.containsKey(alias)) {
-					System.err.println("-E- ActorBase: static initialization of traitAliases: alias already exists! '" + alias + "'");
+					if (LOG.isLoggable(Level.SEVERE)) {LOG.severe("static initialization of traitAliases: alias already exists! '" + alias + "'");}
 				} else {
 					aMap.put(alias, aliasSet);
 				}
 			}
 		}		
-		traitAliases = Collections.unmodifiableMap(aMap);
+		TRAIT_ALIASES = Collections.unmodifiableMap(aMap);
 	}
 	
     //================================================================================
@@ -118,11 +123,9 @@ public class ActorBase implements Serializable {
 	public ActorBase(String name, ActorType type) {
 		statuses = new HashSet<ActorStatus>();
 		this.type = type;
-		
-		InitializeBasicTraits();
-		setTrait(BasicTrait.Name, name);
-		
 		attacks = new ArrayList<Attack>();
+		
+		initializeBasicTraits(name);
 	}
 	
 	/**
@@ -134,24 +137,25 @@ public class ActorBase implements Serializable {
 		statuses.addAll(anActor.statuses);
 		
 		// Deep copy of traits
+		traits.clear();
 		for (Object value : anActor.traits.values()) {
-			Trait trait = (Trait) value;
-			setTrait(trait.name, trait.value);
+			Trait trait = new Trait((Trait) value);
+			traits.put(trait.name, trait);
 		}
 		
 		for(int i = 0; i < anActor.attacks.size(); ++i) {
 			attacks.add(anActor.attacks.get(i));
 		}
 	}
-	
-	private void InitializeBasicTraits() {
+	// Initialize all the basic traits with some defaults
+	private void initializeBasicTraits(String name) {
 		// Set Basic Trait initial Values
-		String[] defaultBasicTraitValues = {"unnamed", "10", "10", "5.00", "10", "10", "5", "10", "10", "10", "10", "0", "0", "0", "8", "9", "9", "0", "2", "4", "20", ""};
+		String[] defaultBasicTraitValues = {name, "10", "10", "5.00", "10", "10", "5", "10", "10", "10", "10", "0", "0", "0", "8", "9", "9", "0", "2", "4", "20", ""};
 		BasicTrait[] traitNames = BasicTrait.values();
 		for (int i=0; i<traitNames.length; i++) {
 			String traitValue = defaultBasicTraitValues[i];
 			String traitName = traitNames[i].toString();
-			addTrait(traitName, traitValue);			
+			internalAddTrait(traitName, traitValue);			
 		}
 		setTemp("numParry", 0);
 		setTemp("numBlock", 0);
@@ -186,7 +190,7 @@ public class ActorBase implements Serializable {
 			statuses.add(status);
 			mPcs.firePropertyChange("Status", null, status);
 			startCompoundEdit();
-			if (settings.LOG_STATUSCHANGES) logEventTypeName("added status <b>" + status + "</b>, now has [" + getStatusesString() + "]");
+			if (settings.logStatusChanges) logEventTypeName("added status <b>" + status + "</b>, now has [" + getStatusesString() + "]");
 			mUes.postEdit(new StatusEdit(oldValue, new HashSet<ActorStatus>(statuses)));
 			endCompoundEdit("Status");
 		}
@@ -202,7 +206,7 @@ public class ActorBase implements Serializable {
 			statuses.addAll(newStatuses);
 			if (!undoRedoInProgress) {
 				startCompoundEdit();	
-				if (settings.LOG_STATUSCHANGES) logEventTypeName("status set to <b>[" + getStatusesString() + "]</b>");
+				if (settings.logStatusChanges) logEventTypeName("status set to <b>[" + getStatusesString() + "]</b>");
 				mUes.postEdit(new StatusEdit(oldValue, new HashSet<ActorStatus>(statuses)));
 				endCompoundEdit("Status");
 			}
@@ -215,7 +219,7 @@ public class ActorBase implements Serializable {
 			statuses.remove(status);
 			mPcs.firePropertyChange("Status", status, null);			
 			startCompoundEdit();
-			if (settings.LOG_STATUSCHANGES) logEventTypeName("removed status <b>" + status + "</b>, now has [" + getStatusesString() + "]");
+			if (settings.logStatusChanges) logEventTypeName("removed status <b>" + status + "</b>, now has [" + getStatusesString() + "]");
 			mUes.postEdit(new StatusEdit(oldValue, new HashSet<ActorStatus>(statuses)));
 			endCompoundEdit("Status");
 		}
@@ -270,7 +274,20 @@ public class ActorBase implements Serializable {
 		}
 	}
 	public boolean isTypeAutomated() {
-		return (type == ActorType.Enemy || type == ActorType.Ally || type == ActorType.Neutral);
+		switch (type) {
+		case Ally:
+			return settings.automateAlly;
+		case Enemy:
+			return settings.automateEnemy;
+		case Neutral:
+			return settings.automateNeutral;
+		case PC:
+			return settings.automatePC;
+		case Special:
+			return settings.automateSpecial;
+		default:
+			return false;			
+		}
 	}
 	
 	// Attack Table
@@ -330,8 +347,8 @@ public class ActorBase implements Serializable {
 				return true;
 			}
 			// Support aliases
-			if (traitAliases.containsKey(name)) {
-				for (String alias: traitAliases.get(name)) {
+			if (TRAIT_ALIASES.containsKey(name)) {
+				for (String alias: TRAIT_ALIASES.get(name)) {
 					if (traits.containsKey(alias))
 						return true;
 				}
@@ -377,13 +394,13 @@ public class ActorBase implements Serializable {
 				return getTrait(CalculatedTrait.valueOf(name));
 			}
 			// Support aliases
-			if (traitAliases.containsKey(name)) {
-				for (String alias: traitAliases.get(name)) {
+			if (TRAIT_ALIASES.containsKey(name)) {
+				for (String alias: TRAIT_ALIASES.get(name)) {
 					if (traits.containsKey(alias))
 						return traits.get(alias);
 				}
 			}
-			System.out.println("-E- Actor:GetTrait: requested trait that does not exist: '" + name + "'");
+			if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Trait does not exist: '" + name + "'");}
 			return null; // Consider returning a new trait with no value? Probably not with the change support.
 		} 
 		return traits.get(name);
@@ -401,18 +418,10 @@ public class ActorBase implements Serializable {
 		return getTrait(trait).value;
 	}
 	public int getTraitValueInt(String trait) {
-		return parseIntSafe(getTrait(trait).value);	
+		return MiscUtil.parseIntSafe(getTrait(trait).value);	
 	}
 	public int getTraitValueInt(BasicTrait trait) {
-		return parseIntSafe(getTrait(trait).value);	
-	}
-	private int parseIntSafe(String text) {
-		try {
-			return Integer.parseInt(text);
-		} catch (NumberFormatException e) {
-			System.out.println("-W- Actor: parseIntSafe: Error parsing value: " + text);
-			return 0;
-		}
+		return MiscUtil.parseIntSafe(getTrait(trait).value);	
 	}
 	public ArrayList<String> getTraitValueArray(String name) {
 		if (hasTrait(name))
@@ -428,20 +437,22 @@ public class ActorBase implements Serializable {
 	// SetTrait functions:
 	// --------------------
 	// Internal - without all the checking and undoable edits
-	private void _setTrait(String name, String value) {
+	protected void rawSetTrait(String name, String value) {
 		Trait trait = getTrait(name);
 		String oldValue = trait.value;
 		trait.value = value;
-		mPcs.firePropertyChange("trait." + name, value, oldValue);			
+		mPcs.firePropertyChange("trait." + name, oldValue, value);			
 	}
+	// TODO: this looks like some game logic! Don't want game logic here: that should be in Actor!
+	// TODO: re-factor this to remove game logic
 	/**
 	 * Set the value of a trait, adding if that trait does not exist
 	 * @param name - the name of the trait
 	 * @param value - the value of the trait
 	 */
 	public void setTrait(String name, String value) {
-		if (!hasTrait(name)) { System.err.println("Actor.setTrait: trait does not exist: " + name); return; }
-		if (isCalculatedTrait(name)) { System.err.println("Actor.setTrait: cannot set calculated trait: " + name); return; }
+		if (!hasTrait(name)) { if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Trait does not exist: " + name);} return; }
+		if (isCalculatedTrait(name)) { if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Cannot set calculated trait: " + name);} return; }
 		Trait trait = getTrait(name);
 		if (!trait.value.equals(value)) { // Skip if old value is same as new
 			startCompoundEdit();
@@ -454,31 +465,42 @@ public class ActorBase implements Serializable {
 					intValue = Math.max(intValue, 0);
 					value = String.valueOf(intValue);
 				} catch (NumberFormatException e) {
-					System.out.println("-W- Actor: setTrait: Error parsing Injury/Fatigue value: " + value);
+					if (LOG.isLoggable(Level.INFO)) {LOG.info("Error parsing Injury/Fatigue value: " + value);}
 				}
 				if (name.equals("Injury")) {  // and calculate shock				
-					int HP = getTraitValueInt(BasicTrait.HP);
-					int diff = getTraitValueInt(BasicTrait.Injury) - intValue;
-					if (diff < 0) {
-						setTemp("shock.next", getTempInt("shock.next") - diff);
-						logEventTypeName("took <b><font color=red>" + (-1*diff) + "</font></b> damage (now " + (HP - intValue) + " HP).");
+					int hitPoints = getTraitValueInt(BasicTrait.HP);
+					int diff = intValue - getTraitValueInt(BasicTrait.Injury); // Additional injury
+					if (diff > 0) {
+						setTemp("shock.next", getTempInt("shock.next") + diff);
+						logEventTypeName("took <b><font color=red>" + diff + "</font></b> damage (now " + (hitPoints - intValue) + " HP).");
 					} else {
-						logEventTypeName("healed <b><font color=blue>" + diff + "</font></b> (now " + (HP - intValue) + " HP).");		
+						logEventTypeName("healed <b><font color=blue>" + (-1*diff) + "</font></b> (now " + (hitPoints - intValue) + " HP).");		
 					}
 				} else if (name.equals("Fatigue")) {
-					int FP = getTraitValueInt(BasicTrait.FP);
-					int diff = getTraitValueInt(BasicTrait.Fatigue) - intValue;
-					if (diff < 0) {
-						logEventTypeName("lost <b>" + (-1*diff) + "</b> fatigue (now " + (FP - intValue) + " FP).");
+					int fatiguePoints = getTraitValueInt(BasicTrait.FP);
+					int oldFatigue = getTraitValueInt(BasicTrait.Fatigue);
+					int diff =  intValue - oldFatigue; // 
+					if (intValue > 2*fatiguePoints) { // Minimum of -1xFP
+						intValue = 2*fatiguePoints;
+						value = String.valueOf(intValue);
+					}
+					if (diff > 0) {
+						logEventTypeName("lost <b>" + diff + "</b> fatigue (now " + (fatiguePoints - intValue) + " FP).");
 					} else {
-						logEventTypeName("recoverd <b>" + diff + "</b> fatigue (now " + (FP - intValue) + " FP).");		
+						logEventTypeName("recoverd <b>" + (-1*diff) + "</b> fatigue (now " + (fatiguePoints - intValue) + " FP).");		
+					}
+					// Fatigue / Injury interaction
+					if (diff > 0 && intValue > fatiguePoints) { // Taking Fatigue, and resulting in less than 0 FP
+						int injury = diff + ((oldFatigue < fatiguePoints)?(oldFatigue-fatiguePoints):0);
+						//System.out.println("HERE: taking additional " + injury + " injury. OldFatigue: " + oldFatigue + ", diff: " + diff + ", intValue: " + intValue + ", value: " + value );
+						setTrait(BasicTrait.Injury, getTraitValueInt(BasicTrait.Injury) + injury);
 					}
 				}
 			}
 			
 			mUes.postEdit(new TraitEdit(name, oldValue, value));
 			endCompoundEdit("Edit");
-			_setTrait(name, value);
+			rawSetTrait(name, value);
 		}
 	}
 	public void setTrait(BasicTrait trait, String value) {
@@ -499,14 +521,22 @@ public class ActorBase implements Serializable {
 	 */
 	public boolean addTrait(String name, String value) {
 		if (hasTrait(name)) {
-			System.out.println("-W- Actor.addTrait: trait already exists! " + name); 
+			if (LOG.isLoggable(Level.INFO)) {LOG.info("Trait already exists! " + name);} 
 			return false;
 		}
-		Trait newTrait = new Trait(name, value);
-		traits.put(name, newTrait);
+		internalAddTrait(name, value);
 		mUes.postEdit(new TraitEdit(name, null, value));
 		mPcs.firePropertyChange("trait." + name, null, value);
 		return true;
+	}
+	/**
+	 * Internal add trait method: no checks or calls to overridable methods
+	 * @param name - name of the trait to add
+	 * @param value - the new trait's value
+	 */
+	private void internalAddTrait(String name, String value) {
+		Trait newTrait = new Trait(name, value);
+		traits.put(name, newTrait);
 	}
 	
 	/**
@@ -516,13 +546,13 @@ public class ActorBase implements Serializable {
 	 */
 	public boolean removeTrait(String name) {
 		if (isBasicTrait(name)) {
-			System.out.println("-E- removeTrait: cannot remove basic traits! => " + name);
+			if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Cannot remove basic traits! => " + name); }
 			return false;
 		} if (isCalculatedTrait(name)) {
-			System.out.println("-E- removeTrait: cannot remove calculated traits! => " + name);
+			if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Cannot remove calculated traits! => " + name); }
 			return false;
 		} else if (!hasTrait(name)) {
-			System.out.println("-E- removeTrait: cannot remove non-existant trait! => " + name);
+			if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Cannot remove non-existant trait! => " + name); }
 			return false;
 		} else {
 			Trait trait = getTrait(name);
@@ -541,21 +571,21 @@ public class ActorBase implements Serializable {
 	 */
 	public boolean renameTrait(String oldName, String newName) {
 		if (isBasicTrait(oldName)) {
-			System.out.println("-E- renameTrait: Cannot rename BasicTrait! oldName: " + oldName + ", newName: " + newName);
+			if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Cannot rename BasicTrait! oldName: " + oldName + ", newName: " + newName);}
 			return false;
 		} else if (isCalculatedTrait(oldName)) {
-			System.out.println("-E- renameTrait: Cannot rename CalculatedTrait! oldName: " + oldName + ", newName: " + newName);
+			if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Cannot rename CalculatedTrait! oldName: " + oldName + ", newName: " + newName);}
 			return false;
 		} else if (traits.containsKey(newName)) {
-			System.out.println("-E- renameTrait: New trait name already exists! oldName: " + oldName + ", newName: " + newName);
+			if (LOG.isLoggable(Level.WARNING)) {LOG.warning("New trait name already exists! oldName: " + oldName + ", newName: " + newName);}
 			return false;
 		} else if (!traits.containsKey(oldName)) {
-			System.out.println("-E- renameTrait: Old name does not exist! oldName: " + oldName + ", newName: " + newName);
+			if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Old name does not exist! oldName: " + oldName + ", newName: " + newName);}
 			return false;
 		} else {
 			// Alias support
 			if (hasTrait(newName) && (getTrait(newName) != getTrait(oldName))) { // Alias exists for different trait!				
-				System.out.println("-E- renameTrait: Trait alias exists for new name! oldName: " + oldName + ", newName: " + newName);
+				if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Trait alias exists for new name! oldName: " + oldName + ", newName: " + newName);}
 				return false;
 			}
 			Trait trait = getTrait(oldName);
@@ -745,7 +775,7 @@ public class ActorBase implements Serializable {
 				traits.put(traitName, new Trait(traitName, oldValue));
 				mPcs.firePropertyChange("trait." + traitName, null, oldValue);
 			} else // Simple edit
-				_setTrait(traitName, oldValue);		
+				rawSetTrait(traitName, oldValue);		
     	}    	
     	public void redo() {
     		super.redo();
@@ -756,7 +786,7 @@ public class ActorBase implements Serializable {
 				traits.remove(traitName);
 				mPcs.firePropertyChange("trait." + traitName, oldValue, null);
 			} else // Simple edit
-				_setTrait(traitName, newValue);		
+				rawSetTrait(traitName, newValue);		
     	}        	
     }
     private class TempEdit extends AbstractUndoableEdit {

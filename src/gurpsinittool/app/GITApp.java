@@ -7,13 +7,11 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
-import javax.swing.event.UndoableEditListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
-import javax.swing.undo.AbstractUndoableEdit;
-import javax.swing.undo.UndoableEditSupport;
+
 
 import java.awt.BorderLayout;
 import java.awt.Desktop;
@@ -34,21 +32,26 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import gurpsinittool.data.Actor;
 import gurpsinittool.data.GameMaster;
 import gurpsinittool.ui.*;
 import gurpsinittool.util.EncounterLogEvent;
 import gurpsinittool.util.EncounterLogListener;
-import gurpsinittool.util.GAction;
+import gurpsinittool.util.AbstractGAction;
 import gurpsinittool.util.MiscUtil;
 import gurpsinittool.util.SearchSupport;
 
 @SuppressWarnings("serial")
 public class GITApp extends JFrame 
 	implements PropertyChangeListener, EncounterLogListener, ListSelectionListener, TableModelListener {
+	/**
+	 * Logger
+	 */
+	private final static Logger LOG = Logger.getLogger(GITApp.class.getName());
 	
-	public static final String version = "1.5.1";
-	private static final boolean DEBUG = false;
+	public static final String GIT_VERSION = "1.6.0";
 	
 	private InitTable initTable;
 	private JTextPane logTextArea;
@@ -106,8 +109,11 @@ public class GITApp extends JFrame
         //Schedule a job for the event-dispatching thread:
         //creating and showing this application's GUI.
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                createAndShowGUI();
+            public void run() {  
+            	// Setup logging format 	
+            	//System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tF %1$tT %4$s %2$s %5$s%6$s%n");
+            	System.setProperty("java.util.logging.SimpleFormatter.format", "%4$s %2$s: %5$s%6$s%n");            
+                createAndShowGUI();                
             }
         });
     }
@@ -116,11 +122,11 @@ public class GITApp extends JFrame
      * Create the GUI and show it.  For thread safety,
      * this method should be invoked from the
      * event-dispatching thread.
-     */
+     */   
     private static void createAndShowGUI() {
         //Create and set up the window.
-    	System.out.println("Starting GURPS Initiative Tool");
-        GITApp mainApp = new GITApp("GURPS Initiative Tool");
+    	if(LOG.isLoggable(Level.INFO)) {LOG.info("Starting GURPS Initiative Tool");}
+        final GITApp mainApp = new GITApp("GURPS Initiative Tool");
         mainApp.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // previously EXIT_ON_CLOSE
         mainApp.loadProperties();
         // Here because the defaults depend on the crit table's default location
@@ -136,7 +142,29 @@ public class GITApp extends JFrame
         if (Boolean.valueOf(mainApp.propertyBag.getProperty("GITApp.Manager.visible"))) {
         	mainApp.groupManager.setVisible(true); }
         mainApp.setVisible(true);
-    	System.out.println("Tool Started");
+        if(LOG.isLoggable(Level.INFO)) {LOG.info("Tool Started");}
+    	
+    	// Setup logging levels    	
+    	// This has massive problems related to the non-persistence of Logger instances. 
+    	// I can't figure out how to adjust the log manager base configuration which would apply to newly created logger objects
+    	// If I want to specify logging levels, then I have to keep a static reference I think 
+    	// I might be able to get away with a higher-level logger though (like 'gurpsinittool'    	
+    	//Logger.getLogger("gurpsinittool").setLevel(Level.FINE);
+    	//Logger.getLogger("gurpsinittool.app").setLevel(Level.FINEST); 
+//    	for(Handler h : Logger.getLogger("").getHandlers()) {
+//    	    if(h instanceof ConsoleHandler){
+//    	        h.setLevel(Level.ALL);
+//    	    }
+//    	}
+    	
+//        // Test rig
+//		try {
+//			final Actor importActor = GCAImporter.importActor(new File("C:\\Repos\\GURPS\\character assistant\\characters\\test.gca4"));
+//			mainApp.initTable.getActorTableModel().addActor(importActor, 0);
+//		} catch (FileNotFoundException e) {
+//			e.printStackTrace();
+//		}
+//        
 
     }
     
@@ -203,7 +231,7 @@ public class GITApp extends JFrame
         
         // The actor info pane
         JScrollPane actorDetailsPane = new JScrollPane(detailsPanel);
-        actorDetailsPane.setMinimumSize(new Dimension(detailsPanel.getPreferredSize().width+20,0));
+        actorDetailsPane.setMinimumSize(new Dimension(detailsPanel.getPreferredSize().width+21,0));
 
         // Overall layout
         jSplitPaneVertical = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tableScrollPane, logScrollPane);
@@ -230,28 +258,28 @@ public class GITApp extends JFrame
     }
    
     private void initializeActions() {
-    	actionSizeColumns = new GAction("Auto-size columns", "Auto re-size the table columns to best fit (Alt+A)", new ImageIcon(GITApp.class.getResource("/resources/images/script_code.png"))) {
+    	actionSizeColumns = new AbstractGAction("Auto-size columns", "Auto re-size the table columns to best fit (Alt+A)", new ImageIcon(GITApp.class.getResource("/resources/images/script_code.png"))) {
     		public void actionPerformed(ActionEvent arg0) {	initTable.autoSizeColumns(); }
     	};
-    	actionOptions = new GAction("Options", "Open the options dialog (Ctrl+O)", KeyEvent.VK_O, null) {
+    	actionOptions = new AbstractGAction("Options", "Open the options dialog (Ctrl+O)", KeyEvent.VK_O, null) {
     		public void actionPerformed(ActionEvent arg0) { optionsWindow.setVisible(true); }
     	};
-    	actionAbout = new GAction("About", "Information about the program", null) {
+    	actionAbout = new AbstractGAction("About", "Information about the program", null) {
     		public void actionPerformed(ActionEvent arg0) { showAboutDialog(); }
     	};
-    	actionOpenCriticalTables = new GAction("Critical Tables", "Open Critical Tables (Alt+C)", new ImageIcon(GITApp.class.getResource("/resources/images/table_error.png"))) {
+    	actionOpenCriticalTables = new AbstractGAction("Critical Tables", "Open Critical Tables (Alt+C)", new ImageIcon(GITApp.class.getResource("/resources/images/table_error.png"))) {
     		public void actionPerformed(ActionEvent arg0) { 
     			MiscUtil.validateOnScreen(criticalTables);
         		criticalTables.setVisible(true);
     		}
     	};
-    	actionOpenGroupManager = new GAction("Groups Manager", "Open Groups Manager (Alt+G)", new ImageIcon(GITApp.class.getResource("/resources/images/group.png"))) {
+    	actionOpenGroupManager = new AbstractGAction("Groups Manager", "Open Groups Manager (Alt+G)", new ImageIcon(GITApp.class.getResource("/resources/images/group.png"))) {
     		public void actionPerformed(ActionEvent arg0) { 
     			MiscUtil.validateOnScreen(groupManager);
         		groupManager.setVisible(true);
     		}
     	};  
-    	actionToggleCommandMode = new GAction("Command Mode: Off", "Toggle Command Mode (Ctrl+Q)", null) {
+    	actionToggleCommandMode = new AbstractGAction("Command Mode: Off", "Toggle Command Mode (Ctrl+Q)", null) {
 			public void actionPerformed(ActionEvent arg0) { 
 				commandModeButton.setSelected(!(commandMode.getModeEnabled()));
 				commandMode.setModeEnabled(commandModeButton.isSelected());
@@ -348,6 +376,20 @@ public class GITApp extends JFrame
         menuFile.add(menuItem);
         menubar.add(menuFile);
         
+        // 'Window' Menu
+        menuFile = new JMenu("Window");
+        menuFile.setMnemonic(KeyEvent.VK_W);    
+        menuItem = new JMenuItem(actionOpenGroupManager);
+        menuItem.setMnemonic(KeyEvent.VK_G);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_G, ActionEvent.ALT_MASK));
+        menuFile.add(menuItem);
+        menuFile.setMnemonic(KeyEvent.VK_W);    
+        menuItem = new JMenuItem(actionOpenCriticalTables);
+        menuItem.setMnemonic(KeyEvent.VK_C);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.ALT_MASK));
+        menuFile.add(menuItem);
+        menubar.add(menuFile);
+        
         menubar.add(Box.createHorizontalGlue());
         
         // About menu button
@@ -430,7 +472,7 @@ public class GITApp extends JFrame
     	int minimumWidth = roundCounter.getMinimumSize().width/10 * 10;
     	if (roundCounter.getMinimumSize().width + 1  % 10 != 0) { minimumWidth += 10; }
     	roundCounter.setPreferredSize(new Dimension(minimumWidth, 20));
-    	if (DEBUG) { System.out.println("GITApp: Minimum round counter size = " + roundCounter.getMinimumSize().toString()); }
+    	if(LOG.isLoggable(Level.FINER)) {LOG.finer("Minimum round counter size = " + roundCounter.getMinimumSize().toString());}
     }
 
     /**
@@ -440,19 +482,18 @@ public class GITApp extends JFrame
     private void loadProperties() {
     	// Property file should be the same name as the app
     	try {
-    		File propertyFile = new File("GitApp.props");
-    		if (!propertyFile.exists()) {
-    			if (DEBUG) { System.out.println("GITApp: loadProperties: properties file does not exist " + propertyFile.getAbsolutePath()); }
-    		} else {
-    			if (DEBUG) { System.out.println("GITApp: loadProperties: Loading properties from file " + propertyFile.getAbsolutePath()); }
-    			InputStream propIn = new FileInputStream(propertyFile);
-    			propertyBag.load(propIn);
+    		final File propertyFile = new File("GitApp.props");
+    		if (propertyFile.exists()) {
+    			if(LOG.isLoggable(Level.INFO)) {LOG.info("Loading properties from file " + propertyFile.getAbsolutePath()); }
+    			final InputStream propIn = new FileInputStream(propertyFile);
+    			propertyBag.load(propIn);    			
+     		} else {
+       			if(LOG.isLoggable(Level.INFO)) {LOG.info("Properties file does not exist " + propertyFile.getAbsolutePath());}
     		}
 		} catch (FileNotFoundException e) {
-			System.out.println("GITApp: loadProperties: Caught exception: File not found: " + e.toString());
+			if(LOG.isLoggable(Level.WARNING)) {LOG.warning("Caught exception: File not found: " + e.toString());}
 		} catch (IOException e) {
-			System.out.println("GITApp: loadProperties: Caught exception: Error reading file! " + e.toString());
-			e.printStackTrace();
+			if(LOG.isLoggable(Level.SEVERE)) {LOG.log(Level.SEVERE, "Caught exception: Error reading file! " + e.toString(),e);}
 		}
     }
     
@@ -463,17 +504,15 @@ public class GITApp extends JFrame
     private boolean saveProperties() {
     	// Property file should be the same name as the app
     	try {
-    		File propertyFile = new File("GitApp.props");
-			if (DEBUG) { System.out.println("GITApp: saveProperties: Saving properties to file " + propertyFile.getAbsolutePath()); }
-			OutputStream propOut = new FileOutputStream(propertyFile);
+    		final File propertyFile = new File("GitApp.props");
+    		if(LOG.isLoggable(Level.INFO)) {LOG.info("Saving properties to file " + propertyFile.getAbsolutePath());}
+			final OutputStream propOut = new FileOutputStream(propertyFile);
 			propertyBag.store(propOut, "GITApp Properties");
 		} catch (FileNotFoundException e) {
-			System.out.println("GITApp: saveProperties: File not found? " + e.toString());
-			e.printStackTrace();
+			if(LOG.isLoggable(Level.SEVERE)) {LOG.log(Level.SEVERE, "File not found? " + e.toString(), e);}
 			return false;
 		} catch (IOException e) {
-			System.out.println("GITApp: saveProperties: Error writing to file! " + e.toString());
-			e.printStackTrace();
+			if(LOG.isLoggable(Level.SEVERE)) {LOG.log(Level.SEVERE, "Error writing to file! " + e.toString(), e);}
 			return false;
 		}
     	return true;
@@ -549,7 +588,7 @@ public class GITApp extends JFrame
 		 style.append("font-weight:" + (font.isBold() ? "bold" : "normal") + ";");
 		 style.append("font-size:" + font.getSize() + "pt;");
 
-		 JEditorPane ep = new JEditorPane("text/html","<html><body style=\"" + style + "\"><b>GURPS Initiative Tool</b><br>Version: " + version + "<br><p style='width: 300px;'>" + policy + "</p><p style='width: 300px;'>" + famfamcredit + "</p><br></body></html>");
+		 JEditorPane ep = new JEditorPane("text/html","<html><body style=\"" + style + "\"><b>GURPS Initiative Tool</b><br>Version: " + GIT_VERSION + "<br><p style='width: 300px;'>" + policy + "</p><p style='width: 300px;'>" + famfamcredit + "</p><br></body></html>");
 		 ep.addHyperlinkListener(new HyperlinkListener() {       						
 			 @Override
 			 public void hyperlinkUpdate(HyperlinkEvent e) {
@@ -567,16 +606,17 @@ public class GITApp extends JFrame
 		 JOptionPane.showMessageDialog(this, ep, "About GURPS Initiative Tool", JOptionPane.INFORMATION_MESSAGE);
 	 }
 
-	 // Log support
-	 protected void addLogLine(String line) {    	
+	 /**
+	  * Add a text line to the logTextArea
+	  * @param line
+	  */
+	 protected void addLogLine(final String line) {    	
 		 try {
 			 kit.insertHTML(logTextDocument, logTextDocument.getLength(), line, 0, 0, null);
 		 } catch (BadLocationException e) {
-			 System.out.println("-E- addLogLine: BadLocationException trying to add line: " + line);
-			 e.printStackTrace();
+			 if(LOG.isLoggable(Level.SEVERE)) {LOG.log(Level.SEVERE, "BadLocationException trying to add line: " + line, e);}
 		 } catch (IOException e) {
-			 System.out.println("-E- addLogLine: IOException trying to add line: " + line);
-			 e.printStackTrace();
+			 if(LOG.isLoggable(Level.SEVERE)) {LOG.log(Level.SEVERE, "IOException trying to add line: " + line, e);}
 		 }
 		 // Move cursor to the end
 		 logTextArea.select(logTextDocument.getLength(), logTextDocument.getLength());
@@ -584,26 +624,26 @@ public class GITApp extends JFrame
 
 	 @Override
 	 public void encounterLogMessageSent(EncounterLogEvent evt) {		 
-		 addLogLine(evt.logMsg);
+		 addLogLine(evt.getLogMsg());
 	 }
 
+	 /**
+	  * Handle table changed event from initTable
+	  * @param event
+	  */
 	@Override
-	public void tableChanged(TableModelEvent e) {
-		switch (e.getType()) {
-		case TableModelEvent.INSERT:
-			if (DEBUG) System.out.println ("GitApp: tableChanged: type=INSERT");
-		case TableModelEvent.DELETE:
-			if (DEBUG) System.out.println ("GitApp: tableChanged: type=DELETE");
-		case TableModelEvent.UPDATE:
-			if (DEBUG) System.out.println ("GitApp: tableChanged: type=UPDATE");
-		}
+	public void tableChanged(final TableModelEvent event) {
 		detailsPanel.setActor(initTable.getSelectedActor());
 	}
 
+	/**
+	 * Handle list selection event from initTable
+	 * @param event
+	 */
 	@Override
-	public void valueChanged(ListSelectionEvent e) {
-		if (!e.getValueIsAdjusting()) {
-			if (DEBUG) System.out.println ("GitApp: valueChanged: table list selection event");
+	public void valueChanged(final ListSelectionEvent event) {
+		if (!event.getValueIsAdjusting()) {
+			if(LOG.isLoggable(Level.FINE)) {LOG.fine("Table list selection event");}
 			detailsPanel.setActor(initTable.getSelectedActor());
 		}
 	}
@@ -620,6 +660,7 @@ public class GITApp extends JFrame
 
 		@Override
 		public void windowClosing(WindowEvent evt) {
+			if(LOG.isLoggable(Level.INFO)) {LOG.info("Tool closing");}
 			// Update all the various properties:
 			updateProperties();
 			initTable.updateProperties();

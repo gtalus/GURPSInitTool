@@ -105,7 +105,7 @@
                               <EmptySpace max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="0" attributes="0">
                                   <Component id="jLabel8" min="-2" max="-2" attributes="0"/>
-                                  <Component id="drTextField" min="-2" pref="35" max="-2" attributes="0"/>
+                                  <Component id="drTextField" min="-2" pref="46" max="-2" attributes="0"/>
                               </Group>
                           </Group>
                           <Component id="noneButton" min="-2" max="-2" attributes="0"/>
