@@ -16,6 +16,7 @@ import java.util.logging.Logger;
  *
  * @author dcsmall
  */
+@SuppressWarnings("serial")
 public class OptionsWindow extends javax.swing.JFrame {
 	/**
 	 * Logger
@@ -111,7 +112,6 @@ public class OptionsWindow extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        localSettings = new gurpsinittool.data.GameSettings();
         combatAutomationPanel = new javax.swing.JPanel();
         autoAttack = new javax.swing.JCheckBox();
         autoUnconsciousness = new javax.swing.JCheckBox();
@@ -422,7 +422,6 @@ public class OptionsWindow extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JSeparator jSeparator1;
-    private gurpsinittool.data.GameSettings localSettings;
     private javax.swing.JCheckBox logDefenseDetails;
     private javax.swing.JCheckBox logStatusChanges;
     private javax.swing.JCheckBox neutralAutomated;

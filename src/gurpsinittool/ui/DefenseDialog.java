@@ -30,7 +30,6 @@ import gurpsinittool.data.HitLocations;
 import gurpsinittool.data.ActorBase.BasicTrait;
 import gurpsinittool.data.DR;
 import gurpsinittool.util.DieRoller;
-import gurpsinittool.util.MiscUtil;
 
 /**
  *
@@ -844,7 +843,7 @@ public class DefenseDialog extends javax.swing.JDialog {
     		rollTextField.setForeground(Color.BLACK);
     	} catch (Exception e) {
     		rollTextField.setForeground(Color.RED);
-    		if (LOG.isLoggable(Level.INFO)) {LOG.info("Error parsing roll field! '" + rollTextField.getText() + "': " + e.getMessage());}
+    		if (LOG.isLoggable(Level.FINE)) {LOG.fine("Failed to parse roll field! '" + rollTextField.getText() + "': " + e.getMessage());}
     		parseSuccess = false;
     	}    
     	try { // Get dr- set text to red and print error message if fails
@@ -852,7 +851,7 @@ public class DefenseDialog extends javax.swing.JDialog {
     		drTextField.setForeground(Color.BLACK);
     	} catch (Exception e) {
     		drTextField.setForeground(Color.RED);
-    		if (LOG.isLoggable(Level.INFO)) {LOG.info("Error parsing dr field! '" + drTextField.getText() + "': " + e.getMessage());}
+    		if (LOG.isLoggable(Level.FINE)) {LOG.fine("Failed to parse dr field! '" + drTextField.getText() + "': " + e.getMessage());}
     		parseSuccess = false;
     	}    	
     	try { // Get damage- set text to red and print error message if fails
@@ -860,7 +859,7 @@ public class DefenseDialog extends javax.swing.JDialog {
     		damageTextField.setForeground(Color.BLACK);
     	} catch (Exception e) {
    			damageTextField.setForeground(Color.RED);
-   			if (LOG.isLoggable(Level.INFO)) {LOG.info("Error parsing damage field! '" + damageTextField.getText() + "': " + e.getMessage());}
+   			if (LOG.isLoggable(Level.FINE)) {LOG.fine("Failed to parse damage field! '" + damageTextField.getText() + "': " + e.getMessage());}
     		parseSuccess = false;
     	}
     	defense.location = HitLocations.getLocationFromName((String) locationCombo.getSelectedItem());

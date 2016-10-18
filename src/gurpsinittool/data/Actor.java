@@ -7,11 +7,9 @@ import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import gurpsinittool.data.ActorBase.BasicTrait;
 import gurpsinittool.data.Defense.DefenseResult;
 import gurpsinittool.data.Defense.DefenseType;
 import gurpsinittool.util.DieRoller;
-import gurpsinittool.util.MiscUtil;
 
 /** 
  * Encapsulates a single actor in the current encounter.

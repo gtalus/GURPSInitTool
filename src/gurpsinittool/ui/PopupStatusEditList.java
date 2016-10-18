@@ -11,19 +11,16 @@ import java.util.HashSet;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListSelectionModel;
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.ListSelectionModel;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
-
 import gurpsinittool.data.Actor;
 import gurpsinittool.data.ActorBase;
 import gurpsinittool.data.ActorBase.ActorStatus;
 
+@SuppressWarnings("serial")
 public class PopupStatusEditList {
 
 	protected JList<ActorStatus> list;

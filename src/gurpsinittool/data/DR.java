@@ -73,7 +73,6 @@ public class DR {
 			return new DR(base,crMod,flexible);
 		}
 		else {
-			//System.out.println("-W- DR:ParseDR: unable to parse string! " + DRString);
 			throw new ParseException("ParseDR: Unable to parse string: " + drString, 0);
 		}
 	}

@@ -2,8 +2,6 @@ package gurpsinittool.data;
 
 import gurpsinittool.data.HitLocations.HitLocation;
 import gurpsinittool.util.DieRoller;
-import gurpsinittool.util.MiscUtil;
-
 import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;

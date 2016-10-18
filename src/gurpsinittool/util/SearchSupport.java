@@ -35,6 +35,7 @@ import gurpsinittool.data.ActorBase.BasicTrait;
  * @author dcsmall
  *
  */
+@SuppressWarnings("serial")
 public class SearchSupport {
 	/**
 	 * Logger

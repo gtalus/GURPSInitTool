@@ -32,15 +32,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.util.Properties;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import gurpsinittool.data.Actor;
 import gurpsinittool.data.GameMaster;
-import gurpsinittool.gca.GCACharacter;
-import gurpsinittool.gca.GCAFile;
-import gurpsinittool.gca.GCAImporter;
 import gurpsinittool.ui.*;
 import gurpsinittool.util.EncounterLogEvent;
 import gurpsinittool.util.EncounterLogListener;
@@ -56,7 +51,7 @@ public class GITApp extends JFrame
 	 */
 	private final static Logger LOG = Logger.getLogger(GITApp.class.getName());
 	
-	public static final String GIT_VERSION = "1.5.1";
+	public static final String GIT_VERSION = "1.6.0";
 	
 	private InitTable initTable;
 	private JTextPane logTextArea;
@@ -167,7 +162,6 @@ public class GITApp extends JFrame
 //			final Actor importActor = GCAImporter.importActor(new File("C:\\Repos\\GURPS\\character assistant\\characters\\test.gca4"));
 //			mainApp.initTable.getActorTableModel().addActor(importActor, 0);
 //		} catch (FileNotFoundException e) {
-//			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
 //        
@@ -666,6 +660,7 @@ public class GITApp extends JFrame
 
 		@Override
 		public void windowClosing(WindowEvent evt) {
+			if(LOG.isLoggable(Level.INFO)) {LOG.info("Tool closing");}
 			// Update all the various properties:
 			updateProperties();
 			initTable.updateProperties();

@@ -19,15 +19,13 @@ import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.AbstractUndoableEdit;
 import javax.swing.undo.UndoableEditSupport;
 
-import gurpsinittool.data.ActorBase.CalculatedTrait;
-import gurpsinittool.data.ActorBase.HackStartCompound;
 import gurpsinittool.util.EncounterLogEvent;
 import gurpsinittool.util.EncounterLogListener;
 import gurpsinittool.util.EncounterLogSupport;
 import gurpsinittool.util.MiscUtil;
 
+@SuppressWarnings("serial")
 public class ActorBase implements Serializable {
-	private static final long serialVersionUID = 1L;
 	/**
 	 * Logger
 	 */

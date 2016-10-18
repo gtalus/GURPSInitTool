@@ -6,6 +6,7 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+@SuppressWarnings("serial")
 public class ParsingField extends JTextField {
 	private ParsingFieldParser parser;
 	private Color foregroundColor = Color.black;

@@ -3,6 +3,8 @@ package gurpsinittool.app;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -13,14 +15,12 @@ import gurpsinittool.data.Actor;
 import gurpsinittool.data.ActorBase.BasicTrait;
 import gurpsinittool.data.GameMaster;
 
+@SuppressWarnings("serial")
 public class InitTableTransferHandler extends TransferHandler {
-
 	/**
-	 * Default serialization UID
+	 * Logger
 	 */
-	private static final long serialVersionUID = 1L;
-	
-	private static final boolean DEBUG = false;
+	private final static Logger LOG = Logger.getLogger(InitTableTransferHandler.class.getName());
 
 	// Must hack class to be different: string difference does not make unique DataFlavor
 	protected static DataFlavor initTableActorFlavor = new DataFlavor(InitTable.class, "GURPS Actor Object from init table");
@@ -70,7 +70,7 @@ public class InitTableTransferHandler extends TransferHandler {
         }
           
         // Do in-process & in-table import: everything is done for you.
-    	if (DEBUG) { System.out.println("InitTableTransferHandler.importData: Getting transferable data for InitTable import..."); }
+        if (LOG.isLoggable(Level.FINE)) {LOG.fine("Getting transferable data for InitTable import..."); }
     	Transferable t = support.getTransferable();
         Actor[] actorRows;
         try {
@@ -83,14 +83,14 @@ public class InitTableTransferHandler extends TransferHandler {
         		actorRows = (Actor[]) t.getTransferData(initTableActorFlavor); // Don't really care which flavor it is
         	}
         } catch (UnsupportedFlavorException e) {
-    		System.err.println("InitTableTransferHandler.importData: -E- Unsupported Flavor Exception");
+        	if (LOG.isLoggable(Level.WARNING)) {LOG.log(Level.WARNING, "Unsupported Flavor Exception: " + e.getMessage(), e);}
         	return false;
         } catch (IOException e) {
-    		System.err.println("InitTableTransferHandler.importData: -E- IO Exception: " + e.toString());
+        	if (LOG.isLoggable(Level.WARNING)) {LOG.log(Level.WARNING, "IOException: " + e.getMessage(), e);}
         	return false;
         }
         
-    	if (DEBUG) { System.out.println("InitTableTransferHandler.importData:  Transferable data retrieved."); }
+        if (LOG.isLoggable(Level.FINE)) {LOG.fine("Transferable data retrieved."); }
 
         InitTable table = (InitTable) support.getComponent();
         GameMaster gameMaster = table.getGameMaster();        
@@ -103,17 +103,17 @@ public class InitTableTransferHandler extends TransferHandler {
         if (row >= table.getRowCount()) { row = table.getRowCount() - 1; }
         gameMaster.startCompoundEdit();
         for (int i = actorRows.length-1; i >= 0; i--) { // Actors added to same 'row', so go from bottom up to preserve order
-        	if (DEBUG) { System.out.println("InitTableTransferHandler.importData: Adding actor # " + i + " @ row: " + row); }
+        	if (LOG.isLoggable(Level.FINER)) {LOG.finer("Adding actor # " + i + " @ row: " + row); }
         	gameMaster.addActor(actorRows[i], row);
             table.getSelectionModel().addSelectionInterval(row, row);
         }
         if (support.getDropAction() != MOVE)
         	gameMaster.endCompoundEdit("Copy");
-        if (DEBUG) {
-			System.out.println("InitTableTransferHandler.importData: Getting import data request: " + row + " String " + dl.toString());
-			DataFlavor[] flavors = support.getDataFlavors();
+        if (LOG.isLoggable(Level.FINEST)) {
+        	LOG.finest("Getting import data request: " + row + " String " + dl.toString());
+			final DataFlavor[] flavors = support.getDataFlavors();
 			for (int i = 0; i < flavors.length; i++) {
-				System.out.println("InitTableTransferHandler.importData: Debug flavor: " + flavors[i].toString());
+				LOG.finest("Debug flavor: " + flavors[i].toString());
 			}
 		}
         
@@ -140,7 +140,7 @@ public class InitTableTransferHandler extends TransferHandler {
 		java.util.Arrays.sort(rows);
 		InitTableModel tableModel = table.getActorTableModel();
 		Actor[] actorRows = tableModel.getActors(rows);
-		if (DEBUG) { System.out.println("InitTableTransferHandler.createTransferable: creating new TransferableActor"); }
+		if (LOG.isLoggable(Level.FINE)) {LOG.fine("Creating new TransferableActor"); }
 		return new TransferableActor(actorRows, table.isInitTable());
 	}
 	
@@ -154,21 +154,19 @@ public class InitTableTransferHandler extends TransferHandler {
 	        try {
 	        	actors = (Actor[]) data.getTransferData(initTableActorFlavor); // Don't really care which flavor it is
 	        } catch (UnsupportedFlavorException e) {
-	        	System.err.println("InitTableTransferHandler.exportDone: -E- UnsupportedFlavorException");
+	        	if (LOG.isLoggable(Level.WARNING)) {LOG.log(Level.WARNING, "UnsupportedFlavorException: " + e.getMessage() + e);}
 	        	return;
 	        } catch (IOException e) {
-	        	System.err.println("InitTableTransferHandler.exportDone: -E- IOException");
+	        	if (LOG.isLoggable(Level.WARNING)) {LOG.log(Level.WARNING, "IOException: " + e.getMessage() + e);}
 	        	return;
 	        }
 	        for (int i = 0; i < actors.length; i++) {
-	        	if (DEBUG) { System.out.println("InitTableTransferHandler.exportDone: After move, deleting actor " + actors[i].getTraitValue(BasicTrait.Name) + "..."); }
+	        	if (LOG.isLoggable(Level.FINE)) {LOG.fine("After move, deleting actor " + actors[i].getTraitValue(BasicTrait.Name) + "..."); }
 	        	gameMaster.removeActor(actors[i]);
 	        }
 	        gameMaster.endCompoundEdit("Move");
 		}
-		if (DEBUG) {
-			System.out.println("InitTableTransferHandler.exportDone: done: " + action);
-		}
+		if (LOG.isLoggable(Level.FINE)) {LOG.fine("Done: " + action);}
 	}
 	
 	class TransferableActor implements Transferable {
@@ -197,7 +195,7 @@ public class InitTableTransferHandler extends TransferHandler {
 		public Object getTransferData(DataFlavor flavor) 
 		       throws UnsupportedFlavorException, IOException
 		  {
-			if (DEBUG) { System.out.println("TransferableActor.getTransferData: Starting to return data for flavor: " + flavor.toString()); }    	
+			if (LOG.isLoggable(Level.FINE)) {LOG.fine("Starting to return data for flavor: " + flavor.toString()); }    	
 		    if (flavor.equals(initTableActorFlavor) || flavor.equals(groupTableActorFlavor)) return actorRows;
 		    else throw new UnsupportedFlavorException(flavor);
 		  }

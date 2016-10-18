@@ -4,19 +4,19 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.table.AbstractTableModel;
 import gurpsinittool.data.*;
 
+@SuppressWarnings("serial")
 public class TraitTableModel extends AbstractTableModel implements PropertyChangeListener {
-
 	/**
-	 * Default UID
+	 * Logger
 	 */
-	private static final long serialVersionUID = 1L;
-
-	private static final boolean DEBUG = false;
-
+	private final static Logger LOG = Logger.getLogger(TraitTableModel.class.getName());
+	
 	private String[] columnNames = {"Name", "Value"};
 	private Class<?>[] columnClasses = {String.class, String.class};
 	public enum columns {Name, Value};
@@ -77,19 +77,14 @@ public class TraitTableModel extends AbstractTableModel implements PropertyChang
 	 */
     @Override
     public void setValueAt(Object value, int row, int col) {
-        if (DEBUG) {
-            System.out.println("TraitTableModel: setValueAt: Setting value at " + row + "," + col
-                               + " to " + value
-                               + " (an instance of "
-                               + value.getClass() + ")");
-        }
-        //new Exception().printStackTrace();
-
+    	if (LOG.isLoggable(Level.FINE)) {LOG.fine("Setting value at " + row + "," + col
+    			+ " to " + value + " (an instance of " + value.getClass() + ")");}
+ 
         if (isTemp) return;
         
         // Check if there is any actual change
         if (getValueAt(row, col).equals(value)) {
-    		if (DEBUG) { System.out.println("TraitTableModel: setValueAt: values are identical. Exiting."); }
+        	if (LOG.isLoggable(Level.FINER)) {LOG.finer("Values are identical. Exiting."); }
     		return;
         }
         
@@ -98,7 +93,7 @@ public class TraitTableModel extends AbstractTableModel implements PropertyChang
 		case Name:
 			String newName = (String) value;
 			if (!currentActor.renameTrait(traitName, newName)) {
-				System.out.println("TraitTableModel: setValueAt: rename failed!");
+				if (LOG.isLoggable(Level.INFO)) {LOG.info("Rename failed!");}
 			}
 //			else { // Also need to change the name in our array
 //				displayedTraitKeys.set(row, newName);
@@ -206,7 +201,7 @@ public class TraitTableModel extends AbstractTableModel implements PropertyChang
     public void removeTraits(int[] rows) {
     	if (!isTemp && currentActor != null && rows.length > 0) {
 			for (int i = rows.length-1; i >= 0; i--) {  // Go from bottom up to preserve numbering
-				if (DEBUG) { System.out.println("TraitTableModel: Deleting row: " + rows[i]); }   	
+				if (LOG.isLoggable(Level.FINE)) {LOG.fine("Deleting row: " + rows[i]); }   	
 				String traitName = displayedTraitKeys.get(rows[i]);
 				currentActor.removeTrait(traitName);// rely on automatic refresh
 				//if(currentActor.removeTrait(traitName)) {
@@ -225,7 +220,7 @@ public class TraitTableModel extends AbstractTableModel implements PropertyChang
 			return; // for now!
 		// Listen to events and fire appropriate events
 		if (e.getSource() != currentActor) {
-			System.err.println ("TraitTableModel:propertyChange: source of event is not current actor! Shouldn't happen!");
+			if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Source of event is not current actor! Shouldn't happen!");}
 		} else {		
 			// See if it's a trait
 			if(e.getPropertyName().startsWith("trait.")) { // New trait or value changed
@@ -233,25 +228,25 @@ public class TraitTableModel extends AbstractTableModel implements PropertyChang
 				if (e.getOldValue() == null) { // new trait
 					// Error checking
 					if (!Actor.isCustomTrait(name)) 
-						System.err.println("TraitTableModel: propertyChange: newly created trait is not custom! " + name);
+						if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Newly created trait is not custom! " + name);}
 					if (displayedTraitKeys.contains(name))
-						System.err.println("TraitTableModel: propertyChange: newly created trait already in list of displayed traits! " + name);
+						if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Newly created trait already in list of displayed traits! " + name);}
 					displayedTraitKeys.add(name);					
 					fireTableRowsInserted(displayedTraitKeys.size()-1, displayedTraitKeys.size()-1);
 				} else if (e.getNewValue() == null) { // deleted trait
 					if (!displayedTraitKeys.contains(name))
-						System.err.println("TraitTableModel: propertyChange: deleted trait not in display traits list! " + name);
+						if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Deleted trait not in display traits list! " + name);}
 					int index = displayedTraitKeys.indexOf(name);
 					displayedTraitKeys.remove(index);
 					fireTableRowsDeleted(index, index);
 				} else if (Actor.isCustomTrait(name)) { // Value changed for custom trait
 					if (!displayedTraitKeys.contains(name))
-						System.err.println("TraitTableModel: propertyChange: changed trait not in display traits list! " + name);
+						if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Changed trait not in display traits list! " + name);}
 					fireTableCellUpdated(displayedTraitKeys.indexOf(name), columns.Value.ordinal());				
 				}
 			} else if ("traitName".equals(e.getPropertyName())) { // Trait name change
 				if (!displayedTraitKeys.contains(e.getOldValue()))
-					System.err.println("TraitTableModel: propertyChange: renamed trait original name not in display traits list! " + e.getOldValue());
+					if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Renamed trait original name not in display traits list! " + e.getOldValue());}
 				int index = displayedTraitKeys.indexOf(e.getOldValue());
 				displayedTraitKeys.set(index, (String)e.getNewValue());
 				fireTableCellUpdated(index, columns.Name.ordinal());			

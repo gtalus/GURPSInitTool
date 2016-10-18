@@ -2,6 +2,8 @@ package gurpsinittool.app;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JLabel;
@@ -16,14 +18,12 @@ import gurpsinittool.data.Actor;
 import gurpsinittool.data.Attack;
 import gurpsinittool.util.MiscUtil;
 
+@SuppressWarnings("serial")
 public class AttackTableModel extends AbstractTableModel {
-
 	/**
-	 * Default UID
+	 * Logger
 	 */
-	private static final long serialVersionUID = 1L;
-
-	private static final boolean DEBUG = true;
+	private final static Logger LOG = Logger.getLogger(AttackTableModel.class.getName());
 
 	private String[] columnNames = {"Name", "Skill", "Damage", "U"};
 	private Class<?>[] columnClasses = {String.class, Integer.class, String.class, Boolean.class};
@@ -79,16 +79,12 @@ public class AttackTableModel extends AbstractTableModel {
 	 */
     @Override
     public void setValueAt(Object value, int row, int col) {
-        if (DEBUG) {
-            System.out.println("AttackTableModel: setValueAt: Setting value at " + row + "," + col
-                               + " to " + value
-                               + " (an instance of "
-                               + value.getClass() + ")");
-        }
+    	if (LOG.isLoggable(Level.FINER)) {LOG.finer("Setting value at " + row + "," + col
+    			+ " to " + value + " (an instance of " + value.getClass() + ")");}     
 
         // Check if there is any actual change
         if (getValueAt(row, col).equals(value)) {
-    		if (DEBUG) { System.out.println("AttackTableModel: setValueAt: values are identical. Exiting."); }
+        	if (LOG.isLoggable(Level.FINER)) {LOG.finer("Values are identical. Exiting."); }
     		return;
         }
         
@@ -143,7 +139,7 @@ public class AttackTableModel extends AbstractTableModel {
     public void removeAttacks(int[] rows) {
     	if (currentActor != null && rows.length > 0) {
 			for (int i = rows.length-1; i >= 0; i--) {  // Go from bottom up to preserve numbering
-				if (DEBUG) { System.out.println("AttackTableModel: Deleting row: " + rows[i]); }   			
+				if (LOG.isLoggable(Level.FINE)) {LOG.fine("Deleting row: " + rows[i]); }   			
 				currentActor.removeAttack(rows[i]); // Just remove the rows indicated: not all instances of clones	
 			}
     		//fireTableRowsDeleted(rows[0], rows[rows.length-1]);
@@ -156,10 +152,10 @@ public class AttackTableModel extends AbstractTableModel {
      */
     public void setDefaultAttack(int row) {
     	if (row < 0 || row >= currentActor.getNumAttacks()) {
-    		System.out.println("AttackTableModel:setDefaultAttack: row out of range! " + row);
+    		if (LOG.isLoggable(Level.INFO)) {LOG.info("Row out of range! " + row);}
     		return;
     	}
-    	int oldDefault = currentActor.getDefaultAttack();
+    	//int oldDefault = currentActor.getDefaultAttack();
     	currentActor.setDefaultAttack(row);
     	//fireTableRowsUpdated(oldDefault, oldDefault);
     	//fireTableRowsUpdated(row, row);

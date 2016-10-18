@@ -4,6 +4,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import javax.swing.event.UndoableEditListener;
@@ -15,19 +17,17 @@ import gurpsinittool.data.*;
 import gurpsinittool.data.ActorBase.ActorStatus;
 import gurpsinittool.data.ActorBase.ActorType;
 import gurpsinittool.data.ActorBase.BasicTrait;
-import gurpsinittool.data.ActorBase.CalculatedTrait;
 import gurpsinittool.util.CleanFileChangeEventSource;
 import gurpsinittool.util.FileChangeEventListener;
 import gurpsinittool.util.SearchSupport;
 
+@SuppressWarnings("serial")
 public class InitTableModel extends AbstractTableModel implements PropertyChangeListener {
-
 	/**
-	 * Default UID
+	 * Logger
 	 */
-	private static final long serialVersionUID = 1L;
+	private final static Logger LOG = Logger.getLogger(InitTableModel.class.getName());
 
-	private static final boolean DEBUG = false;
 	private UndoableEditSupport mUes = new UndoableEditSupport();
 
 	// Removed: Dodge, type
@@ -57,7 +57,7 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 	 * @param destRow : the index of the slot to insert into (pushes current actor down one)
 	 */
 	public void addActor(Actor actor, int destRow) {
-		if (DEBUG) System.out.println("table model.addActor: start: " + actor.getTraitValue(BasicTrait.Name));
+		if (LOG.isLoggable(Level.FINE)) {LOG.fine("Start: " + actor.getTraitValue(BasicTrait.Name));}
 		if (destRow > actorList.size()-1) // Don't put anything after the 'new' row
 			destRow = actorList.size()-1;
 		else if (destRow < 0) // Don't try to put stuff before the beginning!
@@ -210,12 +210,8 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 	 */
     @Override
     public void setValueAt(Object value, int row, int col) {
-        if (DEBUG) {
-            System.out.println("ActorTableModel: setValueAt: Setting value at " + row + "," + col
-                               + " to " + value
-                               + " (an instance of "
-                               + value.getClass() + ")");
-        }
+    	if (LOG.isLoggable(Level.FINER)) {LOG.finer("Setting value at " + row + "," + col
+    			+ " to " + value + " (an instance of " + value.getClass() + ")");}       
         
         Actor a = (Actor) actorList.get(row);
         String traitName = columnNames.get(col);
@@ -248,7 +244,7 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 	 * the name of traits or special value "Act"
 	 */
 	public void setColumnList(ArrayList<String> columnList) {
-		if (DEBUG) { System.out.println("ActorTableModel: setColumnList: Setting list to " + columnList); }
+		if (LOG.isLoggable(Level.FINE)) {LOG.fine("Setting list to " + columnList); }
 		columnNames.clear();
 		columnNames.addAll(columnList);
 		super.fireTableStructureChanged();
@@ -338,7 +334,7 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 		if(Actor.class.isInstance(e.getSource())) {
 			setDirty();
 			Actor actor = (Actor)e.getSource();
-			if (DEBUG) System.out.println("InitTableModel: propertyChange: got notification from actor " + actor.getTraitValue(BasicTrait.Name));
+			if (LOG.isLoggable(Level.FINER)) {LOG.finer("Got notification from actor " + actor.getTraitValue(BasicTrait.Name));}
 			int [] rows = getActorRows(actor);
 			for (int i=0; i < rows.length; i++) {
 				if (rows[i] == getRowCount() -1) { // changed last row, send request for a new Actor to the game master
@@ -349,7 +345,7 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 				}
 				fireTableRowsUpdated(rows[i], rows[i]);
 			}
-			if (DEBUG) System.out.println("InitTableModel: propertyChange: done with actor " + actor.getTraitValue(BasicTrait.Name));
+			if (LOG.isLoggable(Level.FINER)) {LOG.finer("Done with actor " + actor.getTraitValue(BasicTrait.Name));}
 		} else if (e.getPropertyName().equals("ActiveActor")) {
 				int oldValue = (Integer) e.getOldValue();
 				int newValue = (Integer) e.getNewValue();

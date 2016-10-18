@@ -43,15 +43,13 @@ import javax.swing.tree.TreePath;
 import gurpsinittool.data.Actor;
 import gurpsinittool.data.ActorGroupFile;
 import gurpsinittool.data.GameMaster;
-import gurpsinittool.gca.GCACharacter;
-import gurpsinittool.gca.GCAFile;
 import gurpsinittool.gca.GCAImporter;
 import gurpsinittool.ui.ActorDetailsPanel_v2;
 import gurpsinittool.util.FileChangeEvent;
 import gurpsinittool.util.FileChangeEventListener;
-import gurpsinittool.util.MiscUtil;
 import gurpsinittool.util.SearchSupport;
 
+@SuppressWarnings("serial")
 public class GroupManager extends JFrame 
 	implements TreeSelectionListener, ActionListener, ItemListener, ListSelectionListener {
 	/**
@@ -59,9 +57,6 @@ public class GroupManager extends JFrame
 	 */
 	private final static Logger LOG = Logger.getLogger(GroupManager.class.getName());
 	
-	// Default SVUID
-	private static final long serialVersionUID = 1L;
-
 	private JSplitPane jSplitPaneVertical;
 	private JSplitPane jSplitPaneHorizontal;
 	private JScrollPane jScrollPaneTable;

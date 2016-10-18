@@ -44,9 +44,6 @@ public class GCAImporter {
 		processAttacks(actor, character);
 		// Notes from various sources
 		processNotes(actor, character);
-
-		
-		// TODO: damage resistance!
 		
 		return actor;
 	}	

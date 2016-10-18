@@ -39,6 +39,7 @@ import gurpsinittool.util.EncounterLogListener;
 import gurpsinittool.util.EncounterLogSupport;
 import gurpsinittool.util.AbstractGAction;
 
+@SuppressWarnings("serial")
 public class GameMaster implements EncounterLogListener, UndoableEditListener, PropertyChangeListener {
 	/**
 	 * Logger
@@ -397,7 +398,6 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
     	return tags;
     }
     
-	@SuppressWarnings("serial")
 	private void initializeActions() {
 		// Undo / Redo
 		actionUndo = new AbstractGAction("Undo", "Undo the most recent edit (Ctrl+Z)", KeyEvent.VK_U, new ImageIcon(GITApp.class.getResource("/resources/images/arrow_undo.png"), "Undo")) {
@@ -646,7 +646,6 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 		if (round <= 0)
 			return; // Ignore log messages before the encounter has started
 		// Forward
-   		String roundT = "Round " + round + ": ";
    		mEls.fireEncounterLogEvent(evt);
 	}
 

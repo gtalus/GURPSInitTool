@@ -52,15 +52,13 @@ import gurpsinittool.data.StrengthTables;
  *
  * @author dcsmall
  */
+@SuppressWarnings("serial")
 public class ActorDetailsPanel_v2 extends javax.swing.JPanel 
 	implements PropertyChangeListener{
 	/**
 	 * Logger
 	 */
 	private final static Logger LOG = Logger.getLogger(ActorDetailsPanel_v2.class.getName());
-	
-	// Default SVUID
-	private static final long serialVersionUID = 1L;
 	
 	private boolean isInit; // Whether we are attached to the init Table, or just the group table
 	private int actorLoading = 0; // Block for property updates while in the middle of an update

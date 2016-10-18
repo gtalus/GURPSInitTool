@@ -26,6 +26,7 @@ import gurpsinittool.util.DieRoller;
  *
  * @author dcsmall
  */
+@SuppressWarnings("serial")
 public class CriticalTablesDialog extends javax.swing.JDialog {
 	
     /**

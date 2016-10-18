@@ -23,7 +23,6 @@ import gurpsinittool.app.GroupTreeNode;
 import gurpsinittool.data.ActorBase.ActorStatus;
 import gurpsinittool.data.ActorBase.ActorType;
 import gurpsinittool.data.ActorBase.BasicTrait;
-import gurpsinittool.util.MiscUtil;
 
 /**
  * This class encapsulates all file IO for saving/loading actor groups & lists

@@ -19,6 +19,7 @@ import gurpsinittool.util.MiscUtil;
  * UI component used for customizing columns in an InitTable
  * @author dcsmall
  */
+@SuppressWarnings("serial")
 public class ColumnCustomizer extends javax.swing.JFrame {
 
 	public static final ArrayList<String> DEFAULT_COLUMNS = new ArrayList<String>(Arrays.asList("Act", "Name", "Speed", "Move", "HT", "HP", "Injury", "FP", "Fatigue", "Status"));
