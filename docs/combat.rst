@@ -10,30 +10,32 @@ Which types of combatants are subject to automation is user configurable through
 .. image:: _static/20_automation_options.png
    :align: left
 
+.. note:: These automations *only* apply to combatants with a type that has had automation enabled.
+
 Attack
 ~~~~~~
-Automated type combatants (ATC) with the 'Attacking' status that are not otherwise disabled or stunned will make their default attack at the start of their turn. Keep in mind that the attack is only printed to the log.
+Combatants with the 'Attacking' status that are not stunned or otherwise disabled will make their default attack at the start of their turn. Keep in mind that the attack is only printed to the log.
 
 Unconsciousness Checks
 ~~~~~~~~~~~~~~~~~~~~~~
-If an ATC is at 0 or fewer remaining HP, they make a consciousness roll at the start of their turn (before attacking, if enabled). If they fail their status is set to Disarmed, Prone and Unconscious and their turn is skipped.
+If the combatant is at 0 or fewer remaining HP, they make a consciousness roll at the start of their turn (before attacking, if enabled). If they fail their status is set to Disarmed, Prone and Unconscious and their turn is skipped.
 
 Knockdown and Stunning
 ~~~~~~~~~~~~~~~~~~~~~~
-The Defense dialog prints Knockdown/Stunning calculations to the log. If this option is set, the results of those calculations are applied to ATCs.
+The Defense dialog prints Knockdown/Stunning calculations to the log. If this option is set, the results of those calculations are also applied to the combatant's status.
 
 Stun Recovery
 ~~~~~~~~~~~~~
-ATCs with mental or physical stun statuses will make checks at the start of their turn to recover. If they have the 'StunRecover' state, then they will automatically lose that state at the start of their next turn.
+Combatants with mental or physical stun statuses will make checks at the start of their turn to recover. If they have the 'StunRecover' state, then they will automatically lose that state at the start of their next turn.
 
 Attacks
 -------
 
-Besides the attack automation, attacks can be triggered manually as well. Both the toolbar attack button and the initiative table right-click menu attack option cause all selected rows to report their default attack. The Attacks section of the detail panel also has an attack button which triggers the selected attack in the table.
+Besides automated attacks, attacks can be triggered manually as well. Both the toolbar attack button and the initiative table right-click menu attack option cause all selected rows to report their default attack. The Attacks section of the detail panel also has an attack button which triggers the selected attack in the table.
 
 When attacks are reported, they do not trigger any further automation to apply the results to a target. This must be done manually or through the defense dialog.
 
-Attacks take into account the current position, and shock if that option has been enabled under automations.
+Attacks take into account the attacker's current posture. Shock is also applied if that option has been enabled.
 
 .. note:: Shock caused by damage is tracked by the tool even if the option to apply it to attacks is disabled. You can see the tracked values in the Temp/Debug section of the details panel. 
 
@@ -63,6 +65,12 @@ Any part of the defense calculation can be modified and the results will be imme
 
 .. note:: Death checks from damage are not currently reported or automated by the tool. The penalty to consciousness checks in the HT column of the initiative table can be used to track when HP thresholds are crossed.
 
+Critical Failures
+~~~~~~~~~~~~~~~~~
+
+Critically failing a defense triggers either a message indicating the appropriate additional impact (for parry and block defenses) or , a message is printed in the log indicating what should happen but no changes are made to the state of the combatant. For dodge, posture is set to 'prone' (a message will not be printed unless you have enabled 'Verbose Status Changes' in the options).
+
+If extra effort is used in a critical defense failure, then one extra injury is applied. This extra injury is applied separately from the injury taken from the attack, and is not included in the defense dialog result summary. It will be shown in the log.
 
 Shields
 ~~~~~~~

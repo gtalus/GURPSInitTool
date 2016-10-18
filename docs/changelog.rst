@@ -1,6 +1,19 @@
 Changelog
 =========
 
+v1.6.0
+------
+
+**Features:**
+
+- Table column customization
+- GCA4 Import
+- Strength Tables
+- Configuration of automated combatant types
+- Fatigue loss while negative causes damage
+- Extra Effort critical failure effects for defenses
+- Misc usability improvements
+  
 v1.5.1
 ------
 

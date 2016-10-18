@@ -1,7 +1,7 @@
 Groups Manager
 ==============
 
-The groups manager allows you to organize and save combatant records between sessions, making them more easily available to quickly create an encounter during a game session. It is accessed by cliking the right-most icon on the toolbar or pressing Alt+G, which brings up the Group Manager window.
+The groups manager allows you to organize and save combatant records between sessions, making them more easily available to quickly create an encounter during a game session. It is accessed through the 'Window' menu, by cliking the icon depicting two characters on the far right of the toolbar, or by pressing Alt+G.
 
 .. image:: _static/10_group_manager.png
 
@@ -30,6 +30,14 @@ The 'File' menu allows you to save or open group manager records, which by defau
 .. note:: The last loaded file is automatically re-loaded when the program starts.
 
 .. note:: Closing the Group Manager will not discard any changes. If you attempt to close the main initiative window without saving, a pop-up will show and warn you of the unsaved changes. 
+
+GCA4 Import
+~~~~~~~~~~~
+Within the file menu is also an option to import characters from Gurps Character Assistant 4 (GCA4). This option is not yet fully developed and may not properly import all aspects of a character.
+
+The imported combatants will be put in the currently selected group, or a new group named 'GCA4Import' if none is selected.
+
+.. note:: The file selection dialog for importing allows multiple files to be selected and imported at the same time.
 
 Using Groups
 ------------
