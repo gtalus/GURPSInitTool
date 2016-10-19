@@ -295,7 +295,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
      * @return the next unused tag
      */
 	private static Pattern nameTag = Pattern.compile("^(.*) \\[([^\\s]+)\\]$");
-	private static enum flagColors {R, B};
+	private static enum flagColors {R, B, G};
 	private static int flagMaxNum = 6;
     private static String getNextTag(HashSet<String> tags) {
     	for (flagColors color: flagColors.values()) {
