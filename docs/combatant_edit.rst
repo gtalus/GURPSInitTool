@@ -19,6 +19,8 @@ The Initiative Table
 
 The initiative table is fully editable. The status cell displays a list box when clicked which allows multiple status changes to be made. A right-click menu in the table provides additional editing options, and most apply to all selected rows. This menu provides the only way of deleting rows. Status changes made through this menu are done in a coordinated fashion, so it is a useful way to get all the selected rows the the same state.
 
+For most cells containing a numeric value, pressing a key to enter edit mode will remove the current value and replace it with the key pressed. The non-numeric 'Name', 'Status', and 'Type' columns will immediately enter edit mode when clicked.
+
 Special editing function is enabled for the Injury and Fatigue columns. If you press a number, '+/=' or '-' key while one of those fields is selected, it will start entry of a delta value to be added or subtracted from the previous one (a number starts an add). These fields can parse simple +/- expressions such as '3+4-2'.
 
 .. image:: _static/30_table_status_display.png
@@ -86,6 +88,7 @@ Multiple attacks can be listed for each creature. The default attack, used when 
 - **Damage**: Accepts most damage formats. '1d', '1d+2 cr', '5', '1d-1 (2) pi+ ex' are all recognized. The default damage type is cutting. The general form is "XdY+Z [(<div>)] [<type>] [ex]". Type must be in the shortened form (cr/cut/imp/burn/etc.). As with other fields, the text will turn red if the program does not recognize the string entered as a valid damage expression. Note that 'ex' damage only currently impacts injury to Diffuse creatures (see the Injury Tolerance trait, below).
 - **Unbalanced**: If an unbalanced attack is used, it counts towards the number of parries done this turn, impacting the parry defense.
 
+.. _trait-aliases:
 
 Traits
 ------
@@ -96,3 +99,12 @@ Any other traits can be specified in the Traits table. This can be used for Skil
 - **High Pain Threshold** (HPT): Knockdown/stunning checks and shock calculation. (Note: value is not used)
 - **Low Pain Threshold** (LPT): Knockdown/stunning checks and shock calculation. (Note: value is not used)
 - **Injury Tolerance** (IT): Injury calculation in Defense dialog. Value is a ';' separated list and can include all the options from the Basic Set: No Brain; No Eyes; No Head; No Neck; No Vitals; Diffuse; Homogenous; Undead. Value is case-insensitive.
+
+Strength Tables
+---------------
+
+.. image:: _static/32_strength_tables.png
+   :align: left
+
+Various strength-related values are calculated from the combatant's ST and are displayed in the 'Strength Tables' located below the Traits table. This includes basic damage and encumbrance levels. **Striking ST** and **Lifting ST** traits, if they exist, will impact the values calculated. The values in this table are for reference only, and do not impact any of the other traits, attacks, or combat calculations.
+
