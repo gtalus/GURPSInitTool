@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,6 +16,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseWheelEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -51,6 +53,7 @@ import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -85,7 +88,10 @@ public class InitTable extends BasicTable {
 	private ColumnCustomizer columnCustomizerWindow;
 	private Properties propertyBag;
 	private String propertyPrefix;
-	
+	private Font currentFont;
+	private static final Integer FONT_ADJUST_INCREMENT = 1;
+	private static final Integer CELL_BUFFER = 5;
+	private static final Integer HEADER_BUFFER = 14;
 	/**
 	 * Default Constructor
 	 */
@@ -111,8 +117,30 @@ public class InitTable extends BasicTable {
 		ArrayList<String> columnArrayNames = new ArrayList<String>(Arrays.asList(propertyBag.getProperty(propertyPrefix + ".tableModel.columnNames").split(";")));
 		tableModel.setColumnList(columnArrayNames);
 		initializeColumnHandling();
+		
+		// Font size
+		initializeFontSize();
 	}
     
+	/**
+	 * Adjust the font size by the specified amount
+	 * @param sizeDelta - positive to increaes, negative to decrease
+	 */
+	public void adjustFontSize(final int sizeDelta) {
+		currentFont = currentFont.deriveFont((float)currentFont.getSize()+sizeDelta);
+		setFont(currentFont);
+		// Adjust cell height
+		setRowHeight(currentFont.getSize()+CELL_BUFFER);
+		// Adjust header height
+	    final JTableHeader header = getTableHeader();
+	    header.setPreferredSize(new Dimension(100, currentFont.getSize()+HEADER_BUFFER));
+	    header.revalidate();
+		// Refresh UI
+        revalidate();
+        repaint();
+        updateUI();
+        if (LOG.isLoggable(Level.FINE)) {LOG.fine("Font size is now " + currentFont.getSize());}
+	}
     /**
      * Auto re-size the column widths to optimally fit information
      */
@@ -246,7 +274,9 @@ public class InitTable extends BasicTable {
         popupMenu.add(new JMenuItem(gameMaster.actionDeleteSelectedActors));
         if (isInitTable) { popupMenu.add(new JMenuItem(gameMaster.actionTagSelectedActors)); }
         if (isInitTable) { popupMenu.add(new JMenuItem(gameMaster.actionRemoveTagSelectedActors)); }
-        addMouseListener(new MousePopupListener(false));
+        TableMouseListener cellMouseListener = new TableMouseListener(false);
+        addMouseListener(cellMouseListener);
+        addMouseWheelListener(cellMouseListener);
         
         // Header popup menu
         headerPopupMenu = new JPopupMenu();
@@ -256,7 +286,21 @@ public class InitTable extends BasicTable {
 				showColumnCustomizer();
 			}
 		});
-    	getTableHeader().addMouseListener(new MousePopupListener(true));
+        headerPopupMenu.add(new AbstractAction("Increase Font Size") {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {				
+				adjustFontSize(FONT_ADJUST_INCREMENT);
+			}
+		});
+        headerPopupMenu.add(new AbstractAction("Decrease Font Size") {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {				
+				adjustFontSize(-FONT_ADJUST_INCREMENT);
+			}
+		});
+        TableMouseListener headerMouseListener = new TableMouseListener(true);
+        getTableHeader().addMouseListener(headerMouseListener);
+        getTableHeader().addMouseWheelListener(headerMouseListener);
     	
 		// Setup actor status editor
         JComboBox<ActorStatus> initTableStateEditor = new JComboBox<ActorStatus>();
@@ -296,6 +340,16 @@ public class InitTable extends BasicTable {
         // Don't display 'Act' column in the group manager table
         // Removing this column changes the indexes in the column model only - be careful when using getColumn(i)
         if(!isInitTable && actColumnIndex != -1) { getColumnModel().removeColumn(getColumnModel().getColumn(actColumnIndex)); }
+	}
+	/**
+	 * Set the initial font size of the table
+	 */
+	private void initializeFontSize() {
+		this.currentFont = getFont();
+		this.currentFont = currentFont.deriveFont(Float.valueOf(propertyBag.getProperty(propertyPrefix + ".tableModel.fontSize")));
+		setFont(currentFont);
+		// Initialize cell height (header will take care of itself)
+		setRowHeight(currentFont.getSize()+CELL_BUFFER);
 	}
 	
 	/**
@@ -463,6 +517,8 @@ public class InitTable extends BasicTable {
 	  * Set default properties if they are not already defined.
 	  */
 	 private void setDefaultProperties() {
+		 if (!propertyBag.containsKey(propertyPrefix + ".tableModel.fontSize")) {
+			 propertyBag.setProperty(propertyPrefix + ".tableModel.fontSize", "11"); }
 		 if (!propertyBag.containsKey(propertyPrefix + ".tableModel.columnNames")) {
 			 propertyBag.setProperty(propertyPrefix + ".tableModel.columnNames", String.join(";", ColumnCustomizer.DEFAULT_COLUMNS)); }
 		 // columnCustomizerWindow
@@ -480,6 +536,7 @@ public class InitTable extends BasicTable {
 	  * Update all the store-able properties to their current values
 	  */
 	 public void updateProperties() {
+		 propertyBag.setProperty(propertyPrefix + ".tableModel.fontSize", String.valueOf(currentFont.getSize()));		 
 		 // Kept up-to-date with event listeners
 		 propertyBag.setProperty(propertyPrefix + ".tableModel.columnNames", String.join(";", tableModel.getColumnNames()));
 		 // columnCustomizerWindow
@@ -512,6 +569,7 @@ public class InitTable extends BasicTable {
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 			
 			JLabel c = (JLabel) base.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+			c.setFont(table.getFont()); // Use table font
 			String columnName = getColumnName(column);
 			if (columnName.equals("Injury") || columnName.equals("Fatigue")) {
 				c.setForeground(Color.red);
@@ -628,6 +686,7 @@ public class InitTable extends BasicTable {
 		@Override
 		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
 			ParsingField c = (ParsingField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
+			c.setFont(table.getFont()); // Use table font
 			if (isSelected)
 			    c.selectAll();
 			
@@ -661,6 +720,7 @@ public class InitTable extends BasicTable {
 		@Override
 		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
 			JTextField c = (JTextField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
+			c.setFont(table.getFont()); // Use table font
 			actor = ((InitTableModel)table.getModel()).getActor(row);
 			actorName = actor.getTraitValue(BasicTrait.Name);
 			formatEditField(c, isSelected, table.isCellEditable(row, column), row);
@@ -720,6 +780,7 @@ public class InitTable extends BasicTable {
 		@Override
 		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
 			tf = (ParsingField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
+			tf.setFont(table.getFont()); // Use table font
 			formatEditField(tf, isSelected, table.isCellEditable(row, column), row);
 			tf.refreshForeground();
 			return tf;
@@ -897,6 +958,7 @@ public class InitTable extends BasicTable {
 			for (ActorStatus status: (HashSet<ActorStatus>) value) {
 				list.setSelectedValue(status, true);
 			}
+			list.setFont(InitTable.this.getFont()); // Use table font
 			return button;
 		}
 
@@ -1001,6 +1063,7 @@ public class InitTable extends BasicTable {
 				InitTable.this.getTopLevelAncestor().addComponentListener(this);
 			}
 			list.setSelectedValue(value, true);
+			list.setFont(InitTable.this.getFont()); // Use table font
 			return button;
 		}
 
@@ -1077,17 +1140,20 @@ public class InitTable extends BasicTable {
 		@Override
 		public void componentShown(ComponentEvent e) {}
 	}
-		
+	
 	/**
 	 * An inner class to check whether mouse events are the pop-up trigger
 	 */
-	class MousePopupListener extends MouseAdapter {
+	class TableMouseListener extends MouseAdapter {
 	    	
 		private boolean isHeader;
 		
-		public MousePopupListener(boolean isHeader) { this.isHeader = isHeader; }
+		public TableMouseListener(boolean isHeader) { this.isHeader = isHeader; }
+	    @Override
 	    public void mousePressed(MouseEvent e) { checkPopup(e); }
+	    @Override
 	    public void mouseClicked(MouseEvent e) { checkPopup(e); checkResize(e);}
+	    @Override
 	    public void mouseReleased(MouseEvent e) { checkPopup(e); }
 	 
 	    private void checkPopup(MouseEvent e) {
@@ -1114,6 +1180,14 @@ public class InitTable extends BasicTable {
 					autoSizeColumns();
 					if (LOG.isLoggable(Level.FINER)) {LOG.finer("Auto-sizing columns.");}
 				}
+	    	}
+	    }
+	    
+	    @Override
+	    public void mouseWheelMoved(MouseWheelEvent e) {
+	    	if (e.isControlDown()) {
+	    		final int notches = e.getWheelRotation();
+	    		InitTable.this.adjustFontSize(-notches); // invert: Scroll up => increase size
 	    	}
 	    }
 	}
