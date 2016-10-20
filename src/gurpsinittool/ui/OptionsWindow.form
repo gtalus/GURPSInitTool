@@ -77,6 +77,7 @@
                       <Component id="autoUnconsciousness" min="-2" max="-2" attributes="0"/>
                       <Component id="autoKnockdown" min="-2" max="-2" attributes="0"/>
                       <Component id="autoStunrecovery" min="-2" max="-2" attributes="0"/>
+                      <Component id="autoIncapacitation" min="-2" max="-2" attributes="0"/>
                       <Group type="102" alignment="0" attributes="0">
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
@@ -105,6 +106,8 @@
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="autoUnconsciousness" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="autoIncapacitation" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="autoKnockdown" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
@@ -216,6 +219,14 @@
             </Property>
           </Properties>
         </Component>
+        <Component class="javax.swing.JCheckBox" name="autoIncapacitation">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Incapacitation Checks"/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="currentSettings.autoIncapacitation.getDescription()" type="code"/>
+            </Property>
+          </Properties>
+        </Component>
       </SubComponents>
     </Container>
     <Component class="javax.swing.JButton" name="okButton">
@@ -280,7 +291,6 @@
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
               <Connection code="currentSettings.logStatusChanges.getDescription()" type="code"/>
             </Property>
-            <Property name="actionCommand" type="java.lang.String" value="Defense Details"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JCheckBox" name="logStatusChanges">

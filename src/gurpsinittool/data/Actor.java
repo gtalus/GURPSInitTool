@@ -49,12 +49,16 @@ public class Actor extends ActorBase {
 		int injury = getTraitValueInt(BasicTrait.Injury);
 		int hitPoints = getTraitValueInt(BasicTrait.HP);
 		int health = getTraitValueInt(BasicTrait.HT);
-
+		int fatigue = getTraitValueInt(BasicTrait.Fatigue);
+		int fatiguePoints = getTraitValueInt(BasicTrait.FP);
+		int will = getTraitValueInt(BasicTrait.Will);
+		
 		// Resolve auto actions at start of actor's turn:
 		if (isTypeAutomated() && !(hasStatus(ActorStatus.Unconscious) 
 				|| hasStatus(ActorStatus.Disabled) 
 				|| hasStatus(ActorStatus.Dead)
 				|| hasStatus(ActorStatus.Waiting))) { // Do AUTO actions
+			// Check for unconsciousness when HP <= 0
 			if (settings.autoUnconscious.isSet() && injury >= hitPoints) { 
 				int penalty = (int) (-1*(Math.floor((double)injury/hitPoints)-1));
 				int result = DieRoller.roll3d6();
@@ -64,6 +68,17 @@ public class Actor extends ActorBase {
 					setAllStatuses(new HashSet<ActorStatus>(Arrays.asList(ActorStatus.Unconscious, ActorStatus.Prone, ActorStatus.Disarmed)));
 				} else {
 					logEventTypeName("passed consciousness roll " + details);
+				}
+			}
+			// Check for incapacitation when FP <= 0, unless we just fell unconscious from injury
+			if (settings.autoIncapacitation.isSet() && fatiguePoints != 0 && fatigue >= fatiguePoints && !hasStatus(ActorStatus.Unconscious)) { 
+				int result = DieRoller.roll3d6();
+				String details = "(Will: " + will + ", roll: " + result + ")";
+				if (DieRoller.isFailure(result, will)) {
+					logEventTypeName("<b><font color=red>failed</font></b> incapacitation roll " + details);
+					setAllStatuses(new HashSet<ActorStatus>(Arrays.asList(ActorStatus.Disabled, ActorStatus.Prone)));
+				} else {
+					logEventTypeName("passed incapacitation roll " + details);
 				}
 			}
 			if (settings.autoStunRecovery.isSet()) {

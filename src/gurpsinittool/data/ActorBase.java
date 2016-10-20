@@ -19,6 +19,8 @@ import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.AbstractUndoableEdit;
 import javax.swing.undo.UndoableEditSupport;
 
+import gurpsinittool.data.ActorBase.ActorStatus;
+import gurpsinittool.util.DieRoller;
 import gurpsinittool.util.EncounterLogEvent;
 import gurpsinittool.util.EncounterLogListener;
 import gurpsinittool.util.EncounterLogSupport;
@@ -478,23 +480,33 @@ public class ActorBase implements Serializable {
 					}
 				} else if (name.equals("Fatigue")) {
 					int fatiguePoints = getTraitValueInt(BasicTrait.FP);
-					int oldFatigue = getTraitValueInt(BasicTrait.Fatigue);
-					int diff =  intValue - oldFatigue; // 
-					if (intValue > 2*fatiguePoints) { // Minimum of -1xFP
-						intValue = 2*fatiguePoints;
-						value = String.valueOf(intValue);
-					}
-					if (diff > 0) {
-						logEventTypeName("lost <b>" + diff + "</b> fatigue (now " + (fatiguePoints - intValue) + " FP).");
+					if (fatiguePoints == 0) { // Skip if FP is 0!
+						value = "0";
 					} else {
-						logEventTypeName("recoverd <b>" + (-1*diff) + "</b> fatigue (now " + (fatiguePoints - intValue) + " FP).");		
-					}
-					// TODO: this part, specifically looks like game logic (though the shock calculation is kinda suspect as well)
-					// Fatigue / Injury interaction
-					if (diff > 0 && intValue > fatiguePoints) { // Taking Fatigue, and resulting in less than 0 FP
-						int injury = diff + ((oldFatigue < fatiguePoints)?(oldFatigue-fatiguePoints):0);
-						//System.out.println("HERE: taking additional " + injury + " injury. OldFatigue: " + oldFatigue + ", diff: " + diff + ", intValue: " + intValue + ", value: " + value );
-						setTrait(BasicTrait.Injury, getTraitValueInt(BasicTrait.Injury) + injury);
+						int oldFatigue = getTraitValueInt(BasicTrait.Fatigue);
+						int diff =  intValue - oldFatigue; // 
+						if (intValue > 2*fatiguePoints) { // Minimum of -1xFP
+							intValue = 2*fatiguePoints;
+							value = String.valueOf(intValue);
+						}
+						if (diff > 0) {
+							logEventTypeName("lost <b>" + diff + "</b> fatigue (now " + (fatiguePoints - intValue) + " FP).");
+						} else {
+							logEventTypeName("recoverd <b>" + (-1*diff) + "</b> fatigue (now " + (fatiguePoints - intValue) + " FP).");		
+						}
+						// More game logic!
+						// Resolve auto actions at start of actor's turn:
+						if (isTypeAutomated() && settings.autoIncapacitation.isSet() && intValue == 2*fatiguePoints) { 
+							logEventTypeName("<b>Reached -1xFP: fell unconscious.</b>");
+							setAllStatuses(new HashSet<ActorStatus>(Arrays.asList(ActorStatus.Unconscious, ActorStatus.Prone, ActorStatus.Disarmed)));
+						}
+						// TODO: this part, specifically looks like game logic (though the shock calculation is kinda suspect as well)
+						// Fatigue / Injury interaction
+						if (diff > 0 && intValue > fatiguePoints) { // Taking Fatigue, and resulting in less than 0 FP
+							int injury = diff + ((oldFatigue < fatiguePoints)?(oldFatigue-fatiguePoints):0);
+							//System.out.println("HERE: taking additional " + injury + " injury. OldFatigue: " + oldFatigue + ", diff: " + diff + ", intValue: " + intValue + ", value: " + value );
+							setTrait(BasicTrait.Injury, getTraitValueInt(BasicTrait.Injury) + injury);
+						}
 					}
 				}
 			}

@@ -659,7 +659,17 @@ public class InitTable extends BasicTable {
 						toolTipPenalty = "(with " + penalty + " penalty) ";
 					}
 					c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png")));
-					c.setToolTipText("0 or less HP: must roll HT to stay conscious " + toolTipPenalty + "each turn if taking any action or active defenses");
+					c.setToolTipText("0 or less HP: must make HT roll to stay conscious " + toolTipPenalty + "each turn if taking any action or active defenses");
+				}
+			} else if ("Will".equals(columnName) | "CurrFP".equals(columnName)) {
+				int fatiguePoints = a.getTraitValueInt(BasicTrait.FP);
+				if (fatiguePoints != 0) { // Skip if FP = 0
+					int fatigue = a.getTraitValueInt(BasicTrait.Fatigue);
+					fatiguePoints = Math.max(fatiguePoints, 1); // Minimum HP = 1 for calc purposes
+					if (fatigue >= fatiguePoints) {
+						c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png")));
+						c.setToolTipText("0 or less FP: must make Will roll to avoid collapse each turn if taking any action or active defenses");
+					}
 				}
 			} else if (Actor.isCustomTrait(columnName)) {
 				if (a.hasTrait(columnName)) {

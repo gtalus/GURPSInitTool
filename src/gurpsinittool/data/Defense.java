@@ -2,6 +2,7 @@ package gurpsinittool.data;
 
 import java.util.ArrayList;
 
+import gurpsinittool.data.ActorBase.ActorStatus;
 import gurpsinittool.data.ActorBase.BasicTrait;
 import gurpsinittool.data.HitLocations.HitLocation;
 import gurpsinittool.data.HitLocations.LocationType;
@@ -62,7 +63,8 @@ public class Defense {
     	
     	// Set default options
     	shield = (shieldDB > 0 && actor.getTempInt("shieldDamage") < shieldHP);
-    	if (actor.isStunned())
+    	// Disabled is the same as 'incapacitated' and sometimes allows active defenses as through stunned
+    	if (actor.isStunned() || actor.hasStatus(ActorStatus.Disabled))
     		stunned = true;
     	// Set position
     	if (actor.hasStatus(Actor.ActorStatus.Kneeling))
