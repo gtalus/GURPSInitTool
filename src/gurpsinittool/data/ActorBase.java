@@ -190,7 +190,7 @@ public class ActorBase implements Serializable {
 			statuses.add(status);
 			mPcs.firePropertyChange("Status", null, status);
 			startCompoundEdit();
-			if (settings.logStatusChanges) logEventTypeName("added status <b>" + status + "</b>, now has [" + getStatusesString() + "]");
+			if (settings.logStatusChanges.isSet()) logEventTypeName("added status <b>" + status + "</b>, now has [" + getStatusesString() + "]");
 			mUes.postEdit(new StatusEdit(oldValue, new HashSet<ActorStatus>(statuses)));
 			endCompoundEdit("Status");
 		}
@@ -206,7 +206,7 @@ public class ActorBase implements Serializable {
 			statuses.addAll(newStatuses);
 			if (!undoRedoInProgress) {
 				startCompoundEdit();	
-				if (settings.logStatusChanges) logEventTypeName("status set to <b>[" + getStatusesString() + "]</b>");
+				if (settings.logStatusChanges.isSet()) logEventTypeName("status set to <b>[" + getStatusesString() + "]</b>");
 				mUes.postEdit(new StatusEdit(oldValue, new HashSet<ActorStatus>(statuses)));
 				endCompoundEdit("Status");
 			}
@@ -219,7 +219,7 @@ public class ActorBase implements Serializable {
 			statuses.remove(status);
 			mPcs.firePropertyChange("Status", status, null);			
 			startCompoundEdit();
-			if (settings.logStatusChanges) logEventTypeName("removed status <b>" + status + "</b>, now has [" + getStatusesString() + "]");
+			if (settings.logStatusChanges.isSet()) logEventTypeName("removed status <b>" + status + "</b>, now has [" + getStatusesString() + "]");
 			mUes.postEdit(new StatusEdit(oldValue, new HashSet<ActorStatus>(statuses)));
 			endCompoundEdit("Status");
 		}
@@ -276,15 +276,15 @@ public class ActorBase implements Serializable {
 	public boolean isTypeAutomated() {
 		switch (type) {
 		case Ally:
-			return settings.automateAlly;
+			return settings.automateAlly.isSet();
 		case Enemy:
-			return settings.automateEnemy;
+			return settings.automateEnemy.isSet();
 		case Neutral:
-			return settings.automateNeutral;
+			return settings.automateNeutral.isSet();
 		case PC:
-			return settings.automatePC;
+			return settings.automatePC.isSet();
 		case Special:
-			return settings.automateSpecial;
+			return settings.automateSpecial.isSet();
 		default:
 			return false;			
 		}
@@ -489,6 +489,7 @@ public class ActorBase implements Serializable {
 					} else {
 						logEventTypeName("recoverd <b>" + (-1*diff) + "</b> fatigue (now " + (fatiguePoints - intValue) + " FP).");		
 					}
+					// TODO: this part, specifically looks like game logic (though the shock calculation is kinda suspect as well)
 					// Fatigue / Injury interaction
 					if (diff > 0 && intValue > fatiguePoints) { // Taking Fatigue, and resulting in less than 0 FP
 						int injury = diff + ((oldFatigue < fatiguePoints)?(oldFatigue-fatiguePoints):0);

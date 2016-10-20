@@ -35,7 +35,7 @@ public class Actor extends ActorBase {
 		setTemp("numParry", 0);
 		setTemp("numBlock", 0);
 		// Shock
-		if (settings.autoShock) {
+		if (settings.autoShock.isSet()) {
 			int injury =  getTempInt("shock.next");
 			int injuryPerShock = (int) getTraitValueInt(BasicTrait.HP) / 10;
 			injuryPerShock = (injuryPerShock==0)?1:injuryPerShock; // Minimum 1
@@ -52,7 +52,7 @@ public class Actor extends ActorBase {
 				|| hasStatus(ActorStatus.Disabled) 
 				|| hasStatus(ActorStatus.Dead)
 				|| hasStatus(ActorStatus.Waiting))) { // Do AUTO actions
-			if (settings.autoUnconscious && injury >= hitPoints) { 
+			if (settings.autoUnconscious.isSet() && injury >= hitPoints) { 
 				int penalty = (int) (-1*(Math.floor((double)injury/hitPoints)-1));
 				int result = DieRoller.roll3d6();
 				String details = "(HT: " + health + ", penalty: " + penalty + ", roll: " + result + ")";
@@ -63,7 +63,7 @@ public class Actor extends ActorBase {
 					logEventTypeName("passed consciousness roll " + details);
 				}
 			}
-			if (settings.autoStunRecovery) {
+			if (settings.autoStunRecovery.isSet()) {
 				removeStatus(ActorStatus.StunRecovr); // This was from last turn, so recovered this turn
 				if (hasStatus(ActorStatus.StunMental)) {
 					int recoverTarget = getTraitValueInt(BasicTrait.IQ);
@@ -89,7 +89,7 @@ public class Actor extends ActorBase {
 					}
 				}
 			}
-			if (settings.autoAttack && hasStatus(ActorStatus.Attacking) && !isStunned())
+			if (settings.autoAttack.isSet() && hasStatus(ActorStatus.Attacking) && !isStunned())
 				attack();
 		}
 	}
@@ -131,7 +131,7 @@ public class Actor extends ActorBase {
 			effSkill -= 4;
 		else if (hasStatus(ActorStatus.Kneeling)) 
 			effSkill -= 2;
-		if(settings.autoShock)
+		if(settings.autoShock.isSet())
 			effSkill -= getTempInt("shock");
 		int roll = DieRoller.roll3d6();
 		int margin = effSkill - roll;
@@ -262,11 +262,11 @@ public class Actor extends ActorBase {
 			damageDescription += " <b>Shield damaged " + defense.shieldDamage + ".</b>";
 
 		logEventTypeName(defenseDescription + damageDescription);
-		if (settings.logDefenseDetails) {
+		if (settings.logDefenseDetails.isSet()) {
 			// Defense details: #/turn, posture, EE, retreat, side, stunned, shield, other. effective/roll
 			String details = "defense details: " + defense.type.toString() + defenseNumberReport(defense.type);
 			ArrayList<String> additional = new ArrayList<String>();
-			if (defense.position != "Standing") additional.add("position: " + defense.position);
+			if (!"Standing".equals(defense.position)) additional.add("position: " + defense.position);
 			if (defense.ee) additional.add("EE");
 			if (defense.retreat) additional.add("retreating");
 			if (defense.side) additional.add("side attack");
@@ -364,7 +364,7 @@ public class Actor extends ActorBase {
  			int roll = DieRoller.roll3d6();
  			boolean success = DieRoller.isSuccess(roll, effHT);
  			logEventTypeName("Knockdown/Stunning check" + knockdownDescription + ": rolled " + roll + " against " + effHT + " => " + (!success?"<b>failed</b>":"succeeded"));
- 			if (isTypeAutomated() && settings.autoKnockdownStun) {
+ 			if (isTypeAutomated() && settings.autoKnockdownStun.isSet()) {
  				if (!success) {
  					addStatus(ActorStatus.StunPhys); // Check for mental stun and don't add this in that case?
  					removeStatus(ActorStatus.StunRecovr);

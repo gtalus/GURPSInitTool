@@ -6,6 +6,7 @@ import java.awt.KeyboardFocusManager;
 import java.awt.event.AWTEventListener;
 import java.awt.event.KeyEvent;
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 import javax.swing.Action;
 import javax.swing.JFrame;
@@ -14,9 +15,14 @@ import javax.swing.text.JTextComponent;
 import gurpsinittool.data.GameMaster;
 import gurpsinittool.ui.DefenseDialog;
 import gurpsinittool.util.SearchSupport;
+import javafx.scene.input.KeyCode;
 
 public class CommandMode implements AWTEventListener {
-
+	/**
+	 * Logger
+	 */
+	private final static Logger LOG = Logger.getLogger(CommandMode.class.getName());
+	
 	private boolean modeOn = false;
 	GITApp theApp;
 	SearchSupport search;
@@ -144,15 +150,16 @@ public class CommandMode implements AWTEventListener {
 				if (fcomponent != null && JTextComponent.class.isInstance(fcomponent) && ((JTextComponent)fcomponent).isEditable()) {
 					// Allow editing?
 				} else {
-
 					// allow -/+/=/digit edit without focus in the injury/fatigue columns
 					int tableColumnSelected = gameMaster.initTable.getColumnModel().getSelectionModel().getLeadSelectionIndex();
-					String tableColumnNameSelected = gameMaster.initTable.getColumnName(tableColumnSelected);
-					if (tableColumnSelected != -1 &&  (tableColumnNameSelected == "Fatigue" || 
-													   tableColumnNameSelected == "Injury")) {
-						if (key.getKeyChar() == '-' || key.getKeyChar() == '+' || key.getKeyChar() == '=')
-							return;
-					} 
+					if (tableColumnSelected > 0) {
+						String tableColumnNameSelected = gameMaster.initTable.getColumnName(tableColumnSelected);
+						if ("Fatigue".equals(tableColumnNameSelected) || "Injury".equals(tableColumnNameSelected)) {
+							if (key.getKeyChar() == '-' || key.getKeyChar() == '+' || key.getKeyChar() == '=') {								
+								return;
+							}
+						} 
+					}
 					if(key.getID()==KeyEvent.KEY_PRESSED){ //Handle key presses
 						if (defense.isVisible()) {
 						} else if (pressedMap.containsKey(key.getKeyCode())) {

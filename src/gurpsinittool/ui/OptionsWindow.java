@@ -6,6 +6,7 @@
 package gurpsinittool.ui;
 
 import gurpsinittool.data.GameSettings;
+import gurpsinittool.data.GameSettings.GameSetting;
 import gurpsinittool.util.MiscUtil;
 
 import java.util.Properties;
@@ -40,30 +41,24 @@ public class OptionsWindow extends javax.swing.JFrame {
 //        setSize(Integer.valueOf(propertyBag.getProperty("Options.size.width")),
 //        		Integer.valueOf(propertyBag.getProperty("Options.size.height")));
         
-		 if (propertyBag.containsKey("Options.game.AUTO_ATTACK")) {
-			 currentSettings.autoAttack = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_ATTACK")); }
-		 if (propertyBag.containsKey("Options.game.AUTO_KNOCKDOWNSTUN")) {
-			 currentSettings.autoKnockdownStun = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_KNOCKDOWNSTUN")); }
-		 if (propertyBag.containsKey("Options.game.AUTO_STUNRECOVERY")) {
-			 currentSettings.autoStunRecovery = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_STUNRECOVERY")); }
-		 if (propertyBag.containsKey("Options.game.AUTO_UNCONSCIOUS")) {
-			 currentSettings.autoUnconscious = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_UNCONSCIOUS")); }
-		 if (propertyBag.containsKey("Options.game.AUTOMATE_PC")) {
-			 currentSettings.automatePC = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTOMATE_PC")); }
-		 if (propertyBag.containsKey("Options.game.AUTOMATE_ENEMY")) {
-			 currentSettings.automateEnemy = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTOMATE_ENEMY")); }
-		 if (propertyBag.containsKey("Options.game.AUTOMATE_ALLY")) {
-			 currentSettings.automateAlly = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTOMATE_ALLY")); }
-		 if (propertyBag.containsKey("Options.game.AUTOMATE_NEUTRAL")) {
-			 currentSettings.automateNeutral = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTOMATE_NEUTRAL")); }
-		 if (propertyBag.containsKey("Options.game.AUTOMATE_SPECIAL")) {
-			 currentSettings.automateSpecial = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTOMATE_SPECIAL")); }
-		 if (propertyBag.containsKey("Options.game.AUTO_SHOCK")) {
-			 currentSettings.autoShock = Boolean.valueOf(propertyBag.getProperty("Options.game.AUTO_SHOCK")); }
-		 if (propertyBag.containsKey("Options.game.LOG_STATUSCHANGES")) {
-			 currentSettings.logStatusChanges = Boolean.valueOf(propertyBag.getProperty("Options.game.LOG_STATUSCHANGES")); }
-		 if (propertyBag.containsKey("Options.game.LOG_DEFENSEDETAILS")) {
-			 currentSettings.logDefenseDetails = Boolean.valueOf(propertyBag.getProperty("Options.game.LOG_DEFENSEDETAILS")); }
+        getSettingProperty(currentSettings.autoAttack);
+        getSettingProperty(currentSettings.autoUnconscious);
+        getSettingProperty(currentSettings.autoKnockdownStun);
+        getSettingProperty(currentSettings.autoStunRecovery);
+        getSettingProperty(currentSettings.autoShock);
+        getSettingProperty(currentSettings.automatePC);
+        getSettingProperty(currentSettings.automateEnemy);
+        getSettingProperty(currentSettings.automateAlly);
+        getSettingProperty(currentSettings.automateNeutral);
+        getSettingProperty(currentSettings.automateSpecial);
+        getSettingProperty(currentSettings.logStatusChanges);
+        getSettingProperty(currentSettings.logDefenseDetails);
+    }
+    // Get a GameSetting's value from the propertyBag
+    private void getSettingProperty(final GameSetting setting) {
+    	String settingPath = "Options.game." + setting.getName();
+    	if (propertyBag.containsKey(settingPath)) {
+    		setting.setValue(Boolean.valueOf(propertyBag.getProperty(settingPath))); }
     }
 
     /**
@@ -89,18 +84,22 @@ public class OptionsWindow extends javax.swing.JFrame {
 		 propertyBag.setProperty("Options.location.y", String.valueOf(getLocation().y));
 //		 propertyBag.setProperty("Options.size.width", String.valueOf(getSize().width));
 //		 propertyBag.setProperty("Options.size.height", String.valueOf(getSize().height));
-		 propertyBag.setProperty("Options.game.AUTO_ATTACK", String.valueOf(currentSettings.autoAttack));
-		 propertyBag.setProperty("Options.game.AUTO_KNOCKDOWNSTUN", String.valueOf(currentSettings.autoKnockdownStun));
-		 propertyBag.setProperty("Options.game.AUTO_STUNRECOVERY", String.valueOf(currentSettings.autoStunRecovery));
-		 propertyBag.setProperty("Options.game.AUTO_UNCONSCIOUS", String.valueOf(currentSettings.autoUnconscious));
-		 propertyBag.setProperty("Options.game.AUTOMATE_PC", String.valueOf(currentSettings.automatePC));
-		 propertyBag.setProperty("Options.game.AUTOMATE_ENEMY", String.valueOf(currentSettings.automateEnemy));
-		 propertyBag.setProperty("Options.game.AUTOMATE_ALLY", String.valueOf(currentSettings.automateAlly));
-		 propertyBag.setProperty("Options.game.AUTOMATE_NEUTRAL", String.valueOf(currentSettings.automateNeutral));
-		 propertyBag.setProperty("Options.game.AUTOMATE_SPECIAL", String.valueOf(currentSettings.automateSpecial));
-		 propertyBag.setProperty("Options.game.AUTO_SHOCK", String.valueOf(currentSettings.autoShock));
-		 propertyBag.setProperty("Options.game.LOG_STATUSCHANGES", String.valueOf(currentSettings.logStatusChanges));
-		 propertyBag.setProperty("Options.game.LOG_DEFENSEDETAILS", String.valueOf(currentSettings.logDefenseDetails));
+		 saveSettingProperty(currentSettings.autoAttack);
+		 saveSettingProperty(currentSettings.autoUnconscious);
+		 saveSettingProperty(currentSettings.autoKnockdownStun);
+		 saveSettingProperty(currentSettings.autoStunRecovery);
+		 saveSettingProperty(currentSettings.autoShock);
+		 saveSettingProperty(currentSettings.automatePC);
+		 saveSettingProperty(currentSettings.automateEnemy);
+		 saveSettingProperty(currentSettings.automateAlly);
+		 saveSettingProperty(currentSettings.automateNeutral);
+		 saveSettingProperty(currentSettings.automateSpecial);
+		 saveSettingProperty(currentSettings.logStatusChanges);
+		 saveSettingProperty(currentSettings.logDefenseDetails);
+	 }
+	 // Save a GameSetting's value to the propertyBag
+	 private void saveSettingProperty(final GameSetting setting) {
+		 propertyBag.setProperty("Options.game." + setting.getName(), String.valueOf(setting.isSet()));
 	 }
 	 
     /**
@@ -138,33 +137,33 @@ public class OptionsWindow extends javax.swing.JFrame {
         combatAutomationPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Automation"));
 
         autoAttack.setText("Attack");
-        autoAttack.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
+        autoAttack.setToolTipText(currentSettings.autoAttack.getDescription());
 
         autoUnconsciousness.setText("Unconsciousness Checks");
-        autoUnconsciousness.setToolTipText("NPCs check for unconsciousness at the start of each of their turns.");
+        autoUnconsciousness.setToolTipText(currentSettings.autoUnconscious.getDescription());
 
         autoKnockdown.setText("Knockdown and Stunning");
-        autoKnockdown.setToolTipText("NPCs check for knockdown and stunning when taking sufficient damage.");
+        autoKnockdown.setToolTipText(currentSettings.autoKnockdownStun.getDescription());
 
         autoStunrecovery.setText("Stun Recovery");
-        autoStunrecovery.setToolTipText("Stunned NPCs check for stun recovery at the start of their turns.");
+        autoStunrecovery.setToolTipText(currentSettings.autoStunRecovery.getDescription());
 
         jLabel1.setText("Combatant types automated:");
 
         pcAutomated.setText("PC");
-        pcAutomated.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
+        pcAutomated.setToolTipText(currentSettings.automatePC.getDescription());
 
         enemyAutomated.setText("Enemy");
-        enemyAutomated.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
+        enemyAutomated.setToolTipText(currentSettings.automateEnemy.getDescription());
 
         allyAutomated.setText("Ally");
-        allyAutomated.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
+        allyAutomated.setToolTipText(currentSettings.automateAlly.getDescription());
 
         neutralAutomated.setText("Neutral");
-        neutralAutomated.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
+        neutralAutomated.setToolTipText(currentSettings.automateNeutral.getDescription());
 
         specialAutomated.setText("Special");
-        specialAutomated.setToolTipText("NPCs with the 'Attacking' status automatically perform their default attack when it is their turn, as long as they are not Stunned.");
+        specialAutomated.setToolTipText(currentSettings.automateSpecial.getDescription());
 
         javax.swing.GroupLayout combatAutomationPanelLayout = new javax.swing.GroupLayout(combatAutomationPanel);
         combatAutomationPanel.setLayout(combatAutomationPanelLayout);
@@ -240,10 +239,10 @@ public class OptionsWindow extends javax.swing.JFrame {
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Logging"));
 
         logDefenseDetails.setText("Defense details");
-        logDefenseDetails.setToolTipText("Log defense details (retreat/EE/side/etc.)");
+        logDefenseDetails.setToolTipText(currentSettings.logStatusChanges.getDescription());
 
         logStatusChanges.setText("Verbose Status Changes");
-        logStatusChanges.setToolTipText("Log all status changes");
+        logStatusChanges.setToolTipText(currentSettings.logStatusChanges.getDescription());
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -266,7 +265,7 @@ public class OptionsWindow extends javax.swing.JFrame {
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Game Rules"));
 
         autoShock.setText("Shock");
-        autoShock.setToolTipText("Track and apply shock to all attack rolls");
+        autoShock.setToolTipText(currentSettings.autoShock.getDescription());
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -330,33 +329,33 @@ public class OptionsWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_cancelButtonActionPerformed
 
     private void copySettingsToComponents() {
-    	autoAttack.setSelected(currentSettings.autoAttack);
-    	autoKnockdown.setSelected(currentSettings.autoKnockdownStun);
-    	autoStunrecovery.setSelected(currentSettings.autoStunRecovery);
-    	autoUnconsciousness.setSelected(currentSettings.autoUnconscious);
-    	pcAutomated.setSelected(currentSettings.automatePC);
-    	enemyAutomated.setSelected(currentSettings.automateEnemy);
-    	allyAutomated.setSelected(currentSettings.automateAlly);
-    	neutralAutomated.setSelected(currentSettings.automateNeutral);
-    	specialAutomated.setSelected(currentSettings.automateSpecial);
-    	autoShock.setSelected(currentSettings.autoShock);
-        logStatusChanges.setSelected(currentSettings.logStatusChanges);
-        logDefenseDetails.setSelected(currentSettings.logDefenseDetails);
+    	autoAttack.setSelected(currentSettings.autoAttack.isSet());
+    	autoKnockdown.setSelected(currentSettings.autoKnockdownStun.isSet());
+    	autoStunrecovery.setSelected(currentSettings.autoStunRecovery.isSet());
+    	autoUnconsciousness.setSelected(currentSettings.autoUnconscious.isSet());
+    	pcAutomated.setSelected(currentSettings.automatePC.isSet());
+    	enemyAutomated.setSelected(currentSettings.automateEnemy.isSet());
+    	allyAutomated.setSelected(currentSettings.automateAlly.isSet());
+    	neutralAutomated.setSelected(currentSettings.automateNeutral.isSet());
+    	specialAutomated.setSelected(currentSettings.automateSpecial.isSet());
+    	autoShock.setSelected(currentSettings.autoShock.isSet());
+        logStatusChanges.setSelected(currentSettings.logStatusChanges.isSet());
+        logDefenseDetails.setSelected(currentSettings.logDefenseDetails.isSet());
     }
     
     public void copyComponentsToSettings() {
-    	currentSettings.autoAttack = autoAttack.isSelected();
-    	currentSettings.autoKnockdownStun = autoKnockdown.isSelected();
-    	currentSettings.autoStunRecovery = autoStunrecovery.isSelected();
-    	currentSettings.autoUnconscious = autoUnconsciousness.isSelected();   
-    	currentSettings.autoShock = autoShock.isSelected();
-    	currentSettings.automatePC = pcAutomated.isSelected();
-       	currentSettings.automateEnemy = enemyAutomated.isSelected();
-       	currentSettings.automateAlly = allyAutomated.isSelected();
-       	currentSettings.automateNeutral = neutralAutomated.isSelected();
-       	currentSettings.automateSpecial = specialAutomated.isSelected();
-    	currentSettings.logStatusChanges = logStatusChanges.isSelected();
-    	currentSettings.logDefenseDetails = logDefenseDetails.isSelected();
+    	currentSettings.autoAttack.setValue(autoAttack.isSelected());
+    	currentSettings.autoKnockdownStun.setValue(autoKnockdown.isSelected());
+    	currentSettings.autoStunRecovery.setValue(autoStunrecovery.isSelected());
+    	currentSettings.autoUnconscious.setValue(autoUnconsciousness.isSelected());   
+    	currentSettings.autoShock.setValue(autoShock.isSelected());
+    	currentSettings.automatePC.setValue(pcAutomated.isSelected());
+       	currentSettings.automateEnemy.setValue(enemyAutomated.isSelected());
+       	currentSettings.automateAlly.setValue(allyAutomated.isSelected());
+       	currentSettings.automateNeutral.setValue(neutralAutomated.isSelected());
+       	currentSettings.automateSpecial.setValue(specialAutomated.isSelected());
+    	currentSettings.logStatusChanges.setValue(logStatusChanges.isSelected());
+    	currentSettings.logDefenseDetails.setValue(logDefenseDetails.isSelected());
     }
     
     @Override

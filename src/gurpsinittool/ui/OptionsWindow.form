@@ -125,25 +125,33 @@
         <Component class="javax.swing.JCheckBox" name="autoAttack">
           <Properties>
             <Property name="text" type="java.lang.String" value="Attack"/>
-            <Property name="toolTipText" type="java.lang.String" value="NPCs with the &apos;Attacking&apos; status automatically perform their default attack when it is their turn, as long as they are not Stunned."/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="currentSettings.autoAttack.getDescription()" type="code"/>
+            </Property>
           </Properties>
         </Component>
         <Component class="javax.swing.JCheckBox" name="autoUnconsciousness">
           <Properties>
             <Property name="text" type="java.lang.String" value="Unconsciousness Checks"/>
-            <Property name="toolTipText" type="java.lang.String" value="NPCs check for unconsciousness at the start of each of their turns."/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="currentSettings.autoUnconscious.getDescription()" type="code"/>
+            </Property>
           </Properties>
         </Component>
         <Component class="javax.swing.JCheckBox" name="autoKnockdown">
           <Properties>
             <Property name="text" type="java.lang.String" value="Knockdown and Stunning"/>
-            <Property name="toolTipText" type="java.lang.String" value="NPCs check for knockdown and stunning when taking sufficient damage."/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="currentSettings.autoKnockdownStun.getDescription()" type="code"/>
+            </Property>
           </Properties>
         </Component>
         <Component class="javax.swing.JCheckBox" name="autoStunrecovery">
           <Properties>
             <Property name="text" type="java.lang.String" value="Stun Recovery"/>
-            <Property name="toolTipText" type="java.lang.String" value="Stunned NPCs check for stun recovery at the start of their turns."/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="currentSettings.autoStunRecovery.getDescription()" type="code"/>
+            </Property>
           </Properties>
         </Component>
         <Component class="javax.swing.JSeparator" name="jSeparator1">
@@ -156,31 +164,41 @@
         <Component class="javax.swing.JCheckBox" name="pcAutomated">
           <Properties>
             <Property name="text" type="java.lang.String" value="PC"/>
-            <Property name="toolTipText" type="java.lang.String" value="NPCs with the &apos;Attacking&apos; status automatically perform their default attack when it is their turn, as long as they are not Stunned."/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="currentSettings.automatePC.getDescription()" type="code"/>
+            </Property>
           </Properties>
         </Component>
         <Component class="javax.swing.JCheckBox" name="enemyAutomated">
           <Properties>
             <Property name="text" type="java.lang.String" value="Enemy"/>
-            <Property name="toolTipText" type="java.lang.String" value="NPCs with the &apos;Attacking&apos; status automatically perform their default attack when it is their turn, as long as they are not Stunned."/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="currentSettings.automateEnemy.getDescription()" type="code"/>
+            </Property>
           </Properties>
         </Component>
         <Component class="javax.swing.JCheckBox" name="allyAutomated">
           <Properties>
             <Property name="text" type="java.lang.String" value="Ally"/>
-            <Property name="toolTipText" type="java.lang.String" value="NPCs with the &apos;Attacking&apos; status automatically perform their default attack when it is their turn, as long as they are not Stunned."/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="currentSettings.automateAlly.getDescription()" type="code"/>
+            </Property>
           </Properties>
         </Component>
         <Component class="javax.swing.JCheckBox" name="neutralAutomated">
           <Properties>
             <Property name="text" type="java.lang.String" value="Neutral"/>
-            <Property name="toolTipText" type="java.lang.String" value="NPCs with the &apos;Attacking&apos; status automatically perform their default attack when it is their turn, as long as they are not Stunned."/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="currentSettings.automateNeutral.getDescription()" type="code"/>
+            </Property>
           </Properties>
         </Component>
         <Component class="javax.swing.JCheckBox" name="specialAutomated">
           <Properties>
             <Property name="text" type="java.lang.String" value="Special"/>
-            <Property name="toolTipText" type="java.lang.String" value="NPCs with the &apos;Attacking&apos; status automatically perform their default attack when it is their turn, as long as they are not Stunned."/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="currentSettings.automateSpecial.getDescription()" type="code"/>
+            </Property>
           </Properties>
         </Component>
       </SubComponents>
@@ -244,13 +262,17 @@
         <Component class="javax.swing.JCheckBox" name="logDefenseDetails">
           <Properties>
             <Property name="text" type="java.lang.String" value="Defense details"/>
-            <Property name="toolTipText" type="java.lang.String" value="Log defense details (retreat/EE/side/etc.)"/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="currentSettings.logStatusChanges.getDescription()" type="code"/>
+            </Property>
           </Properties>
         </Component>
         <Component class="javax.swing.JCheckBox" name="logStatusChanges">
           <Properties>
             <Property name="text" type="java.lang.String" value="Verbose Status Changes"/>
-            <Property name="toolTipText" type="java.lang.String" value="Log all status changes"/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="currentSettings.logStatusChanges.getDescription()" type="code"/>
+            </Property>
           </Properties>
         </Component>
       </SubComponents>
@@ -283,7 +305,9 @@
         <Component class="javax.swing.JCheckBox" name="autoShock">
           <Properties>
             <Property name="text" type="java.lang.String" value="Shock"/>
-            <Property name="toolTipText" type="java.lang.String" value="Track and apply shock to all attack rolls"/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="currentSettings.autoShock.getDescription()" type="code"/>
+            </Property>
           </Properties>
         </Component>
       </SubComponents>
