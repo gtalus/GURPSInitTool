@@ -592,6 +592,7 @@ public class InitTable extends BasicTable {
 			JLabel c = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 			String columnName = getColumnName(column); // Get the name of the column from the table, which accounts for hidden columns
 			c.setIcon(new ImageIcon()); // Clear out any icon
+			c.setToolTipText(null); // Clear out any tooltip
 			if (row == table.getRowCount() -1) {
 				c.setBackground(Color.white);
 				c.setForeground(Color.gray);
@@ -635,25 +636,30 @@ public class InitTable extends BasicTable {
 					int newValue;
 					if (injury > 2*hitPoints/3 && fatigue > 2*fatiguePoints/3) {
 						newValue = (int) Math.ceil((double)currentValue/4);
-						c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/exclamation.png"), "Greatly reduced state"));
+						c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/exclamation.png")));
+						c.setToolTipText("Greatly reduced from injury and fatigue");
 					} else {
 						newValue = (int) Math.ceil((double)currentValue/2);
-						c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png"), "Reduced state"));
+						c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png")));
+						c.setToolTipText("Reduced from injury or fatigue");
 					}
 					c.setText(newValue + " (" + c.getText() + ")");
 					MiscUtil.setLabelBold(c);
 				}
-			} else if (columnName.equals("HT")) {
+			} else if ("HT".equals(columnName) | "CurrHP".equals(columnName)) {
 				int injury = a.getTraitValueInt(BasicTrait.Injury);
 				int hitPoints = a.getTraitValueInt(BasicTrait.HP);
 				hitPoints = Math.max(hitPoints, 1); // Minimum HP = 1 for calc purposes
 				if (injury >= hitPoints) {
 					int penalty = (int) (-1*(Math.floor((double)injury/hitPoints)-1));
+					String toolTipPenalty = "";
 					if (penalty < 0) {
 						MiscUtil.setLabelBold(c);
 						c.setText(c.getText() + " [" + penalty + "]");
+						toolTipPenalty = "(with " + penalty + " penalty) ";
 					}
-					c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png"), "Must check to stay conscious"));
+					c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png")));
+					c.setToolTipText("0 or less HP: must roll HT to stay conscious " + toolTipPenalty + "each turn if taking any action or active defenses");
 				}
 			} else if (Actor.isCustomTrait(columnName)) {
 				if (a.hasTrait(columnName)) {
