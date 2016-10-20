@@ -117,6 +117,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 	public Action actionRemoveTagSelectedActors;
 	
 	public GameMaster() {
+		LOG.setLevel(Level.FINE);
 		initializeActions();
 		updateUndoRedo();	
 		this.addPropertyChangeListener(this); // Yes, I'm listening to myself :)
@@ -181,14 +182,25 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 		int actorRow = activeActor;
 		Actor currentActor;
 		do {
+			if (activeActor == -1) {
+				if(LOG.isLoggable(Level.FINE)) {LOG.fine("No previous active actor.");}
+			} else {
+				// Get the retiring activeActor
+				currentActor = initTable.getActorTableModel().getActor(actorRow);
+				if(LOG.isLoggable(Level.FINE)) {LOG.fine("Displacing active actor '" + currentActor.getTraitValue(BasicTrait.Name) + "'");}
+				currentActor.loosingActive();
+			}
 			actorRow++;
 			if (actorRow >= initTable.getActorTableModel().getRowCount() - 1) { // Remember that the last entry is 'new...'
 				actorRow = -1;
 				retval = true;
+				if(LOG.isLoggable(Level.FINE)) {LOG.fine("End of round, no actor is currently active");}
 				break;
 			}
+			// Get the new activeActor!
 			currentActor = initTable.getActorTableModel().getActor(actorRow);
-			currentActor.nextTurn();
+			if(LOG.isLoggable(Level.FINE)) {LOG.fine("New active actor: '" + currentActor.getTraitValue(BasicTrait.Name) + "'");}
+			currentActor.startTurnActive();
 		// Skip over disabled/unconscious/dead/waiting actors
 		} while (currentActor.hasStatus(ActorStatus.Disabled)
 				|| currentActor.hasStatus(ActorStatus.Unconscious)

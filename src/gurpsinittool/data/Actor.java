@@ -31,7 +31,10 @@ public class Actor extends ActorBase {
 		super(anActor);
 	}
 	
-	public void nextTurn() {
+	/**
+	 * Called by the GameMaster when this actor starts a new turn, and becomes active
+	 */
+	public void startTurnActive() {
 		setTemp("numParry", 0);
 		setTemp("numBlock", 0);
 		// Shock
@@ -83,14 +86,29 @@ public class Actor extends ActorBase {
 					if (DieRoller.isSuccess(roll, recoverTarget)) {
 						logEventTypeName("is now recovering from Physical Stun (rolled " + roll + " against " + recoverTarget + ")");
 						removeStatus(ActorStatus.StunPhys);
-						addStatus(ActorStatus.StunRecovr);
+						addStatus(ActorStatus.StunRecovr);	
 					} else {
 						logEventTypeName("<b>failed</b> recovery roll for Physical Stun (rolled " + roll + " against " + recoverTarget + ")"); 
 					}
 				}
 			}
-			if (settings.autoAttack.isSet() && hasStatus(ActorStatus.Attacking) && !isStunned())
-				attack();
+		}
+		if (!settings.attackDelay.isSet())
+			handleAutoAttack();
+	}
+	/**
+	 * Called by the GameMaster when this actor is loosing active status
+	 */
+	public void loosingActive() {
+		// Auto attack, if appropriate
+		if (settings.attackDelay.isSet())
+			handleAutoAttack();
+	}
+	// check if we should auto-attack
+	private void handleAutoAttack() {
+		if (isTypeAutomated() && settings.autoAttack.isSet() && hasStatus(ActorStatus.Attacking) && 
+				!isStunned() && !isDisabled() && !hasStatus(ActorStatus.Waiting)) {// Ok to attack :)
+			attack();
 		}
 	}
 
@@ -109,11 +127,24 @@ public class Actor extends ActorBase {
 		setTemp("shock.next", 0);
 	}
 	
-	// Helper method to deal with all the varieties of stun
+	// 
+	/**
+	 * Is the actor currently some variety of stunned?
+	 * @return true if stunned
+	 */
 	public boolean isStunned() {
 		return (hasStatus(Actor.ActorStatus.StunPhys)
     			|| hasStatus(Actor.ActorStatus.StunMental)
     			|| hasStatus(Actor.ActorStatus.StunRecovr));
+	}
+	/**
+	 * Is the actor currently disabled, unconscious, or dead?
+	 * @return true if disabled
+	 */
+	public boolean isDisabled() {
+		return (hasStatus(Actor.ActorStatus.Unconscious)
+    			|| hasStatus(Actor.ActorStatus.Disabled)
+    			|| hasStatus(Actor.ActorStatus.Dead));
 	}
 	
     //================================================================================

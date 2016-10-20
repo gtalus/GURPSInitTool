@@ -42,6 +42,7 @@ public class OptionsWindow extends javax.swing.JFrame {
 //        		Integer.valueOf(propertyBag.getProperty("Options.size.height")));
         
         getSettingProperty(currentSettings.autoAttack);
+        getSettingProperty(currentSettings.attackDelay);
         getSettingProperty(currentSettings.autoUnconscious);
         getSettingProperty(currentSettings.autoKnockdownStun);
         getSettingProperty(currentSettings.autoStunRecovery);
@@ -85,6 +86,7 @@ public class OptionsWindow extends javax.swing.JFrame {
 //		 propertyBag.setProperty("Options.size.width", String.valueOf(getSize().width));
 //		 propertyBag.setProperty("Options.size.height", String.valueOf(getSize().height));
 		 saveSettingProperty(currentSettings.autoAttack);
+		 saveSettingProperty(currentSettings.attackDelay);
 		 saveSettingProperty(currentSettings.autoUnconscious);
 		 saveSettingProperty(currentSettings.autoKnockdownStun);
 		 saveSettingProperty(currentSettings.autoStunRecovery);
@@ -123,6 +125,7 @@ public class OptionsWindow extends javax.swing.JFrame {
         allyAutomated = new javax.swing.JCheckBox();
         neutralAutomated = new javax.swing.JCheckBox();
         specialAutomated = new javax.swing.JCheckBox();
+        attackDelay = new javax.swing.JCheckBox();
         okButton = new javax.swing.JButton();
         applyButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
@@ -142,7 +145,7 @@ public class OptionsWindow extends javax.swing.JFrame {
         autoUnconsciousness.setText("Unconsciousness Checks");
         autoUnconsciousness.setToolTipText(currentSettings.autoUnconscious.getDescription());
 
-        autoKnockdown.setText("Knockdown and Stunning");
+        autoKnockdown.setText("Knockdown And Stunning");
         autoKnockdown.setToolTipText(currentSettings.autoKnockdownStun.getDescription());
 
         autoStunrecovery.setText("Stun Recovery");
@@ -165,13 +168,19 @@ public class OptionsWindow extends javax.swing.JFrame {
         specialAutomated.setText("Special");
         specialAutomated.setToolTipText(currentSettings.automateSpecial.getDescription());
 
+        attackDelay.setText("Upon Losing Active");
+        attackDelay.setToolTipText(currentSettings.attackDelay.getDescription());
+
         javax.swing.GroupLayout combatAutomationPanelLayout = new javax.swing.GroupLayout(combatAutomationPanel);
         combatAutomationPanel.setLayout(combatAutomationPanelLayout);
         combatAutomationPanelLayout.setHorizontalGroup(
             combatAutomationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(combatAutomationPanelLayout.createSequentialGroup()
                 .addGroup(combatAutomationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(autoAttack)
+                    .addGroup(combatAutomationPanelLayout.createSequentialGroup()
+                        .addComponent(autoAttack)
+                        .addGap(10, 10, 10)
+                        .addComponent(attackDelay))
                     .addComponent(autoUnconsciousness)
                     .addComponent(autoKnockdown)
                     .addComponent(autoStunrecovery)
@@ -186,12 +195,14 @@ public class OptionsWindow extends javax.swing.JFrame {
                     .addGroup(combatAutomationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                         .addComponent(jSeparator1, javax.swing.GroupLayout.Alignment.LEADING)
                         .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addGap(0, 43, Short.MAX_VALUE))
         );
         combatAutomationPanelLayout.setVerticalGroup(
             combatAutomationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(combatAutomationPanelLayout.createSequentialGroup()
-                .addComponent(autoAttack)
+                .addGroup(combatAutomationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(autoAttack)
+                    .addComponent(attackDelay))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(autoUnconsciousness)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -238,8 +249,9 @@ public class OptionsWindow extends javax.swing.JFrame {
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Logging"));
 
-        logDefenseDetails.setText("Defense details");
+        logDefenseDetails.setText("Defense Details");
         logDefenseDetails.setToolTipText(currentSettings.logStatusChanges.getDescription());
+        logDefenseDetails.setActionCommand("Defense Details");
 
         logStatusChanges.setText("Verbose Status Changes");
         logStatusChanges.setToolTipText(currentSettings.logStatusChanges.getDescription());
@@ -330,6 +342,7 @@ public class OptionsWindow extends javax.swing.JFrame {
 
     private void copySettingsToComponents() {
     	autoAttack.setSelected(currentSettings.autoAttack.isSet());
+    	attackDelay.setSelected(currentSettings.attackDelay.isSet());
     	autoKnockdown.setSelected(currentSettings.autoKnockdownStun.isSet());
     	autoStunrecovery.setSelected(currentSettings.autoStunRecovery.isSet());
     	autoUnconsciousness.setSelected(currentSettings.autoUnconscious.isSet());
@@ -345,7 +358,8 @@ public class OptionsWindow extends javax.swing.JFrame {
     
     public void copyComponentsToSettings() {
     	currentSettings.autoAttack.setValue(autoAttack.isSelected());
-    	currentSettings.autoKnockdownStun.setValue(autoKnockdown.isSelected());
+       	currentSettings.attackDelay.setValue(attackDelay.isSelected());
+        currentSettings.autoKnockdownStun.setValue(autoKnockdown.isSelected());
     	currentSettings.autoStunRecovery.setValue(autoStunrecovery.isSelected());
     	currentSettings.autoUnconscious.setValue(autoUnconsciousness.isSelected());   
     	currentSettings.autoShock.setValue(autoShock.isSelected());
@@ -409,6 +423,7 @@ public class OptionsWindow extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox allyAutomated;
     private javax.swing.JButton applyButton;
+    private javax.swing.JCheckBox attackDelay;
     private javax.swing.JCheckBox autoAttack;
     private javax.swing.JCheckBox autoKnockdown;
     private javax.swing.JCheckBox autoShock;

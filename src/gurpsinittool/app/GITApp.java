@@ -32,6 +32,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.util.Properties;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import gurpsinittool.data.Actor;
@@ -151,11 +153,11 @@ public class GITApp extends JFrame
     	// I might be able to get away with a higher-level logger though (like 'gurpsinittool'    	
     	//Logger.getLogger("gurpsinittool").setLevel(Level.FINE);
     	//Logger.getLogger("gurpsinittool.app").setLevel(Level.FINEST); 
-//    	for(Handler h : Logger.getLogger("").getHandlers()) {
-//    	    if(h instanceof ConsoleHandler){
-//    	        h.setLevel(Level.ALL);
-//    	    }
-//    	}
+    	for(Handler h : Logger.getLogger("").getHandlers()) {
+    	    if(h instanceof ConsoleHandler){
+    	        h.setLevel(Level.ALL);
+    	    }
+    	}
     	
 //        // Test rig
 //		try {

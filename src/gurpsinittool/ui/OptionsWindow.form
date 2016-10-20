@@ -69,7 +69,11 @@
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" attributes="0">
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="autoAttack" min="-2" max="-2" attributes="0"/>
+                      <Group type="102" attributes="0">
+                          <Component id="autoAttack" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace min="-2" pref="10" max="-2" attributes="0"/>
+                          <Component id="attackDelay" min="-2" max="-2" attributes="0"/>
+                      </Group>
                       <Component id="autoUnconsciousness" min="-2" max="-2" attributes="0"/>
                       <Component id="autoKnockdown" min="-2" max="-2" attributes="0"/>
                       <Component id="autoStunrecovery" min="-2" max="-2" attributes="0"/>
@@ -88,14 +92,17 @@
                           <Component id="jLabel1" alignment="0" max="32767" attributes="0"/>
                       </Group>
                   </Group>
-                  <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                  <EmptySpace min="0" pref="43" max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
         <DimensionLayout dim="1">
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="0" attributes="0">
-                  <Component id="autoAttack" min="-2" max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="3" attributes="0">
+                      <Component id="autoAttack" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="attackDelay" alignment="3" min="-2" max="-2" attributes="0"/>
+                  </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="autoUnconsciousness" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
@@ -140,7 +147,7 @@
         </Component>
         <Component class="javax.swing.JCheckBox" name="autoKnockdown">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Knockdown and Stunning"/>
+            <Property name="text" type="java.lang.String" value="Knockdown And Stunning"/>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
               <Connection code="currentSettings.autoKnockdownStun.getDescription()" type="code"/>
             </Property>
@@ -198,6 +205,14 @@
             <Property name="text" type="java.lang.String" value="Special"/>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
               <Connection code="currentSettings.automateSpecial.getDescription()" type="code"/>
+            </Property>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="attackDelay">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Upon Losing Active"/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="currentSettings.attackDelay.getDescription()" type="code"/>
             </Property>
           </Properties>
         </Component>
@@ -261,10 +276,11 @@
       <SubComponents>
         <Component class="javax.swing.JCheckBox" name="logDefenseDetails">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Defense details"/>
+            <Property name="text" type="java.lang.String" value="Defense Details"/>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
               <Connection code="currentSettings.logStatusChanges.getDescription()" type="code"/>
             </Property>
+            <Property name="actionCommand" type="java.lang.String" value="Defense Details"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JCheckBox" name="logStatusChanges">

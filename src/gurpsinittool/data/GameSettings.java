@@ -6,7 +6,7 @@ public class GameSettings  {
 
 	// Combat automation Options:
 	public final GameSetting autoAttack = new GameSetting(true, "AUTO_ATTACK", "Execute default attack if not stunned or otherwise incapacatated.");
-	//public final GameSetting attackDelay = new GameSetting(false, "ATTACK_DELAYED", "Delay automatic attack until moving to subsequent combatant (allows adjusting attack while combatant is active)");
+	public final GameSetting attackDelay = new GameSetting(false, "ATTACK_DELAYED", "Delay automatic attack until switching to next combatant (allows adjusting attack while combatant is active)");
 	public final GameSetting autoUnconscious = new GameSetting(true, "AUTO_UNCONSCIOUS", "Perform consciousness check at the start of each turn.");
 	public final GameSetting autoKnockdownStun = new GameSetting(true, "AUTO_KNOCKDOWNSTUN", "Perform knockdown/stunning check when taking damage.");
 	public final GameSetting autoStunRecovery = new GameSetting(true, "AUTO_STUNRECOVERY", "Perform stun recovery check when stunned.");
