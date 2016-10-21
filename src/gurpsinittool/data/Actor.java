@@ -536,6 +536,47 @@ public class Actor extends ActorBase {
     				} else {
     					logEventTypeName("healed <b><font color=blue>" + (-1*diff) + "</font></b> (now " + (hitPoints - intValue) + " HP).");		
     				}
+    				// Check for death check
+    				int previousMultiple = Math.max(1, oldValue/hitPoints); // Doesn't start until at -1xHP
+    				int newMultiple = intValue/hitPoints;
+    				LOG.info("HERE: " + previousMultiple + " => " + newMultiple);
+    				if (!hasStatus(ActorStatus.Dead) // Not already dead
+    						&& newMultiple > previousMultiple // Crossed new threshold
+    						&& previousMultiple < 6) { // Don't print out anything more past -5xHP
+    					if (newMultiple >= 6) { // Automatic death
+    						logEventTypeName("reached <b><font color=red>-5xHP</font>: automatic death!</b>");
+    						if (isTypeAutomated() && settings.autoDeath.isSet()) {
+    							addStatus(ActorStatus.Dead); // TODO: clear out unconscious / stunned /disabled?
+    						}
+    					} else {
+    						for (int i = previousMultiple+1; i <= newMultiple; i++) {
+    							LOG.info("HERE: death check at " + i);
+    							String logPrefix = "reached <b><font color=red>-" + (i-1) + "xHP</font></b>: ";
+    							if (isTypeAutomated() && settings.autoDeath.isSet()) {
+    								// Perform death check
+    								final int health = getTraitValueInt(BasicTrait.HT);
+    								final int result = DieRoller.roll3d6();
+    								String details = "(HT: " + health + ", roll: " + result + ")";
+    								if (DieRoller.isFailure(result, health)) {
+    									// TODO: determine whether mortally wounded or not!
+    									if (result - health < 3) {
+    										addStatus(ActorStatus.Disabled);
+    										details = "<b>mortally wounded.</b> " + details;
+    									} else {
+    										addStatus(ActorStatus.Dead);
+    										details = "<b>died.</b> " + details;
+    										i = newMultiple; // don't make any more checks
+    									}
+    									logEventTypeName(logPrefix + "<b><font color=red>failed</font></b> death check, " + details);
+    								} else {
+    									logEventTypeName(logPrefix + "passed death check " + details);
+    								}
+    							} else {
+    								logEventTypeName(logPrefix + ": <b>death check required!</b>");
+    							}
+    						}
+    					}
+    				}
     			} else if ("Fatigue".equals(trait.name)) {
     				int fatiguePoints = getTraitValueInt(BasicTrait.FP);
     				// Skip if FP is 0!?

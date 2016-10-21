@@ -9,6 +9,7 @@ public class GameSettings  {
 	public final GameSetting attackDelay = new GameSetting(false, "ATTACK_DELAYED", "Delay automatic attack until switching to next combatant (allows adjusting attack while combatant is active)");
 	public final GameSetting autoUnconscious = new GameSetting(true, "AUTO_UNCONSCIOUS", "Perform consciousness check (HT) at the start of each turn when HP <= 0.");
 	public final GameSetting autoIncapacitation = new GameSetting(true, "AUTO_INCAPACITATION", "Perform incapacitation check (Will) at the start of each turn when current FP <= 0. Fall unconscious when current FP = -FP");
+	public final GameSetting autoDeath = new GameSetting(false, "AUTO_DEATH", "Perform death check (HT) when reach -1xHP and every -HT further. Automatic death at -5xHP.");
 	public final GameSetting autoKnockdownStun = new GameSetting(true, "AUTO_KNOCKDOWNSTUN", "Perform knockdown/stunning check when taking damage.");
 	public final GameSetting autoStunRecovery = new GameSetting(true, "AUTO_STUNRECOVERY", "Perform stun recovery check when stunned.");
 	public final GameSetting autoShock = new GameSetting(true, "AUTO_SHOCK", "Apply shock to attack rolls.");

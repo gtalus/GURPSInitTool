@@ -872,17 +872,21 @@ public class InitTable extends BasicTable {
 				
 				//if (str.matches("[\\d\\+-]+")) {
 					if (hasFocus || firstEdit || (length > 0)) {
+						if (LOG.isLoggable(Level.FINEST)) {LOG.finest("FirstEdit: " + firstEdit + ", HasFocus: " + hasFocus + ", Length: " + length);}
 						firstEdit = false;
 						startingNew = true;
 						super.replace(fb, offs, length, str, a);
 					} else if (startingNew && str.matches("\\d")) {
+						if (LOG.isLoggable(Level.FINEST)) {LOG.finest("StartingNew w/ [0-9]");}
 						startingNew = false;
 						super.replace(fb, offs, 0, "+", null);
 						super.replace(fb, offs+1, 0, str, a);
 					} else if (startingNew && str.matches("=")) {
+						if (LOG.isLoggable(Level.FINEST)) {LOG.finest("StartingNew w/ '='");}
 						startingNew = false;
 						super.replace(fb, offs, 0, "+", null);
 					} else {
+						if (LOG.isLoggable(Level.FINEST)) {LOG.finest("Other edit.");}
 						startingNew = false;
 						super.replace(fb, offs, 0, str, a);
 					}
