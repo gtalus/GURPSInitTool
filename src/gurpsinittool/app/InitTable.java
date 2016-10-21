@@ -62,7 +62,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 
 import gurpsinittool.app.textfield.ParsingField;
-import gurpsinittool.app.textfield.ParsingFieldParser;
+import gurpsinittool.app.textfield.AbstractParsingFieldParser;
 import gurpsinittool.app.textfield.ParsingFieldParserFactory;
 import gurpsinittool.data.Actor;
 import gurpsinittool.data.ActorBase.ActorStatus;
@@ -701,7 +701,7 @@ public class InitTable extends BasicTable {
 		 * Super does not define default constructor, so must define one.
 		 * @param comboBox
 		 */
-		public InitTableCellEditor(ParsingFieldParser parser) {
+		public InitTableCellEditor(AbstractParsingFieldParser parser) {
 			super(new ParsingField(parser));
 		}
 		
@@ -808,7 +808,7 @@ public class InitTable extends BasicTable {
 			return tf;
 		}
 		
-		private class DamageFieldParser extends ParsingFieldParser {
+		private class DamageFieldParser extends AbstractParsingFieldParser {
 			Pattern pattern = Pattern.compile("^\\s*(-?\\d+)\\s*([\\+-])\\s*(-?\\d+)([\\s+-].*)?$");
 			
 			@Override

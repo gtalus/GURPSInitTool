@@ -559,7 +559,6 @@ public class Actor extends ActorBase {
     				// Check for death check
     				int previousMultiple = Math.max(1, oldValue/hitPoints); // Doesn't start until at -1xHP
     				int newMultiple = intValue/hitPoints;
-    				LOG.info("HERE: " + previousMultiple + " => " + newMultiple);
     				if (!hasStatus(ActorStatus.Dead) // Not already dead
     						&& newMultiple > previousMultiple // Crossed new threshold
     						&& previousMultiple < 6) { // Don't print out anything more past -5xHP
@@ -570,7 +569,6 @@ public class Actor extends ActorBase {
     						}
     					} else {
     						for (int i = previousMultiple+1; i <= newMultiple; i++) {
-    							LOG.info("HERE: death check at " + i);
     							String logPrefix = "reached <b><font color=red>-" + (i-1) + "xHP</font></b>: ";
     							if (isTypeAutomated() && settings.autoDeath.isSet()) {
     								// Perform death check

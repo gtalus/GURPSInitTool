@@ -12,7 +12,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import gurpsinittool.app.textfield.ParsingField;
-import gurpsinittool.app.textfield.ParsingFieldParser;
+import gurpsinittool.app.textfield.AbstractParsingFieldParser;
 import gurpsinittool.app.textfield.ParsingFieldParserFactory;
 import gurpsinittool.data.Actor;
 import gurpsinittool.data.Attack;
@@ -172,7 +172,7 @@ public class AttackTableModel extends AbstractTableModel {
 		 * Super does not define default constructor, so must define one.
 		 * @param comboBox
 		 */
-		public AttackTableCellEditor(ParsingFieldParser parser) {
+		public AttackTableCellEditor(AbstractParsingFieldParser parser) {
 			super(new ParsingField(parser));
 		}
 		

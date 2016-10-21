@@ -5,12 +5,22 @@ import java.text.ParseException;
 import gurpsinittool.data.DR;
 import gurpsinittool.data.Damage;
 
-public class ParsingFieldParserFactory {
-
-	public static ParsingFieldParser IntegerParser() {
-		return new ParsingFieldParser() {
+/**
+ * Factory class to generate AbstractParsingFieldParser object
+ * @author dcsmall
+ *
+ */
+public final class ParsingFieldParserFactory {
+	private ParsingFieldParserFactory() {}; // Utility class
+	
+	/**
+	 * Integer parser
+	 * @return Integer parser
+	 */
+	public static AbstractParsingFieldParser IntegerParser() {
+		return new AbstractParsingFieldParser() {
 			@Override
-			public boolean parseIsValid(String text) {
+			public boolean parseIsValid(final String text) {
 				try {
 					Integer.parseInt(text);
 					return true;
@@ -20,7 +30,7 @@ public class ParsingFieldParserFactory {
 			}
 
 			@Override
-			public Object parseText(String text) {
+			public Object parseText(final String text) {
 				try {					
 					return Integer.parseInt(text);
 				} catch (NumberFormatException e) {
@@ -29,11 +39,14 @@ public class ParsingFieldParserFactory {
 			}
 		};
 	}
-	
-	public static ParsingFieldParser FloatParser() {
-		return new ParsingFieldParser() {
+	/**
+	 * Floating point parser
+	 * @return
+	 */
+	public static AbstractParsingFieldParser FloatParser() {
+		return new AbstractParsingFieldParser() {
 			@Override
-			public boolean parseIsValid(String text) {
+			public boolean parseIsValid(final String text) {
 				try {
 					Float.parseFloat(text);
 					return true;
@@ -43,7 +56,7 @@ public class ParsingFieldParserFactory {
 			}
 
 			@Override
-			public Object parseText(String text) {
+			public Object parseText(final String text) {
 				try {					
 					return Float.parseFloat(text);
 				} catch (NumberFormatException e) {
@@ -52,11 +65,14 @@ public class ParsingFieldParserFactory {
 			}
 		};
 	}
-	
-	public static ParsingFieldParser DRParser() {
-		return new ParsingFieldParser() {
+	/**
+	 * DR string parser
+	 * @return
+	 */
+	public static AbstractParsingFieldParser DRParser() {
+		return new AbstractParsingFieldParser() {
 			@Override
-			public boolean parseIsValid(String text) {
+			public boolean parseIsValid(final String text) {
 				try {
 					DR.parseDR(text);
 					return true;
@@ -66,7 +82,7 @@ public class ParsingFieldParserFactory {
 			}
 
 			@Override
-			public Object parseText(String text) {
+			public Object parseText(final String text) {
 				try {					
 					return DR.parseDR(text);
 				} catch (ParseException e) {
@@ -75,11 +91,14 @@ public class ParsingFieldParserFactory {
 			}
 		};
 	}
-	
-	public static ParsingFieldParser DamageParser() {
-		return new ParsingFieldParser() {
+	/**
+	 * Damage string parser
+	 * @return
+	 */
+	public static AbstractParsingFieldParser DamageParser() {
+		return new AbstractParsingFieldParser() {
 			@Override
-			public boolean parseIsValid(String text) {
+			public boolean parseIsValid(final String text) {
 				try {
 					Damage.parseDamage(text);
 					return true;
@@ -89,7 +108,7 @@ public class ParsingFieldParserFactory {
 			}
 
 			@Override
-			public Object parseText(String text) {
+			public Object parseText(final String text) {
 				try {					
 					return Damage.parseDamage(text);
 				} catch (ParseException e) {
