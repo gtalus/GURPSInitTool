@@ -68,35 +68,31 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 		
 		mUes.postEdit(new AddActorEdit(actor, destRow));
 		addActorToList(actorList, actor, destRow);
+		setDirty();
 	}
 	/**
-	 * Internal method to make undo/redo easier with multiple actorLists that may not be currently loaded
-	 * @param list
-	 * @param actor
-	 * @param position
+	 * Add an actor to the specified list and perform appropriate 
+	 * The list argument is to make undo/redo easier as there with multiple 
+	 * actorLists that may not be currently loaded.
+	 * @param list - the list to add the actor to
+	 * @param actor - the actor to add
+	 * @param position - the position in the list to add the actor at
 	 */
 	private void addActorToList(ArrayList<Actor> list, Actor actor, int position) {
-		list.add(position, actor);	
+		list.add(position, actor);
+		actor.setGameLogicEnabled(gameMaster.isGameLogicEnabled());
 		if (list.equals(actorList)) { // If this is the currently loaded actor list
 			actor.addPropertyChangeListener(this);
 			actor.addEncounterLogEventListener(gameMaster);
 			actor.addUndoableEditListener(gameMaster);
-			setDirty();
 			fireTableRowsInserted(position,position);
-		}		
+		}
 	}
 	/**
-	 * Add the newActor to the end of the list (used when editing the previous newActor)
-	 * Does most of what addActorToList does, with the exception of adding the GameMaster to the UndoEditListener
+	 * Add a new Actor based on newActor to the end of the list 
 	 */
 	private void addNewActor() {
-		Actor actor = new Actor(newActor);
-		actor.addPropertyChangeListener(this);
-		actor.addUndoableEditListener(gameMaster);
-		actor.addEncounterLogEventListener(gameMaster);
-		actorList.add(actorList.size(),actor);
-		// setDirty(); Not dirty: this is inital state, or the result of the actor being edited, which separately marks the DB as dirty
-    	fireTableRowsInserted(actorList.size()-1,actorList.size()-1);
+		addActorToList(actorList, new Actor(newActor), actorList.size());
 	}
 	
 	/**
@@ -268,17 +264,15 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 		fireTableRowsDeleted(0, getRowCount()); // remove current selection
 		
 		if (actorList == null) {
+			//This is an empty table, so it has NO ACTORS! EMPTY!
 			this.actorList = new ArrayList<Actor>();
-			//addNewActor(); This is an empty table, so it has NO ACTORS! EMPTY!
 		} else { 
 			this.actorList = actorList;
 			for (int i = 0; i < this.actorList.size(); i++) {
 				Actor a = this.actorList.get(i);
 				a.addPropertyChangeListener(this);
-				if (i < this.actorList.size()-1) {
-					a.addUndoableEditListener(gameMaster);
-					a.addEncounterLogEventListener(gameMaster);
-				}
+				a.addUndoableEditListener(gameMaster);
+				a.addEncounterLogEventListener(gameMaster);
 			}
 		}
 		fireTableDataChanged();

@@ -152,6 +152,7 @@ public class GITApp extends JFrame
     	// If I want to specify logging levels, then I have to keep a static reference I think 
     	// I might be able to get away with a higher-level logger though (like 'gurpsinittool'    	
     	//Logger.getLogger("gurpsinittool").setLevel(Level.FINE);
+    	//Logger.getLogger("gurpsinittool.data").setLevel(Level.FINER); 
     	//Logger.getLogger("gurpsinittool.app").setLevel(Level.FINEST); 
     	for(Handler h : Logger.getLogger("").getHandlers()) {
     	    if(h instanceof ConsoleHandler){
@@ -172,7 +173,7 @@ public class GITApp extends JFrame
     
     private GITApp(String name) {
     	super(name);
-        gameMaster = new GameMaster();
+        gameMaster = new GameMaster(true);
     }
 
     private void addComponentsToPane() {

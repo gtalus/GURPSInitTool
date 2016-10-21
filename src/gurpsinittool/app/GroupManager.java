@@ -92,7 +92,7 @@ public class GroupManager extends JFrame
         
         
 		// Create core components
-		gameMaster = new GameMaster();
+		gameMaster = new GameMaster(false);
 		actorDetailsPanel = new ActorDetailsPanel_v2(false);
 		groupTable = new InitTable(gameMaster, false, propertyBag);
 		groupTable.getActorTableModel().setActorList(null);

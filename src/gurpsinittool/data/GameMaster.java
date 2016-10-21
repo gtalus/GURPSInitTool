@@ -49,6 +49,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 	// Game logic members
 	private Integer round = 0;
 	private Integer activeActor = -1;
+	private boolean gameLogicEnabled;
 	
 	private PropertyChangeSupport mPcs = new PropertyChangeSupport(this); // Change reporting
 	private EncounterLogSupport mEls = new EncounterLogSupport(this); // where to send log messages
@@ -116,12 +117,15 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 	public Action actionTagSelectedActors;
 	public Action actionRemoveTagSelectedActors;
 	
-	public GameMaster() {
+	public GameMaster(final boolean enableGameLogic) {
+		this.gameLogicEnabled = enableGameLogic;
 		initializeActions();
 		updateUndoRedo();	
 		this.addPropertyChangeListener(this); // Yes, I'm listening to myself :)
 	}
-	
+	public boolean isGameLogicEnabled(){
+		return gameLogicEnabled;
+	}
 	public int getActiveActor() {
 		return activeActor;
 	}
@@ -721,11 +725,13 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 		if (getCompoundLevel() == 0) {
 			if (LOG.isLoggable(Level.WARNING)) { LOG.log(Level.WARNING, "Compound edit not started!", new Exception());}
 			return;
-		} else { // End it and post it
+		} else { // End it and post it if it's significant
 			CompoundEdit edit = compoundEdits.pop();
-			edit.addEdit(new DisplayEdit(display));
-			edit.end();
-			postUndoableEdit(edit);
+			if (edit.isSignificant()) { // Only post if it's significant
+				edit.addEdit(new DisplayEdit(display));
+				edit.end();
+				postUndoableEdit(edit);
+			}
 		}
 	}
     

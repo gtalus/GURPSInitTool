@@ -22,12 +22,32 @@ public class Actor extends ActorBase {
 	 * Logger
 	 */
 	private final static Logger LOG = Logger.getLogger(Actor.class.getName());
+	private transient boolean gameLogicEnabled = false;
 	
 	public Actor() {
 		super();
 	}
 	public Actor(Actor anActor) {
 		super(anActor);
+	}
+	
+	/**
+	 * Indicates whether game logic is active for this actor. Game logic is not
+	 * active when the actor is loading, undo/redo replay is in progress, and 
+	 * in the GroupTable. It is active under normal conditions in the InitTable
+	 * @return true if game logic is active
+	 */
+	public boolean isGameLogicActive() {
+		return gameLogicEnabled && !undoRedoInProgress;
+	}
+	/**
+	 * Enable or disable game logic.
+	 * If enabled, game logic may still not be active (as when undo/redo replay 
+	 * is in progress).
+	 * @param isEnabled - true to enable, false to disable
+	 */
+	public void setGameLogicEnabled(boolean isEnabled) {
+		gameLogicEnabled = isEnabled;
 	}
 	
 	/**
@@ -470,54 +490,54 @@ public class Actor extends ActorBase {
 	 */
     @Override
 	public void setTrait(String name, String value) {
+    	startCompoundEdit();
     	// Handle cases where we want to limit the value- mostly related to Injury and Fatigue
     	int injuryFromFatigue = 0; // To handle injury from fatigue loss
-		if (name.equals("Injury") || name.equals("Fatigue")) { 		
-			int intValue = 0;
-			try { // Enforce >= 0
-				intValue = Integer.parseInt(value);
-				intValue = Math.max(intValue, 0);
-				value = String.valueOf(intValue);
-			} catch (NumberFormatException e) {
-				if (LOG.isLoggable(Level.INFO)) {LOG.info("Error parsing Injury/Fatigue value: " + value);}
-			}
-			
-			if (name.equals("Fatigue")) {
-				int fatiguePoints = getTraitValueInt(BasicTrait.FP);
-				if (fatiguePoints == 0) { // Skip if FP is 0!
-					value = "0";
-				} else {
-					// Fatigue / Injury interaction
-					int oldFatigue = getTraitValueInt(BasicTrait.Fatigue);
-					int diff =  intValue - oldFatigue;
-					if (diff > 0 && intValue > fatiguePoints) { // Taking Fatigue, and resulting in less than 0 FP
-						injuryFromFatigue = diff + ((oldFatigue < fatiguePoints)?(oldFatigue-fatiguePoints):0);
-					}					
-					// Minimum of -1xFP
-					if (intValue > 2*fatiguePoints) { 
-						intValue = 2*fatiguePoints;
-						value = String.valueOf(intValue);
-					}
-				}
-			}
-		}
-    	// Set the value		
-		if (injuryFromFatigue > 0) {
-			startCompoundEdit();
-			if (LOG.isLoggable(Level.FINE)) {LOG.fine("Taking additional " + injuryFromFatigue + " injury due to fatigue loss");}
-			super.setTrait(name, value);
-			setTrait(BasicTrait.Injury, getTraitValueInt(BasicTrait.Injury) + injuryFromFatigue);
-			endCompoundEdit("Edit");
-		} else {
-			super.setTrait(name, value);
-		}
-		
+    	if (isGameLogicActive()) {
+    		if (LOG.isLoggable(Level.FINER)) {LOG.finer("Evaluating pre-edit game logic for trait '" + name + "'");}
+    		if (name.equals("Injury") || name.equals("Fatigue")) { 		
+    			int intValue = 0;
+    			try { // Enforce >= 0
+    				intValue = Integer.parseInt(value);
+    				intValue = Math.max(intValue, 0);
+    				value = String.valueOf(intValue);
+    			} catch (NumberFormatException e) {
+    				if (LOG.isLoggable(Level.INFO)) {LOG.info("Error parsing Injury/Fatigue value: " + value);}
+    			}
+
+    			if (name.equals("Fatigue")) {
+    				int fatiguePoints = getTraitValueInt(BasicTrait.FP);
+    				if (fatiguePoints == 0) { // Skip if FP is 0!
+    					value = "0";
+    				} else {
+    					// Fatigue / Injury interaction
+    					int oldFatigue = getTraitValueInt(BasicTrait.Fatigue);
+    					int diff =  intValue - oldFatigue;
+    					if (diff > 0 && intValue > fatiguePoints) { // Taking Fatigue, and resulting in less than 0 FP
+    						injuryFromFatigue = diff + ((oldFatigue < fatiguePoints)?(oldFatigue-fatiguePoints):0);
+    					}					
+    					// Minimum of -1xFP
+    					if (intValue > 2*fatiguePoints) { 
+    						intValue = 2*fatiguePoints;
+    						value = String.valueOf(intValue);
+    					}
+    				}
+    			}
+    		}
+    	}
+    	// Set the value
+    	super.setTrait(name, value);
+    	if (injuryFromFatigue > 0) {
+    		if (LOG.isLoggable(Level.FINE)) {LOG.fine("Taking additional " + injuryFromFatigue + " injury due to fatigue loss");}
+    		setTrait(BasicTrait.Injury, getTraitValueInt(BasicTrait.Injury) + injuryFromFatigue);
+    	}
+		endCompoundEdit("Edit");
     }
     
     @Override
     protected void internalSetTrait(final Trait trait, final String value) {
-    	startCompoundEdit();
-    	if (!undoRedoInProgress) {			
+    	if (isGameLogicActive()) {
+    		if (LOG.isLoggable(Level.FINER)) {LOG.finer("Evaluating game logic for trait '" + trait.name + "'");}
     		if ("Injury".equals(trait.name) || "Fatigue".equals(trait.name)) { 		
     			int intValue = 0;
     			int oldValue = 0;
@@ -594,7 +614,6 @@ public class Actor extends ActorBase {
     		}
     	}
     	super.internalSetTrait(trait, value);
-    	endCompoundEdit("Edit");
     }
     
     protected String calculateTrait(CalculatedTrait calcTrait) {
