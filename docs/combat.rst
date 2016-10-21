@@ -1,11 +1,14 @@
 Combat Tracking
 =================
 
+Various combat tracking and automation functions are provided by the initiative table to streamline the flow of an encounter. The Settings dialog, accessible under the Edit menu of the main window, has numerous options to control how they work.
+
+.. note:: These combat functions only apply to combatants in the main initiative table, and are not enabled for those in the Groups Manager.
 
 Automation
 ----------
 
-Which types of combatants are subject to automation is user configurable through the Settings dialog, which is accessible under the Edit menu of the main window. By default, combatants of type 'ally', 'neutral', and 'enemy' are automated. Each automation function can also be disabled or enabled individually.
+By default, combatants of type 'Ally', 'Neutral', and 'Enemy' are automated. Which types of combatants are subject to automation is user configurable. Individual automation functions can also be disabled or enabled.
 
 .. image:: _static/20_automation_options.png
    :align: left

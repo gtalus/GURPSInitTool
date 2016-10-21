@@ -1,6 +1,21 @@
 Changelog
 =========
 
+v1.7.0 (UNRELEASED)
+------
+
+**Bug Fixes:**
+
+- Automations applied in Groups Manager and when loading groups
+
+**Features:**
+
+- Table text resizing
+- Death check automation
+- Fatigue incapacitation check automation
+- Option: auto-attack delay
+- Icons for CurrHP/CurrFP
+
 v1.6.0
 ------
 

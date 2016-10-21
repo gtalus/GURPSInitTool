@@ -34,15 +34,15 @@ Once you are satisfied with the list of combatants, combat is started by clickin
 
 Automation
 ~~~~~~~~~~
-As the rounds progress, automation functions may be triggered for non-PC/Special combatants. The results of these will be displayed in the log window below the initiative table and may also change the Fatigue, Injury, or Status attributes of the NPC it applies to. For example, the default attack is shown for NPCs with the 'Attacking' status
+As the rounds progress, automation functions may be triggered for combatants whose type has had automation enabled (by default NPC types "Enemy", "Ally" and "Neutral"). The results of these will be displayed in the log window below the initiative table and may also modify Fatigue, Injury, or Status attributes. For example, the default attack is shown for automated combatants with the 'Attacking' status
 
 .. image:: _static/03_combat_attack.png
 
-Besides attacks, automation includes things like skipping attacks for stunned NPCs and automatic recovery rolls.
+Besides attacks, automation includes things like skipping attacks for stunned combatants and automatic recovery rolls.
 
 .. image:: _static/05_automation.png
 
-Different types of automation can be turned off from the 'Options' dialog, which can be accessed through the 'Edit' menu. The current automations are Attacks, Unconsciousness Checks, Knockdown and Stunning, Stun Recovery, and Shock.
+Which types of combatants use the automations, and which automations are enabled can be set from the 'Options' dialog, which is accessed through the 'Edit' menu.
 
 Defending
 ~~~~~~~~~

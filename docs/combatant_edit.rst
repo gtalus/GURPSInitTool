@@ -43,7 +43,7 @@ Type and Status
 
 'Type' and 'Status' are two special pieces of information not normally found on a GURPS character sheet. They help drive the automation and tracking functions for characters in a combat situation.
 
-'Type' is simply a categorization of whether the creature is a PC, Ally, Neutral, Enemy, or something Special. The NPC types Ally, Neutral, and Enemy are impacted by automation functions while the PC and Special types are not. The character is also color-coded based on the type in many places. Other than NPC  automation and color coding, the specific type has no impact on the program operation.
+'Type' is simply a categorization of whether the creature is a PC, Ally, Neutral, Enemy, or something Special. By default the NPC types Ally, Neutral, and Enemy are impacted by automation functions while the PC and Special types are not. The character is also color-coded based on the type in many places. Other than automation and color coding, the specific type has no impact on the program operation.
 
 'Status' indicates special effects that impact what options and penalties a combatant has. It includes things like stun, posture, and unconsciousness. Each status impacts how the combatant is treated, especially for automated NPCs.
 
@@ -55,8 +55,8 @@ The statuses are:
 - **StunMental**: Mental stun. NPCs skip their normal turn and check for recovery with an IQ roll
 - **StunRecovr**: Recovering from mental stun, NPCs will automatically finish recovering at the start of the next turn.
 
-- **Waiting**: Table display right justified. Turn skipped automatically. Tag update will not modify any present tag.
-- **Disabled**: Generic disabled state. Greyed out in table. Turn skipped automatically. Tag update will remove tag.
+- **Waiting**: Table display right justified. Turn skipped automatically.
+- **Disabled**: Generic disabled state: often termed 'incapacitated' in the rules. Greyed out in table. Turn skipped automatically.
 - **Unconscious**: Indicates unconsciousness. Otherwise identical to **Disabled**
 - **Dead**: Dead. As **Disabled**
   
