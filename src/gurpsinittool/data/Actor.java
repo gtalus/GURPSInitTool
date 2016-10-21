@@ -13,8 +13,7 @@ import gurpsinittool.util.DieRoller;
 
 /** 
  * Encapsulates a single actor in the current encounter.
- * Contains all status information.
- * Provides change notification services.
+ * Includes all game logic
  */
 public class Actor extends ActorBase {
 	
@@ -119,13 +118,7 @@ public class Actor extends ActorBase {
 		if (settings.attackDelay.isSet())
 			handleAutoAttack();
 	}
-	// check if we should auto-attack
-	private void handleAutoAttack() {
-		if (isTypeAutomated() && settings.autoAttack.isSet() && hasStatus(ActorStatus.Attacking) && 
-				!isStunned() && !isDisabled() && !hasStatus(ActorStatus.Waiting)) {// Ok to attack :)
-			attack();
-		}
-	}
+
 
 	/**
 	 * Reset actor state- Active, 0 Injury, 0 fatigue, numParry/numBlock/shieldDamage = 0
@@ -142,7 +135,6 @@ public class Actor extends ActorBase {
 		setTemp("shock.next", 0);
 	}
 	
-	// 
 	/**
 	 * Is the actor currently some variety of stunned?
 	 * @return true if stunned
@@ -165,6 +157,10 @@ public class Actor extends ActorBase {
     //================================================================================
     // Attack Support
     //================================================================================
+	/**
+	 * Execute the specified attack
+	 * @param num - the index of the attack to execute
+	 */
 	public void attack(int num) {
 		if (num < 0 || num >= attacks.size()) {
 			if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Invalid attack attempted: id # " +String.valueOf(num));}
@@ -223,7 +219,9 @@ public class Actor extends ActorBase {
 				
 		logEventTypeName("attacks with " + attack.name + ": " + hitOrMiss +  " (" + roll + "/" + effSkill + "=" + margin + ") for damage " + damageStr + critString);
 	}
-	
+	/**
+	 * Execute the default attack
+	 */
 	public void attack() {
 		if (attacks.size() < 1) {
 			logEventTypeName("<i><font color=gray>has no attacks defined!</font></i>");
@@ -236,9 +234,24 @@ public class Actor extends ActorBase {
 		attack(defaultAttack);		
 	}
 	
+	/**
+	 * check if we should auto-attack, and execute the default attack if so
+	 */
+	private void handleAutoAttack() {
+		if (isTypeAutomated() && settings.autoAttack.isSet() && hasStatus(ActorStatus.Attacking) && 
+				!isStunned() && !isDisabled() && !hasStatus(ActorStatus.Waiting)) {// Ok to attack :)
+			attack();
+		}
+	}
+	
     //================================================================================
     // Defense Support
     //================================================================================
+	/**
+	 * Process a defense and apply to the actor
+	 * @param defense - the Defense object to process
+	 * @return a string describing the result
+	 */
 	public String defend(Defense defense) {
 		startCompoundEdit();			
 		recordDefenseAttempt(defense);
@@ -249,7 +262,10 @@ public class Actor extends ActorBase {
 		return "";
 	}
 	
-	// Process the impact of attempting the defense itself (fatigue, number of Parries this turn, etc)
+	/**
+	 * Process the impact of attempting the defense itself (fatigue, number of Parries this turn, etc)
+	 * @param defense
+	 */
 	private void recordDefenseAttempt(Defense defense) {
 		int fatigue = getTraitValueInt(BasicTrait.Fatigue);
 		setTrait(BasicTrait.Fatigue, String.valueOf(fatigue+defense.fatigue));
@@ -445,6 +461,99 @@ public class Actor extends ActorBase {
 			break;
     	}
     	return currentDefense;
+    }
+    
+	/**
+	 * Set the value of a trait, adding if that trait does not exist
+	 * @param name - the name of the trait
+	 * @param value - the value of the trait
+	 */
+    @Override
+	public void setTrait(String name, String value) {
+    	// Handle cases where we want to limit the value- mostly related to Injury and Fatigue
+    	int injuryFromFatigue = 0; // To handle injury from fatigue loss
+		if (name.equals("Injury") || name.equals("Fatigue")) { 		
+			int intValue = 0;
+			try { // Enforce >= 0
+				intValue = Integer.parseInt(value);
+				intValue = Math.max(intValue, 0);
+				value = String.valueOf(intValue);
+			} catch (NumberFormatException e) {
+				if (LOG.isLoggable(Level.INFO)) {LOG.info("Error parsing Injury/Fatigue value: " + value);}
+			}
+			
+			if (name.equals("Fatigue")) {
+				int fatiguePoints = getTraitValueInt(BasicTrait.FP);
+				if (fatiguePoints == 0) { // Skip if FP is 0!
+					value = "0";
+				} else {
+					// Fatigue / Injury interaction
+					int oldFatigue = getTraitValueInt(BasicTrait.Fatigue);
+					int diff =  intValue - oldFatigue;
+					if (diff > 0 && intValue > fatiguePoints) { // Taking Fatigue, and resulting in less than 0 FP
+						injuryFromFatigue = diff + ((oldFatigue < fatiguePoints)?(oldFatigue-fatiguePoints):0);
+					}					
+					// Minimum of -1xFP
+					if (intValue > 2*fatiguePoints) { 
+						intValue = 2*fatiguePoints;
+						value = String.valueOf(intValue);
+					}
+				}
+			}
+		}
+    	// Set the value		
+		if (injuryFromFatigue > 0) {
+			startCompoundEdit();
+			if (LOG.isLoggable(Level.FINE)) {LOG.fine("Taking additional " + injuryFromFatigue + " injury due to fatigue loss");}
+			super.setTrait(name, value);
+			setTrait(BasicTrait.Injury, getTraitValueInt(BasicTrait.Injury) + injuryFromFatigue);
+			endCompoundEdit("Edit");
+		} else {
+			super.setTrait(name, value);
+		}
+		
+    }
+    
+    @Override
+    protected void internalSetTrait(final Trait trait, final String value) {
+    	startCompoundEdit();
+    	if (!undoRedoInProgress) {			
+    		if ("Injury".equals(trait.name) || "Fatigue".equals(trait.name)) { 		
+    			int intValue = 0;
+    			int oldValue = 0;
+    			try { 
+    				intValue = Integer.valueOf(value);
+    				oldValue = Integer.valueOf(trait.value);
+    			} catch (NumberFormatException e) {
+    				if (LOG.isLoggable(Level.INFO)) {LOG.info("Error parsing trait '" + trait.name + "' value");}
+    			}
+    			int diff = intValue - oldValue;
+    			if ("Injury".equals(trait.name)) {  // Report injury/healing and calculate shock		
+    				int hitPoints = getTraitValueInt(BasicTrait.HP);
+    				if (diff > 0) {
+    					setTemp("shock.next", getTempInt("shock.next") + diff);
+    					logEventTypeName("took <b><font color=red>" + diff + "</font></b> damage (now " + (hitPoints - intValue) + " HP).");
+    				} else {
+    					logEventTypeName("healed <b><font color=blue>" + (-1*diff) + "</font></b> (now " + (hitPoints - intValue) + " HP).");		
+    				}
+    			} else if ("Fatigue".equals(trait.name)) {
+    				int fatiguePoints = getTraitValueInt(BasicTrait.FP);
+    				// Skip if FP is 0!?
+    				if (diff > 0) {
+    					logEventTypeName("lost <b>" + diff + "</b> fatigue (now " + (fatiguePoints - intValue) + " FP).");
+    				} else {
+    					logEventTypeName("recoverd <b>" + (-1*diff) + "</b> fatigue (now " + (fatiguePoints - intValue) + " FP).");		
+    				}
+    				// Check for falling unconscious when reaching -1xFP
+    				if (isTypeAutomated() && !hasStatus(ActorStatus.Unconscious) && settings.autoIncapacitation.isSet() && intValue == 2*fatiguePoints) { 
+    					logEventTypeName("<b>reached -1xFP: fell unconscious.</b>");
+    					setAllStatuses(new HashSet<ActorStatus>(Arrays.asList(ActorStatus.Unconscious, ActorStatus.Prone, ActorStatus.Disarmed)));
+    				}
+    			}
+    		}
+    	}
+    	super.internalSetTrait(trait, value);
+    	endCompoundEdit("Edit");
     }
     
     protected String calculateTrait(CalculatedTrait calcTrait) {

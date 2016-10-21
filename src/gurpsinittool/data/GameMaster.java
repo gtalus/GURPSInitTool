@@ -117,7 +117,6 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 	public Action actionRemoveTagSelectedActors;
 	
 	public GameMaster() {
-		LOG.setLevel(Level.FINE);
 		initializeActions();
 		updateUndoRedo();	
 		this.addPropertyChangeListener(this); // Yes, I'm listening to myself :)
@@ -414,6 +413,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 		// Undo / Redo
 		actionUndo = new AbstractGAction("Undo", "Undo the most recent edit (Ctrl+Z)", KeyEvent.VK_U, new ImageIcon(GITApp.class.getResource("/resources/images/arrow_undo.png"), "Undo")) {
 			public void actionPerformed(ActionEvent arg0) {	
+				if (LOG.isLoggable(Level.FINE)) { LOG.fine("Undo triggered");}
 				flushInteractiveEdits();
 				if (getCompoundLevel() > 0)
 					if (LOG.isLoggable(Level.WARNING)) { LOG.warning("Undo action: triggered while compound edit being built!");}
@@ -427,6 +427,7 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 		};
 		actionRedo = new AbstractGAction("Redo", "Redo the most recent undo (Ctrl+Y)", KeyEvent.VK_R, new ImageIcon(GITApp.class.getResource("/resources/images/arrow_redo.png"), "Redo")) {
 			public void actionPerformed(ActionEvent arg0) {	
+				if (LOG.isLoggable(Level.FINE)) { LOG.fine("Redo triggered");}
 				// TODO: what about interactive edits in progress?
 				if (getCompoundLevel() > 0)
 					if (LOG.isLoggable(Level.WARNING)) { LOG.warning("Redo action: triggered while compound edit being built!");}
@@ -685,15 +686,19 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
     		actionRedo.putValue(Action.NAME, "Redo");
     	}
     }
-    
+
     @Override    
-	public void undoableEditHappened(UndoableEditEvent e) {
-    	if (ActorBase.HackStartCompound.class.isInstance(e.getEdit()))
+    public void undoableEditHappened(UndoableEditEvent e) {
+    	if (ActorBase.HackStartCompound.class.isInstance(e.getEdit())) {
+    		if (LOG.isLoggable(Level.FINER)) {LOG.finer("Got a StartCompound edit");}
     		startCompoundEdit();
-    	else if (ActorBase.HackEndCompound.class.isInstance(e.getEdit()))
+    	} else if (ActorBase.HackEndCompound.class.isInstance(e.getEdit())) {
+    		if (LOG.isLoggable(Level.FINER)) {LOG.finer("Got a EndCompound edit");}
     		endCompoundEdit(e.getEdit().getPresentationName());
-    	else
+    	} else {
+    		if (LOG.isLoggable(Level.FINER)) {LOG.finer("Got a normal edit: " + e);}
     		postUndoableEdit(e.getEdit());
+    	}
 	}
     
 	private void postUndoableEdit(UndoableEdit e) {		

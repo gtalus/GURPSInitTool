@@ -1,5 +1,6 @@
 package gurpsinittool.app;
 
+import java.awt.Component;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -8,8 +9,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+import javax.swing.SwingUtilities;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.text.JTextComponent;
 import javax.swing.undo.AbstractUndoableEdit;
 import javax.swing.undo.UndoableEditSupport;
 
@@ -89,6 +92,8 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 	private void addNewActor() {
 		Actor actor = new Actor(newActor);
 		actor.addPropertyChangeListener(this);
+		actor.addUndoableEditListener(gameMaster);
+		actor.addEncounterLogEventListener(gameMaster);
 		actorList.add(actorList.size(),actor);
 		// setDirty(); Not dirty: this is inital state, or the result of the actor being edited, which separately marks the DB as dirty
     	fireTableRowsInserted(actorList.size()-1,actorList.size()-1);
@@ -333,14 +338,12 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 	public void propertyChange(PropertyChangeEvent e) {
 		if(Actor.class.isInstance(e.getSource())) {
 			setDirty();
-			Actor actor = (Actor)e.getSource();
+			final Actor actor = (Actor)e.getSource();
 			if (LOG.isLoggable(Level.FINER)) {LOG.finer("Got notification from actor " + actor.getTraitValue(BasicTrait.Name));}
 			int [] rows = getActorRows(actor);
 			for (int i=0; i < rows.length; i++) {
 				if (rows[i] == getRowCount() -1) { // changed last row, send request for a new Actor to the game master
 					addNewActor(); // Add a new 'newActor' to the end of the list
-					actor.addUndoableEditListener(gameMaster);
-					actor.addEncounterLogEventListener(gameMaster);
 					mUes.postEdit(new AddActorEdit(actorList.get(actorList.size()-2), actorList.size()-2));
 				}
 				fireTableRowsUpdated(rows[i], rows[i]);

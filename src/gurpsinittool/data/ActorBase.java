@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,6 +27,11 @@ import gurpsinittool.util.EncounterLogListener;
 import gurpsinittool.util.EncounterLogSupport;
 import gurpsinittool.util.MiscUtil;
 
+/** 
+ * Base class for actors.
+ * Contains all status/trait information.
+ * Provides change notification services.
+ */
 @SuppressWarnings("serial")
 public class ActorBase implements Serializable {
 	/**
@@ -38,7 +44,7 @@ public class ActorBase implements Serializable {
 	private transient EncounterLogSupport mEls = new EncounterLogSupport(this); // where to send log messages
 	private transient PropertyChangeSupport mPcs = new PropertyChangeSupport(this); // Change reporting, don't serialize!
 	protected transient UndoableEditSupport mUes = new UndoableEditSupport(); // Undo/Redo reporting 
-	private transient boolean undoRedoInProgress = false; // Suppress undoableEdit creation while true
+	protected transient boolean undoRedoInProgress = false; // Suppress undoableEdit creation while true
 	
 	public enum ActorStatus {Attacking, Disarmed, StunPhys, StunMental, StunRecovr, Kneeling, Prone, Waiting, Disabled, Unconscious, Dead};
 	private HashSet<ActorStatus> statuses;
@@ -53,7 +59,7 @@ public class ActorBase implements Serializable {
 	public enum CalculatedTrait { CurrHP, CurrFP, BasicThrust, BasicSwing, BasicLift }
 	
 	// TODO: implement change tracking in the trait? If we want to allow other classes to hold a Trait object
-	private class Trait implements Serializable {
+	protected class Trait implements Serializable {
 		// Default SVUID
 		private static final long serialVersionUID = 1L;
 
@@ -183,57 +189,90 @@ public class ActorBase implements Serializable {
     //================================================================================
 
 	// Statuses
-	public boolean hasStatus(ActorStatus status) {
+	/**
+	 * Check if the Actor has a particular status
+	 * @param status - the ActorStatus to check
+	 * @return true if the Actor has the status
+	 */
+	public boolean hasStatus(final ActorStatus status) {
 		return statuses.contains(status);
 	}
-	public void addStatus(ActorStatus status) {
+	/**
+	 * Add a status to the actor
+	 * @param status - the ActorStatus to add
+	 */
+	public void addStatus(final ActorStatus status) {
 		if (!statuses.contains(status)) {
-			HashSet<ActorStatus> oldValue = new HashSet<ActorStatus>(statuses);
+			final HashSet<ActorStatus> oldValue = new HashSet<ActorStatus>(statuses);
 			statuses.add(status);
 			mPcs.firePropertyChange("Status", null, status);
-			startCompoundEdit();
-			if (settings.logStatusChanges.isSet()) logEventTypeName("added status <b>" + status + "</b>, now has [" + getStatusesString() + "]");
-			mUes.postEdit(new StatusEdit(oldValue, new HashSet<ActorStatus>(statuses)));
-			endCompoundEdit("Status");
+			if (!undoRedoInProgress) {
+				startCompoundEdit();
+				if (settings.logStatusChanges.isSet()) logEventTypeName("added status <b>" + status + "</b>, now has [" + getStatusesString() + "]");
+				mUes.postEdit(new StatusEdit(oldValue, new HashSet<ActorStatus>(statuses)));
+				endCompoundEdit("Status");
+			}
 		}
 	}
-	public HashSet<ActorStatus> getAllStatuses() {
+	/**
+	 * Get a Set of all ActorStatuses the Actor has
+	 * @return All ActorStatus flags set for this actor
+	 */
+	public Set<ActorStatus> getAllStatuses() {
 		return new HashSet<ActorStatus>(statuses);
 	}
-	public void setAllStatuses(HashSet<ActorStatus> newStatuses) {
+	/**
+	 * Replace all currently set ActorStatus flags with the ones provided
+	 * @param newStatuses - the set of ActorStatus flags which will be 
+	 * set for this actor
+	 */
+	public void setAllStatuses(final Set<ActorStatus> newStatuses) {
 		if (!statuses.containsAll(newStatuses) || !newStatuses.containsAll(statuses)) {
-			HashSet<ActorStatus> oldValue = new HashSet<ActorStatus>(statuses);
-			String oldStatuses = getStatusesString();
+			final HashSet<ActorStatus> oldValue = new HashSet<ActorStatus>(statuses);
+			final String oldStatuses = getStatusesString();
 			statuses.clear();
 			statuses.addAll(newStatuses);
+			mPcs.firePropertyChange("Statuses", oldStatuses, getStatusesString());
 			if (!undoRedoInProgress) {
 				startCompoundEdit();	
 				if (settings.logStatusChanges.isSet()) logEventTypeName("status set to <b>[" + getStatusesString() + "]</b>");
 				mUes.postEdit(new StatusEdit(oldValue, new HashSet<ActorStatus>(statuses)));
 				endCompoundEdit("Status");
-			}
-			mPcs.firePropertyChange("Statuses", oldStatuses, getStatusesString());
+			}			
 		}
 	}
-	public void removeStatus(ActorStatus status) {
+	/**
+	 * Remove the specified ActorStatus from this actor
+	 * @param status - the ActorStatus flag to remove
+	 */
+	public void removeStatus(final ActorStatus status) {
 		if (statuses.contains(status)) {
-			HashSet<ActorStatus> oldValue = new HashSet<ActorStatus>(statuses);
+			final HashSet<ActorStatus> oldValue = new HashSet<ActorStatus>(statuses);
 			statuses.remove(status);
-			mPcs.firePropertyChange("Status", status, null);			
-			startCompoundEdit();
-			if (settings.logStatusChanges.isSet()) logEventTypeName("removed status <b>" + status + "</b>, now has [" + getStatusesString() + "]");
-			mUes.postEdit(new StatusEdit(oldValue, new HashSet<ActorStatus>(statuses)));
-			endCompoundEdit("Status");
+			mPcs.firePropertyChange("Status", status, null);	
+			if (!undoRedoInProgress) {
+				startCompoundEdit();
+				if (settings.logStatusChanges.isSet()) logEventTypeName("removed status <b>" + status + "</b>, now has [" + getStatusesString() + "]");
+				mUes.postEdit(new StatusEdit(oldValue, new HashSet<ActorStatus>(statuses)));
+				endCompoundEdit("Status");
+			}
 		}
 	}
+	/**
+	 * Remove all ActorStatus flags for this actor
+	 */
 	protected void clearStatuses() {
 		setAllStatuses(new HashSet<ActorStatus>());
 	}
+	/**
+	 * Get a comma-separated list of all ActorStatus flags set for this actor
+	 * @return A comma-separated list of all ActorStatus flags set for this actor
+	 */
 	public String getStatusesString() {
 		int[] scodes = new int[statuses.size()];
-		int i = 0;
-		for (ActorStatus as: statuses) 
-			scodes[i++] = as.ordinal();
+		int index = 0;
+		for (final ActorStatus as: statuses) 
+			scodes[index++] = as.ordinal();
 		Arrays.sort(scodes);
 		String text = "";
 		for (int j = 0; j < scodes.length; ++j) {
@@ -244,8 +283,12 @@ public class ActorBase implements Serializable {
 		}
 		return text;
 	}
-	// Use 'null' for standing
-	public void setPosture(ActorStatus posture) {
+	/**
+	 * Set the actor's posture to the specified value, or null for Standing
+	 * @param posture - the desired posture: Kneeling, Prone, or null for Standing
+	 */
+	public void setPosture(final ActorStatus posture) {
+		// TODO: should be a compound edit?
 		if (posture == ActorStatus.Kneeling) {
 			removeStatus(ActorStatus.Prone);
 			addStatus(posture);
@@ -258,13 +301,20 @@ public class ActorBase implements Serializable {
 		}
 	}
 
-	// Type
+	/**
+	 * Get the type of the actor
+	 * @return the type of the actor
+	 */
 	public ActorType getType() {
 		return type;
 	}
-	public void setType(ActorType type) {
+	/**
+	 * Set the type of the actor
+	 * @param type - the new type of the actor
+	 */
+	public void setType(final ActorType type) {
 		if (this.type != type) {
-			ActorType oldType = this.type;
+			final ActorType oldType = this.type;
 			this.type = type;
 			if (!undoRedoInProgress) { // If this is a replay, don't do this stuff
 				startCompoundEdit();
@@ -275,6 +325,10 @@ public class ActorBase implements Serializable {
 			mPcs.firePropertyChange("Type", oldType, type);	
 		}
 	}
+	/**
+	 * Report whether the actor is of a type that has automation enabled
+	 * @return whether the actor is of a type that has automation enabled
+	 */
 	public boolean isTypeAutomated() {
 		switch (type) {
 		case Ally:
@@ -293,48 +347,81 @@ public class ActorBase implements Serializable {
 	}
 	
 	// Attack Table
+	/**
+	 * Get the index of the default attack
+	 * @return the index of the default attack
+	 */
 	public int getDefaultAttack() {
 		return defaultAttack;
 	}
-	public void setDefaultAttack(int index) {
+	/**
+	 * Set the default attack index
+	 * @param index - the new default attack index
+	 */
+	public void setDefaultAttack(final int index) {
 		if (defaultAttack != index && index < attacks.size()) {
-			int oldDefault = defaultAttack;
+			final int oldDefault = defaultAttack;
 			defaultAttack = index;
 			mPcs.firePropertyChange("DefaultAttack", oldDefault, defaultAttack);
 			if (!undoRedoInProgress)
 				mUes.postEdit(new DefaultAttackEdit(oldDefault, index));
 		}
 	}
+	/**
+	 * Get the number of attacks defined for this actor
+	 * @return the number of attacks defined for this actor
+	 */
 	public int getNumAttacks() {
 		return attacks.size();
 	}
-	public Attack getAttack(int index) {
+	/**
+	 * Get the Attack object for the specified index
+	 * @param index - the index of the Attack object to get
+	 * @return the Attack object for the specified index
+	 */
+	public Attack getAttack(final int index) {
 		return new Attack(attacks.get(index));
 	}
-	public void setAttack(Attack attack, int index) {
+	/**
+	 * Set the attack object at the given index
+	 * @param attack - the new attack object
+	 * @param index - the index to set
+	 */
+	public void setAttack(final Attack attack, final int index) {
 		if (index < attacks.size()) {
 			Attack oldAttack = attacks.get(index);
 			attacks.set(index, attack);
 			mPcs.firePropertyChange("Attacks", index, index);
-			mUes.postEdit(new AttackEdit(oldAttack, attack, index));
+			if (!undoRedoInProgress)
+				mUes.postEdit(new AttackEdit(oldAttack, attack, index));
 		}
 	}
-	public void addAttack(Attack attack) {
+	/**
+	 * Add a new attack to the end of the attack list
+	 * @param attack - the new attack to add
+	 */
+	public void addAttack(final Attack attack) {
 		attacks.add(attack);
 		mPcs.firePropertyChange("Attacks", attacks.size()-1 ,attacks.size());
-		mUes.postEdit(new AttackEdit(null, attack, attacks.size()-1));
+		if (!undoRedoInProgress)
+			mUes.postEdit(new AttackEdit(null, attack, attacks.size()-1));
 	}
-	public void removeAttack(int index) {
+	/**
+	 * Remove an attack from the attack list
+	 * @param index - the index of the attack to remove
+	 */
+	public void removeAttack(final int index) {
 		if (index < attacks.size()) {
 			startCompoundEdit();
 			if (index < defaultAttack)
 				setDefaultAttack(defaultAttack-1);
 			if (index == defaultAttack)
 				setDefaultAttack(0);
-			Attack attack = attacks.get(index);
+			final Attack attack = attacks.get(index);
 			attacks.remove(index);
 			mPcs.firePropertyChange("Attacks", attacks.size()+1, attacks.size());
-			mUes.postEdit(new AttackEdit(attack, null, index));
+			if (!undoRedoInProgress)
+				mUes.postEdit(new AttackEdit(attack, null, index));
 			endCompoundEdit("Edit");
 		}
 	}
@@ -342,7 +429,12 @@ public class ActorBase implements Serializable {
     //================================================================================
     // Traits
     //================================================================================
-	public boolean hasTrait(String name) {
+	/**
+	 * Determine whether the actor has the specified trait
+	 * @param name - the trait to check
+	 * @return true if the actor has the specified trait
+	 */
+	public boolean hasTrait(final String name) {
 		if (!traits.containsKey(name)) {
 			// Support calculated traits
 			if (isCalculatedTrait(name)) {
@@ -350,7 +442,7 @@ public class ActorBase implements Serializable {
 			}
 			// Support aliases
 			if (TRAIT_ALIASES.containsKey(name)) {
-				for (String alias: TRAIT_ALIASES.get(name)) {
+				for (final String alias: TRAIT_ALIASES.get(name)) {
 					if (traits.containsKey(alias))
 						return true;
 				}
@@ -359,8 +451,12 @@ public class ActorBase implements Serializable {
 		}
 		return true; 
 	}
-	// Check if this trait is one of the basic traits
-	public static boolean isBasicTrait(String name) {
+	/**
+	 * Check if this trait is one of the basic traits
+	 * @param name - the trait to check
+	 * @return true if the trait is a BasicTrait
+	 */
+	public static boolean isBasicTrait(final String name) {
 		try { // See if the string is a valid Calculated trait
 			BasicTrait.valueOf(name);
 			return true;
@@ -368,8 +464,12 @@ public class ActorBase implements Serializable {
 			return false;
 		}
 	}
-	// Check if this trait is one of the calculated traits
-	public static boolean isCalculatedTrait(String name) {
+	/**
+	 * Check if this trait is one of the calculated traits
+	 * @param name - the trait to check
+	 * @return true if the trait is a CalculatedTrait
+	 */
+	public static boolean isCalculatedTrait(final String name) {
 		try { // See if the string is a valid Calculated trait
 			CalculatedTrait.valueOf(name);
 			return true;
@@ -377,11 +477,19 @@ public class ActorBase implements Serializable {
 			return false;
 		}
 	}
-	// Check if this trait is not a calculated or basic trait
-	public static boolean isCustomTrait(String name) {
+	/**
+	 * Check if this trait is not a calculated or basic trait
+	 * @param name - the trait to check
+	 * @return true if the trait is a custom trait
+	 */
+	public static boolean isCustomTrait(final String name) {
 		return !isCalculatedTrait(name) && !isBasicTrait(name);
 	}
-	// Overridden in the Actor class!
+	/**
+	 * Placeholder for evaluating calculated traits
+	 * @param calcTrait - the trait to calculate
+	 * @return the value of the specified trait
+	 */
 	protected String calculateTrait(CalculatedTrait calcTrait) {
 		return "0";
 	}
@@ -438,91 +546,55 @@ public class ActorBase implements Serializable {
 	// --------------------
 	// SetTrait functions:
 	// --------------------
-	// Internal - without all the checking and undoable edits
-	protected void rawSetTrait(String name, String value) {
-		Trait trait = getTrait(name);
-		String oldValue = trait.value;
-		trait.value = value;
-		mPcs.firePropertyChange("trait." + name, oldValue, value);			
-	}
-	// TODO: this looks like some game logic! Don't want game logic here: that should be in Actor!
-	// TODO: re-factor this to remove game logic
 	/**
-	 * Set the value of a trait, adding if that trait does not exist
+	 * Set the value of a trait this actor has
 	 * @param name - the name of the trait
-	 * @param value - the value of the trait
+	 * @param value - the value to set it to
 	 */
-	public void setTrait(String name, String value) {
+	public void setTrait(final String name, final String value) {
 		if (!hasTrait(name)) { if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Trait does not exist: " + name);} return; }
 		if (isCalculatedTrait(name)) { if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Cannot set calculated trait: " + name);} return; }
-		Trait trait = getTrait(name);
+		if (LOG.isLoggable(Level.FINER)) {LOG.finer("Setting trait: '" + name + "' to '" + value + "'");}
+		final Trait trait = getTrait(name);
 		if (!trait.value.equals(value)) { // Skip if old value is same as new
-			startCompoundEdit();
-			String oldValue = trait.value;
-			// And here is all the magic reporting!
-			if (name.equals("Injury") || name.equals("Fatigue")) { 		
-				int intValue = 0;
-				try { // Enforce >= 0
-					intValue = Integer.parseInt(value);
-					intValue = Math.max(intValue, 0);
-					value = String.valueOf(intValue);
-				} catch (NumberFormatException e) {
-					if (LOG.isLoggable(Level.INFO)) {LOG.info("Error parsing Injury/Fatigue value: " + value);}
-				}
-				if (name.equals("Injury")) {  // and calculate shock				
-					int hitPoints = getTraitValueInt(BasicTrait.HP);
-					int diff = intValue - getTraitValueInt(BasicTrait.Injury); // Additional injury
-					if (diff > 0) {
-						setTemp("shock.next", getTempInt("shock.next") + diff);
-						logEventTypeName("took <b><font color=red>" + diff + "</font></b> damage (now " + (hitPoints - intValue) + " HP).");
-					} else {
-						logEventTypeName("healed <b><font color=blue>" + (-1*diff) + "</font></b> (now " + (hitPoints - intValue) + " HP).");		
-					}
-				} else if (name.equals("Fatigue")) {
-					int fatiguePoints = getTraitValueInt(BasicTrait.FP);
-					if (fatiguePoints == 0) { // Skip if FP is 0!
-						value = "0";
-					} else {
-						int oldFatigue = getTraitValueInt(BasicTrait.Fatigue);
-						int diff =  intValue - oldFatigue; // 
-						if (intValue > 2*fatiguePoints) { // Minimum of -1xFP
-							intValue = 2*fatiguePoints;
-							value = String.valueOf(intValue);
-						}
-						if (diff > 0) {
-							logEventTypeName("lost <b>" + diff + "</b> fatigue (now " + (fatiguePoints - intValue) + " FP).");
-						} else {
-							logEventTypeName("recoverd <b>" + (-1*diff) + "</b> fatigue (now " + (fatiguePoints - intValue) + " FP).");		
-						}
-						// More game logic!
-						// Resolve auto actions at start of actor's turn:
-						if (isTypeAutomated() && settings.autoIncapacitation.isSet() && intValue == 2*fatiguePoints) { 
-							logEventTypeName("<b>Reached -1xFP: fell unconscious.</b>");
-							setAllStatuses(new HashSet<ActorStatus>(Arrays.asList(ActorStatus.Unconscious, ActorStatus.Prone, ActorStatus.Disarmed)));
-						}
-						// TODO: this part, specifically looks like game logic (though the shock calculation is kinda suspect as well)
-						// Fatigue / Injury interaction
-						if (diff > 0 && intValue > fatiguePoints) { // Taking Fatigue, and resulting in less than 0 FP
-							int injury = diff + ((oldFatigue < fatiguePoints)?(oldFatigue-fatiguePoints):0);
-							//System.out.println("HERE: taking additional " + injury + " injury. OldFatigue: " + oldFatigue + ", diff: " + diff + ", intValue: " + intValue + ", value: " + value );
-							setTrait(BasicTrait.Injury, getTraitValueInt(BasicTrait.Injury) + injury);
-						}
-					}
-				}
-			}
-			
-			mUes.postEdit(new TraitEdit(name, oldValue, value));
-			endCompoundEdit("Edit");
-			rawSetTrait(name, value);
+			internalSetTrait(trait, value);
 		}
 	}
-	public void setTrait(BasicTrait trait, String value) {
+	/**
+	 * Perform the actual setting, after all the checks
+	 * @param trait - trait object to set
+	 * @param value - new value to set the trait's value to
+	 */
+	protected void internalSetTrait(final Trait trait, final String value) {
+		final String oldValue = trait.value;
+		trait.value = value;
+		mPcs.firePropertyChange("trait." + trait.name, oldValue, value);		
+		if (!undoRedoInProgress)
+			mUes.postEdit(new TraitEdit(trait.name, oldValue, value));
+	}
+	
+	/**
+	 * Set the value of a BasicTrait this actor has
+	 * @param trait - the trait to set
+	 * @param value - the value to set it to
+	 */
+	public void setTrait(final BasicTrait trait, final String value) {
 		setTrait(trait.toString(), value);
 	}
-	public void setTrait(BasicTrait trait, int value) {
+	/**
+	 * Set the value of a BasicTrait this actor has
+	 * @param trait - the trait to set
+	 * @param value - the value to set it to
+	 */
+	public void setTrait(final BasicTrait trait, final int value) {
 		setTrait(trait, String.valueOf(value));
 	}
-	public void setTrait(String name, int value) {
+	/**
+	 * Set the value of a trait this actor has
+	 * @param name - the trait to set
+	 * @param value - the value to set it to
+	 */
+	public void setTrait(final String name, final int value) {
 		setTrait(name, String.valueOf(value));
 	}
 	
@@ -532,14 +604,15 @@ public class ActorBase implements Serializable {
 	 * @param value - the new trait's value
 	 * @return whether the operation was successful
 	 */
-	public boolean addTrait(String name, String value) {
+	public boolean addTrait(final String name, final String value) {
 		if (hasTrait(name)) {
 			if (LOG.isLoggable(Level.INFO)) {LOG.info("Trait already exists! " + name);} 
 			return false;
 		}
 		internalAddTrait(name, value);
-		mUes.postEdit(new TraitEdit(name, null, value));
 		mPcs.firePropertyChange("trait." + name, null, value);
+		if (!undoRedoInProgress)
+			mUes.postEdit(new TraitEdit(name, null, value));		
 		return true;
 	}
 	/**
@@ -551,13 +624,12 @@ public class ActorBase implements Serializable {
 		Trait newTrait = new Trait(name, value);
 		traits.put(name, newTrait);
 	}
-	
 	/**
 	 * Remove a trait (BasicTraits cannot be removed)
 	 * @param name - the name of the trait to remove
 	 * @return success
 	 */
-	public boolean removeTrait(String name) {
+	public boolean removeTrait(final String name) {
 		if (isBasicTrait(name)) {
 			if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Cannot remove basic traits! => " + name); }
 			return false;
@@ -568,10 +640,11 @@ public class ActorBase implements Serializable {
 			if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Cannot remove non-existant trait! => " + name); }
 			return false;
 		} else {
-			Trait trait = getTrait(name);
+			final Trait trait = getTrait(name);
 			traits.remove(trait.name);
-			mUes.postEdit(new TraitEdit(trait.name, trait.value, null));
 			mPcs.firePropertyChange("trait." + trait.name, trait.value, null);
+			if (!undoRedoInProgress)
+				mUes.postEdit(new TraitEdit(trait.name, trait.value, null));
 			return true;
 		}
 	}
@@ -582,7 +655,7 @@ public class ActorBase implements Serializable {
 	 * @param newName - the proposed new trait name
 	 * @return success
 	 */
-	public boolean renameTrait(String oldName, String newName) {
+	public boolean renameTrait(final String oldName, final String newName) {
 		if (isBasicTrait(oldName)) {
 			if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Cannot rename BasicTrait! oldName: " + oldName + ", newName: " + newName);}
 			return false;
@@ -601,7 +674,7 @@ public class ActorBase implements Serializable {
 				if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Trait alias exists for new name! oldName: " + oldName + ", newName: " + newName);}
 				return false;
 			}
-			Trait trait = getTrait(oldName);
+			final Trait trait = getTrait(oldName);
 			trait.name = newName;
 			traits.remove(oldName);
 			traits.put(newName, trait);
@@ -684,10 +757,21 @@ public class ActorBase implements Serializable {
 		logEventTypeName("<i><b><font color=red>-E-: " + text + "</font></b></i>");
 	}
 	
-	// Change Support
+	/**
+	 * Add a property change listener, which will be notified when any aspect of the Actor changes.
+	 * Property changes listeners should not implement any game logic, or change other actor
+	 * properties in response to property change events. This is because these events are sent for
+	 * undo/redo, loading, etc. type actions which should not trigger game logic.
+	 *
+	 * @param listener - the listener to be notified of changes
+	 */
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
         mPcs.addPropertyChangeListener(listener);
     }
+	/**
+	 * Remove a property change listener.
+	 * @param listener - the listener to be removed
+	 */
     public void removePropertyChangeListener(PropertyChangeListener listener) {
         mPcs.removePropertyChangeListener(listener);
     }
@@ -699,8 +783,15 @@ public class ActorBase implements Serializable {
 	public void removeUndoableEditListener(UndoableEditListener listener) {
 		mUes.removeUndoableEditListener(listener);
 	}
-	protected void startCompoundEdit() { mUes.postEdit(new HackStartCompound()); }
-	protected void endCompoundEdit(String name) {  mUes.postEdit(new HackEndCompound(name)); }
+	/**
+	 * Start a compound edit if an undo/redo replay is not in progress
+	 */
+	protected void startCompoundEdit() { if(!undoRedoInProgress) mUes.postEdit(new HackStartCompound()); }
+	/**
+	 * End a compound edit if an undo/redo replay is not in progress
+	 * @param name - the name of the compound edit to display in the undo/redo menu
+	 */
+	protected void endCompoundEdit(String name) {  if(!undoRedoInProgress) mUes.postEdit(new HackEndCompound(name)); }
     private class TypeEdit extends AbstractUndoableEdit {
 		private static final long serialVersionUID = 1L;
 		private ActorType oldValue;
@@ -781,25 +872,27 @@ public class ActorBase implements Serializable {
     	
     	public void undo() {
 			super.undo();
-			if (oldValue == null) { // Trait Added
-				traits.remove(traitName);
-				mPcs.firePropertyChange("trait." + traitName, newValue, null);
+			undoRedoInProgress = true;
+			if (oldValue == null) { // Trait Added				
+				removeTrait(traitName);				
 			} else if (newValue == null) { //Trait removed
-				traits.put(traitName, new Trait(traitName, oldValue));
-				mPcs.firePropertyChange("trait." + traitName, null, oldValue);
-			} else // Simple edit
-				rawSetTrait(traitName, oldValue);		
+				addTrait(traitName, oldValue);
+			} else {// Simple edit
+				setTrait(traitName, oldValue);
+			}
+			undoRedoInProgress = false;
     	}    	
     	public void redo() {
     		super.redo();
+			undoRedoInProgress = true;
     		if (oldValue == null) { // Trait Added
-				traits.put(traitName, new Trait(traitName, newValue));
-				mPcs.firePropertyChange("trait." + traitName, null, newValue);
+    			addTrait(traitName, newValue);
 			} else if (newValue == null) { //Trait removed
-				traits.remove(traitName);
-				mPcs.firePropertyChange("trait." + traitName, oldValue, null);
-			} else // Simple edit
-				rawSetTrait(traitName, newValue);		
+				removeTrait(traitName);				
+			} else {// Simple edit
+				setTrait(traitName, newValue);
+			}
+			undoRedoInProgress = false;
     	}        	
     }
     private class TempEdit extends AbstractUndoableEdit {
@@ -840,6 +933,8 @@ public class ActorBase implements Serializable {
     	
     	public void undo() {
 			super.undo();
+			undoRedoInProgress = true;
+			//TODO: use ActorBase methods for this!
 			if (oldAttack == null) { // Add attack
 				attacks.remove(position);
 				mPcs.firePropertyChange("Attacks", attacks.size()+1, attacks.size());    	
@@ -850,9 +945,12 @@ public class ActorBase implements Serializable {
     			attacks.set(position, oldAttack);
     			mPcs.firePropertyChange("Attacks", position, null);
     		}
+			undoRedoInProgress = false;
     	}    	
     	public void redo() {
     		super.redo();
+    		undoRedoInProgress = true;
+    		//TODO: use ActorBase methods for this!
     		if (oldAttack == null) { // Add attack
     			attacks.add(position, newAttack);
     			mPcs.firePropertyChange("Attacks", attacks.size()-1 ,attacks.size());
@@ -863,6 +961,7 @@ public class ActorBase implements Serializable {
     			attacks.set(position, newAttack);
     			mPcs.firePropertyChange("Attacks", position, null);
     		}
+    		undoRedoInProgress = false;
     	}        	
     }    
     private class DefaultAttackEdit extends AbstractUndoableEdit {
@@ -888,10 +987,12 @@ public class ActorBase implements Serializable {
     		undoRedoInProgress = false;
     	}        	
     }
+    // A signal to the undoManager/GameMaster that it should start a new compound edit
     public class HackStartCompound extends AbstractUndoableEdit {
 		private static final long serialVersionUID = 1L;
 		public boolean isSignificant() { return false; }
     }
+    // A signal to the undoManager/GameMaster that it should end the most recently started compound edit
 	public class HackEndCompound extends AbstractUndoableEdit {
  		private static final long serialVersionUID = 1L;
 		String display;
