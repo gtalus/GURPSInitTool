@@ -367,15 +367,18 @@ public class GITApp extends JFrame
         
         // View Menu
         menuFile = new JMenu("View");
-        menuFile.setMnemonic(KeyEvent.VK_V);    
-        menuItem = new JMenuItem(new AbstractAction() {			
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				initTable.showColumnCustomizer();
-			}
-		});
-        menuItem.setText("Customize Columns");
-        menuItem.setMnemonic(KeyEvent.VK_C);
+        menuFile.setMnemonic(KeyEvent.VK_V);
+        menuFile.add(new JMenuItem(initTable.actionShowColumnCustomizer));
+        menuItem = new JMenuItem(initTable.actionIncreaseFontSize);
+        menuItem.setText("Increase table font size");
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, ActionEvent.CTRL_MASK));
+        menuFile.add(menuItem);
+        // Add another shortcut for Ctrl+=
+        getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control EQUALS"), "actionIncreaseFontSize");
+        getRootPane().getActionMap().put("actionIncreaseFontSize", initTable.actionIncreaseFontSize);
+        menuItem = new JMenuItem(initTable.actionDecreaseFontSize);
+        menuItem.setText("Decrease table font size");
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, ActionEvent.CTRL_MASK));
         menuFile.add(menuItem);
         menubar.add(menuFile);
         

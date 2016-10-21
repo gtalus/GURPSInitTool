@@ -70,6 +70,7 @@ import gurpsinittool.data.ActorBase.ActorType;
 import gurpsinittool.data.ActorBase.BasicTrait;
 import gurpsinittool.data.GameMaster;
 import gurpsinittool.ui.ColumnCustomizer;
+import gurpsinittool.util.AbstractGAction;
 import gurpsinittool.util.MiscUtil;
 
 @SuppressWarnings("serial")
@@ -92,6 +93,26 @@ public class InitTable extends BasicTable {
 	private static final Integer FONT_ADJUST_INCREMENT = 1;
 	private static final Integer CELL_BUFFER = 5;
 	private static final Integer HEADER_BUFFER = 14;
+	// Actions
+	public Action actionShowColumnCustomizer = new AbstractGAction("Customize Columns", "Show the table column customization window", KeyEvent.VK_C, null) {			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				showColumnCustomizer();
+			}
+	};
+	public Action actionIncreaseFontSize = new AbstractGAction("Increase Font Size", "Decrease the size of the font used by the table", KeyEvent.VK_I, null) {
+    	@Override
+    	public void actionPerformed(ActionEvent arg0) {				
+    		adjustFontSize(FONT_ADJUST_INCREMENT);
+    	}
+    };
+	public Action actionDecreaseFontSize = new AbstractGAction("Decrease Font Size", "Increase the size of the font used by the table", KeyEvent.VK_D, null) {
+    	@Override
+    	public void actionPerformed(ActionEvent arg0) {				
+    		adjustFontSize(-FONT_ADJUST_INCREMENT);
+    	}
+    };
+    
 	/**
 	 * Default Constructor
 	 */
@@ -280,24 +301,9 @@ public class InitTable extends BasicTable {
         
         // Header popup menu
         headerPopupMenu = new JPopupMenu();
-        headerPopupMenu.add(new AbstractAction("Customize Columns") {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {				
-				showColumnCustomizer();
-			}
-		});
-        headerPopupMenu.add(new AbstractAction("Increase Font Size") {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {				
-				adjustFontSize(FONT_ADJUST_INCREMENT);
-			}
-		});
-        headerPopupMenu.add(new AbstractAction("Decrease Font Size") {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {				
-				adjustFontSize(-FONT_ADJUST_INCREMENT);
-			}
-		});
+        headerPopupMenu.add(actionShowColumnCustomizer);
+        headerPopupMenu.add(actionIncreaseFontSize);
+        headerPopupMenu.add(actionDecreaseFontSize);
         TableMouseListener headerMouseListener = new TableMouseListener(true);
         getTableHeader().addMouseListener(headerMouseListener);
         getTableHeader().addMouseWheelListener(headerMouseListener);

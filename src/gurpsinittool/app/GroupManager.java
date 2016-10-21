@@ -19,6 +19,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -45,6 +46,7 @@ import gurpsinittool.data.ActorGroupFile;
 import gurpsinittool.data.GameMaster;
 import gurpsinittool.gca.GCAImporter;
 import gurpsinittool.ui.ActorDetailsPanel_v2;
+import gurpsinittool.util.AbstractGAction;
 import gurpsinittool.util.FileChangeEvent;
 import gurpsinittool.util.FileChangeEventListener;
 import gurpsinittool.util.SearchSupport;
@@ -194,15 +196,18 @@ public class GroupManager extends JFrame
         menuItem.setMnemonic(KeyEvent.VK_D);
         menuItem.addItemListener(this);
         jMenu.add(menuItem);
-        menuItem = new JMenuItem(new AbstractAction() {			
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				groupTable.showColumnCustomizer();
-			}
-		});
-        menuItem.setText("Customize Columns");
-        menuItem.setMnemonic(KeyEvent.VK_C);
-        jMenu.add(menuItem);     
+        jMenu.add(new JMenuItem(groupTable.actionShowColumnCustomizer));
+        menuItem = new JMenuItem(groupTable.actionIncreaseFontSize);
+        menuItem.setText("Increase table font size");
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, ActionEvent.CTRL_MASK));
+        jMenu.add(menuItem);
+        // Add another shortcut for Ctrl+=
+        getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control EQUALS"), "actionIncreaseFontSize");
+        getRootPane().getActionMap().put("actionIncreaseFontSize", groupTable.actionIncreaseFontSize);
+        menuItem = new JMenuItem(groupTable.actionDecreaseFontSize);
+        menuItem.setText("Decrease table font size");
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, ActionEvent.CTRL_MASK));
+        jMenu.add(menuItem);
         jMenuBar.add(jMenu);
 
         setJMenuBar(jMenuBar);
