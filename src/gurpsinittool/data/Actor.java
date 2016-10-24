@@ -183,7 +183,7 @@ public class Actor extends ActorBase {
 	 */
 	public void attack(int num) {
 		if (num < 0 || num >= attacks.size()) {
-			if (LOG.isLoggable(Level.WARNING)) {LOG.warning("Invalid attack attempted: id # " +String.valueOf(num));}
+			if (LOG.isLoggable(Level.INFO)) {LOG.info("Invalid attack attempted: id # " +String.valueOf(num));}
 			return;
 		}
 		Attack attack = attacks.get(num);

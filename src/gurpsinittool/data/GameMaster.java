@@ -81,6 +81,15 @@ public class GameMaster implements EncounterLogListener, UndoableEditListener, P
 				a.attack(num);
 		}
 	};
+	public class ActionSetDefaultAttack extends AbstractAction {
+		int num;
+		public ActionSetDefaultAttack(int num) {this.num = num; }
+		public void actionPerformed(ActionEvent arg0) {
+			flushInteractiveEdits();
+			for (Actor a : initTable.getSelectedActors())
+				a.setDefaultAttack(num);
+		}
+	};
 	public Action actionDefend;
 	
 	public Action actionPostureStanding;

@@ -359,12 +359,14 @@ public class ActorBase implements Serializable {
 	 * @param index - the new default attack index
 	 */
 	public void setDefaultAttack(final int index) {
-		if (defaultAttack != index && index < attacks.size()) {
+		if (defaultAttack != index && index < attacks.size() && index >= 0) {
 			final int oldDefault = defaultAttack;
 			defaultAttack = index;
 			mPcs.firePropertyChange("DefaultAttack", oldDefault, defaultAttack);
 			if (!undoRedoInProgress)
 				mUes.postEdit(new DefaultAttackEdit(oldDefault, index));
+		} else if (defaultAttack != index) {
+			if (LOG.isLoggable(Level.INFO)) {LOG.info("Attempted to set invalid attack id # " + index);}
 		}
 	}
 	/**
