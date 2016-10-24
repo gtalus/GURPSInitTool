@@ -855,6 +855,13 @@ public class InitTable extends BasicTable {
 			boolean startingNew = true;
 			boolean firstEdit = true; // For some reason, the first edit is different than the rest
 			boolean hasFocus = false;
+			private long focusTime = 0;
+			private final static int FOCUS_TIME_GRACE_MS = 1; // Grace period after focus is gained that we pretend we don't have it yet
+			
+			private boolean hasFocusReally() {
+				long currTime = System.currentTimeMillis();
+				return (hasFocus && (currTime-focusTime>FOCUS_TIME_GRACE_MS));
+			}
 			
 			@Override
 			public void remove(FilterBypass fb, int offs, int length) throws BadLocationException {
@@ -874,10 +881,10 @@ public class InitTable extends BasicTable {
 			
 			@Override
 			public void replace(FilterBypass fb, int offs, int length, String str, javax.swing.text.AttributeSet a) throws BadLocationException {
-				if (LOG.isLoggable(Level.FINER)) {LOG.finer("Replace: '" + str + "', Offs=" + offs + ", Length=" + length + ".");}
+				if (LOG.isLoggable(Level.FINER)) {LOG.finer("[" + System.currentTimeMillis() + "] Replace: '" + str + "', Offs=" + offs + ", Length=" + length + ".");}
 				
 				//if (str.matches("[\\d\\+-]+")) {
-					if (hasFocus || firstEdit || (length > 0)) {
+					if (hasFocusReally() || firstEdit || (length > 0)) {
 						if (LOG.isLoggable(Level.FINEST)) {LOG.finest("FirstEdit: " + firstEdit + ", HasFocus: " + hasFocus + ", Length: " + length);}
 						firstEdit = false;
 						startingNew = true;
@@ -902,13 +909,14 @@ public class InitTable extends BasicTable {
 			@Override
 			public void focusGained(FocusEvent arg0) {
 				hasFocus = true;
-				if (LOG.isLoggable(Level.FINE)) {LOG.fine("TextField focus gained.");}
+				focusTime = System.currentTimeMillis();
+				if (LOG.isLoggable(Level.FINE)) {LOG.fine("[" + System.currentTimeMillis() + "] TextField focus gained.");}
 			}
 	
 			@Override
 			public void focusLost(FocusEvent arg0) {
 				hasFocus = false;
-				if (LOG.isLoggable(Level.FINE)) {LOG.fine("TextField focus lost.");}
+				if (LOG.isLoggable(Level.FINE)) {LOG.fine("TextField focus lost.\n\n\n\n\n\n\n\n");}
 			}
 		}
 	}
