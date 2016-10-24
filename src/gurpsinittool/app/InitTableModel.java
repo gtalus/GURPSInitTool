@@ -32,7 +32,8 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 	private final static Logger LOG = Logger.getLogger(InitTableModel.class.getName());
 
 	private UndoableEditSupport mUes = new UndoableEditSupport();
-
+	protected transient boolean undoRedoInProgress = false; // Suppress undoableEdit creation while true
+	
 	// Removed: Dodge, type
 	// TODO: consolidate HP/Damage, FP/Fatigue
 	//private String[] columnNames = {"Act", "Name", "Speed", "Move", "HT", "HP", "Injury", "FP", "Fatigue", "Status"};
@@ -66,9 +67,7 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 		else if (destRow < 0) // Don't try to put stuff before the beginning!
 			destRow = 0;
 		
-		mUes.postEdit(new AddActorEdit(actor, destRow));
 		addActorToList(actorList, actor, destRow);
-		setDirty();
 	}
 	/**
 	 * Add an actor to the specified list and perform appropriate 
@@ -78,7 +77,7 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 	 * @param actor - the actor to add
 	 * @param position - the position in the list to add the actor at
 	 */
-	private void addActorToList(ArrayList<Actor> list, Actor actor, int position) {
+	public void addActorToList(ArrayList<Actor> list, Actor actor, int position) {
 		list.add(position, actor);
 		actor.setGameLogicEnabled(gameMaster.isGameLogicEnabled());
 		if (list.equals(actorList)) { // If this is the currently loaded actor list
@@ -87,6 +86,9 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 			actor.addUndoableEditListener(gameMaster);
 			fireTableRowsInserted(position,position);
 		}
+		if (!undoRedoInProgress)
+			mUes.postEdit(new AddActorToListEdit(list, actor, position));
+		setDirty();
 	}
 	/**
 	 * Add a new Actor based on newActor to the end of the list 
@@ -100,9 +102,7 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 	 * @param row : the actor to remove
 	 */
 	public void removeActor(int row) {
-		Actor actor = getActor(row);
-		
-		mUes.postEdit(new RemoveActorEdit(actor, row));
+		Actor actor = getActor(row);		
 		removeActorFromList(actorList, actor, row);
 	}
 	/**
@@ -119,7 +119,10 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 			actor.removeEncounterLogEventListener(gameMaster);
 			setDirty();
 			fireTableRowsDeleted(position,position);
-		}		
+		}
+		if (!undoRedoInProgress)
+			mUes.postEdit(new RemoveActorFromListEdit(list, actor, position));
+		setDirty();
 	}
 	/**
 	 * Get the actor in a particular row.
@@ -338,7 +341,7 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 			for (int i=0; i < rows.length; i++) {
 				if (rows[i] == getRowCount() -1) { // changed last row, send request for a new Actor to the game master
 					addNewActor(); // Add a new 'newActor' to the end of the list
-					mUes.postEdit(new AddActorEdit(actorList.get(actorList.size()-2), actorList.size()-2));
+					// TODO remove: //mUes.postEdit(new AddActorEdit(actorList.get(actorList.size()-2), actorList.size()-2));
 				}
 				fireTableRowsUpdated(rows[i], rows[i]);
 			}
@@ -361,45 +364,53 @@ public class InitTableModel extends AbstractTableModel implements PropertyChange
 		mUes.removeUndoableEditListener(listener);
 	}
 	
-    private class AddActorEdit extends AbstractUndoableEdit {
+    private class AddActorToListEdit extends AbstractUndoableEdit {
     	private Actor actor;
     	private int index;
     	private ArrayList<Actor> list;
-    	public AddActorEdit(Actor actor, int index) {
+    	public AddActorToListEdit(ArrayList<Actor> list, Actor actor, int index) {
     		this.actor = actor;
     		this.index = index;
-    		list = actorList; // Keep track of what the current list was
+    		this.list = list; // Keep track of what the current list was
     	}
     	public String getPresentationName() { return "Add"; }
     	
     	public void undo() {
 			super.undo();
+			undoRedoInProgress = true;
 			removeActorFromList(list, actor, index);
+			undoRedoInProgress = false;
     	}    	
     	public void redo() {
 			super.redo();			
+			undoRedoInProgress = true;
 			addActorToList(list, actor, index);
-    	}        	
+			undoRedoInProgress = false;
+		}        	
     }   
     
-    private class RemoveActorEdit extends AbstractUndoableEdit {
+    private class RemoveActorFromListEdit extends AbstractUndoableEdit {
     	private Actor actor;
     	private int index;
     	private ArrayList<Actor> list;
-    	public RemoveActorEdit(Actor actor, int index) {
+    	public RemoveActorFromListEdit(ArrayList<Actor> list, Actor actor, int index) {
     		this.actor = actor;
     		this.index = index;
-    		list = actorList; // Keep track of what the current list was
+    		this.list = list; // Keep track of what the current list was
     	}
     	public String getPresentationName() { return "Delete"; }
     	
     	public void undo() {
 			super.undo();
+			undoRedoInProgress = true;
 			addActorToList(list, actor, index);
+			undoRedoInProgress = false;
     	}    	
     	public void redo() {
     		super.redo();
-    		removeActorFromList(list, actor, index);
+			undoRedoInProgress = true;
+			removeActorFromList(list, actor, index);
+			undoRedoInProgress = false;
     	}        	
     }
     

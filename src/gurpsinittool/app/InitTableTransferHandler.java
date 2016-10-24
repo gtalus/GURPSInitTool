@@ -53,9 +53,11 @@ public class InitTableTransferHandler extends TransferHandler {
 		// Set Drop Action based on whether this is a cross-table drag.
 		// If the table types do not match, then set action to copy
 	    if (support.isDataFlavorSupported(GroupTreeTransferHandler.actorGroupFlavor)) {
+	    	if (LOG.isLoggable(Level.FINER)) {LOG.fine("GroupTree data detected: setting mode to COPY");}
 			support.setDropAction(COPY);
 	    }
  		if (table.isInitTable() != support.isDataFlavorSupported(initTableActorFlavor)) {
+ 			if (LOG.isLoggable(Level.FINER)) {LOG.fine("Data flavor isInitTable mismatch detected: setting mode to COPY");}
 			support.setDropAction(COPY);
 		}
 
@@ -140,7 +142,7 @@ public class InitTableTransferHandler extends TransferHandler {
 		java.util.Arrays.sort(rows);
 		InitTableModel tableModel = table.getActorTableModel();
 		Actor[] actorRows = tableModel.getActors(rows);
-		if (LOG.isLoggable(Level.FINE)) {LOG.fine("Creating new TransferableActor"); }
+		if (LOG.isLoggable(Level.FINE)) {LOG.fine("Creating new TransferableActor. isInitTable=" + table.isInitTable()); }
 		return new TransferableActor(actorRows, table.isInitTable());
 	}
 	

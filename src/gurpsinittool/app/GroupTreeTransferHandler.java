@@ -151,25 +151,16 @@ public class GroupTreeTransferHandler extends TransferHandler {
 	        }
 			
 			if (LOG.isLoggable(Level.FINE)) {LOG.fine("Transferable data retrieved."); }
-	
+			InitTableModel model = parent.getGroupTable().getActorTableModel();
 	        ArrayList<Actor> actorList = parentNode.getActorList();
-	        // Refresh current group table, since it might be selected
-	        if (parent.getSelectionPath().getLastPathComponent().equals(parentNode)) { // If data is being displayed, add new Actors through the ActorTableModel
-	        	if (LOG.isLoggable(Level.FINE)) {LOG.fine("Selected node is changing"); }
-	        	GameMaster gameMaster = parent.getGroupTable().getGameMaster();
-	        	InitTableModel model = parent.getGroupTable().getActorTableModel();
-	        	for (int i = actorRows.length-1; i >= 0; i--) { // Actors added from bottom up, excluding new row
-	        		if (LOG.isLoggable(Level.FINE)) {LOG.fine("Adding actor through ActorTableModel # " + i); }
-		        	gameMaster.addActor(actorRows[i], model.getRowCount()-1);
-		        }	        	
+        	GameMaster gameMaster = parent.getGroupTable().getGameMaster();
+        	gameMaster.startCompoundEdit();
+	        for (int i = 0; i < actorRows.length; i++) { // Actors added top down
+	        	if (LOG.isLoggable(Level.FINE)) {LOG.fine("Adding actor # " + i); }
+	        	model.addActorToList(actorList, actorRows[i], actorList.size()-1);
 	        }
-	        else {
-		        for (int i = actorRows.length-1; i >= 0; i--) { // Actors added from bottom up, excluding new row
-		        	if (LOG.isLoggable(Level.FINE)) {LOG.fine("Adding actor # " + i); }
-		        	actorList.add(actorList.size()-1, actorRows[i]);
-		        }
-		        tree.setDirty(); // must set the tree as dirty, since we didn't add the actors through the regular interface.
-	        }
+        	gameMaster.endCompoundEdit("Copy");
+        	tree.setDirty();
  		}
  		
  		if (LOG.isLoggable(Level.FINE)) {LOG.fine("Done"); }
