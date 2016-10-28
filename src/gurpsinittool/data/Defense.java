@@ -1,6 +1,10 @@
 package gurpsinittool.data;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import gurpsinittool.data.ActorBase.ActorStatus;
 import gurpsinittool.data.ActorBase.BasicTrait;
@@ -9,6 +13,11 @@ import gurpsinittool.data.HitLocations.LocationType;
 import gurpsinittool.util.DieRoller;
 
 public class Defense {
+	/**
+	 * Logger
+	 */
+	private final static Logger LOG = Logger.getLogger(Defense.class.getName());
+	
 	// List of valid defense types
 	public enum DefenseType {Parry, Block, Dodge, None};
 	// Possible defense results
@@ -27,7 +36,7 @@ public class Defense {
 	// Key Inputs
 	public int roll; // The defense roll
 	public DR overrideDR; // Override the actor's base DR
-	public Damage damage; // The amount of damage inflicted
+	public Damage damage; // The amount of damage accompanying the attack
 	public HitLocation location; // The location of the attack and the location of any injury sustained. 
 	// NOTE: location may change based on injury tolerance (ie attack to vitals against 'No Vitals' 
 	// target will be reported as injury to the torso)
@@ -78,17 +87,17 @@ public class Defense {
 	 * @param actor - the actor making the defense
 	 * @param roll - the dice roll value for this defense
 	 */
-	public void calcDefenseResults(Actor actor) {
+	public void calcDefenseResults(final Actor actor) {
 		calcEffectiveDefense(actor); // Calculate effectiveDefense
 		calcDefenseResult(actor); // Calcuate the 'result'
-		checkLocation(actor); // correct location for any Injury Tolerances
-		calcInjury(actor); // Figure out all the injury items
+		validateLocation(actor); // correct location for any Injury Tolerances
+		determineImpact(actor); // Figure out all the injury items: injury, shieldDamage, cripplingInjury, and majorWound
 	}
 	
 	/**
 	 * Calculate effective defense value
 	 */
-	private void calcEffectiveDefense(Actor actor) {
+	private void calcEffectiveDefense(final Actor actor) {
 		effectiveDefense = actor.getCurrentDefenseValue(type);
 
 		if (type != DefenseType.None) {
@@ -106,9 +115,9 @@ public class Defense {
 				effectiveDefense += actor.getTraitValueInt(BasicTrait.Shield_DB);
 
 			//Position
-			if (position.equals("Kneeling"))
+			if ("Kneeling".equals(position))
 				effectiveDefense -= 2;
-			if (position.equals("Prone"))
+			if ("Prone".equals(position))
 				effectiveDefense -= 3;
 
 			// Other
@@ -120,7 +129,7 @@ public class Defense {
 	 * Determine the defense success/failure/etc
 	 * @param actor
 	 */
-	private void calcDefenseResult(Actor actor) {
+	private void calcDefenseResult(final Actor actor) {
 		int shieldDB = shield ? actor.getTraitValueInt(BasicTrait.Shield_DB) : 0;
 
 		// CritSuccess, Success, ShieldHit, Failure
@@ -143,9 +152,9 @@ public class Defense {
      * Check if location is valid for this actor and adjust if necessary
      * @param actor
      */
-    private void checkLocation(Actor actor) {
+    private void validateLocation(final Actor actor) {
       	if (actor.hasTrait("Injury Tolerance")) {
-    		ArrayList<String> tolerances = actor.getTraitValueArray("Injury Tolerance");
+    		final ArrayList<String> tolerances = actor.getTraitValueArray("Injury Tolerance");
     		// No Blood - nothing currently (also Diffuse and Homogenous)
     		// No Brain
     		if (tolerances.contains("no brain") || tolerances.contains("diffuse") || tolerances.contains("homogenous")) {
@@ -178,9 +187,9 @@ public class Defense {
     }
     
 	/** 
-     * Calculate any injury
+     * Calculate values for injury, shieldDamage, cripplingInjury, and majorWound
      */
-    private void calcInjury(Actor actor) {
+    private void determineImpact(final Actor actor) {
 		int coverDR = 0;
 		
 		// Set defaults
@@ -194,7 +203,6 @@ public class Defense {
     	int shieldDR = actor.getTraitValueInt(BasicTrait.Shield_DR);
     	int shieldHP = actor.getTraitValueInt(BasicTrait.Shield_HP);
     	int hitPoints = actor.getTraitValueInt(BasicTrait.HP);
-    	ArrayList<String> tolerances = actor.getTraitValueArray("Injury Tolerance"); // Empty array if actor does not have this trait
     	switch (result) {
     	case CritSuccess:
     	case Success:
@@ -217,18 +225,8 @@ public class Defense {
     		int basicDamage = (int) (damage.basicDamage - coverDR - Math.floor(totalDR/damage.armorDivisor));
 			basicDamage = Math.max(0, basicDamage);
 			// Calculate injury to the target
-			double damageMultiplier = damage.damageMultiplier(location);
-			if (tolerances.contains("homogenous"))
-				damageMultiplier = damage.damageMultiplierHomogenous(location);
-			else if (tolerances.contains("unliving"))
-				damageMultiplier = damage.damageMultiplierUnliving(location);
- 			injury = (int) (basicDamage*damageMultiplier); 
-    		injury = (injury <= 0 && basicDamage > 0)?1:injury; // Min damage 1 if any got through DR
-    		// Diffuse
-    		if(tolerances.contains("diffuse")) {
-    			int maxDamage = damage.damageMaxDiffuse();
-    			injury = (injury > maxDamage)?maxDamage:injury;
-    		}
+			calculateInjury(actor, basicDamage);
+    		
     		// Check for crippling
     		if (location.cripplingThreshold != 0) {
     			int cripplingThreshold = (int) Math.floor(hitPoints * location.cripplingThreshold + 1.00001);
@@ -245,5 +243,52 @@ public class Defense {
     			}
     		}
     	}
+    }
+    
+    /**
+     * Figure the injury of the specified basicDamage to the actor, including Injury Tolerance and other factors
+     * @param actor - the actor to use when calculating injury
+     * @param basicDamage - the amount of basic damage applied
+     */
+    private void calculateInjury(final Actor actor, int basicDamage) {
+    	final ArrayList<String> tolerances = actor.getTraitValueArray("Injury Tolerance"); // Empty array if actor does not have this trait
+    	
+    	// Vulnerability
+    	basicDamage = applyVulnerability(actor, basicDamage);
+		
+		double damageMultiplier = damage.damageMultiplier(location);
+		if (tolerances.contains("homogenous"))
+			damageMultiplier = damage.damageMultiplierHomogenous(location);
+		else if (tolerances.contains("unliving"))
+			damageMultiplier = damage.damageMultiplierUnliving(location);
+		injury = (int) (basicDamage*damageMultiplier); 
+		injury = (injury <= 0 && basicDamage > 0)?1:injury; // Min damage 1 if any got through DR
+		// Diffuse
+		if(tolerances.contains("diffuse")) {
+			final int maxDamage = damage.damageMaxDiffuse();
+			injury = (injury > maxDamage)?maxDamage:injury;
+		}
+    }
+    
+    /**
+     * Apply any vulnerabilities to the damage sustained
+     * @param actor - the actor who's vulnerabilities to use
+     */
+    private int applyVulnerability(final Actor actor, final int basicDamage) {
+    	final ArrayList<String> vulnerabilities = actor.getTraitValueArray("Vulnerability"); // Empty array if actor does not have this trait
+    	Matcher matcher;
+    	// TODO: support other types? with spaces in the name?
+    	Pattern vulnPattern = Pattern.compile("^([\\w\\+-]+)\\s*(?:\\*|x)(\\d+)$");
+    	int vulnFinalMult = 1;
+    	for (String vuln : vulnerabilities) {
+    		if ((matcher = vulnPattern.matcher(vuln)).matches()) {
+    			String vulnName = matcher.group(1);
+    			int vulnValue = Integer.valueOf(matcher.group(2));
+    			if (damage.checkVulnApplies(vulnName)) {
+    				vulnFinalMult *= vulnValue;
+    			}
+    		} else if(LOG.isLoggable(Level.INFO)) {LOG.info("Unable to break down vulnerability: '" + vuln + "'"); }
+    	}
+    	return basicDamage*vulnFinalMult;
     }
 }

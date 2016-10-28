@@ -63,7 +63,17 @@ public class Damage {
 			return damageMaxDiffuse(type);
 	}
 	
-
+	/**
+	 * Determine whether the named vulnerability class applies to this damage
+	 * @param vulnName - the name of the vulnerability to check
+	 * @return true if the vulnerability applies
+	 */
+	public boolean checkVulnApplies(final String vulnName) {
+		String damageType = DamageExpression.damageTypeToString(type);
+		if (damageType.equals(vulnName.toLowerCase()))
+			return true;
+		return false;
+	}
 	
 	public static double damageMultiplier(DamageType type) {
 		switch (type) {
