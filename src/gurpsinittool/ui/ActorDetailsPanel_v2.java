@@ -169,7 +169,7 @@ public class ActorDetailsPanel_v2 extends javax.swing.JPanel
 
         attacksTable.setDefaultRenderer(String.class, attackTableModel.new AttackTableCellRenderer());
         attacksTable.setDefaultRenderer(Integer.class, attackTableModel.new AttackTableCellRenderer());
-        attacksTable.getColumnModel().getColumn(AttackTableModel.columns.Damage.ordinal()).setCellEditor(attackTableModel.new AttackTableCellEditor(ParsingFieldParserFactory.DamageParser()));
+        attacksTable.getColumnModel().getColumn(AttackTableModel.columns.Damage.ordinal()).setCellEditor(attackTableModel.new AttackTableCellEditor(ParsingFieldParserFactory.DamageExpressionParser()));
 
         showTempCheckBox.setSelected(false); showTempCheckBoxActionPerformed(null); // Start hidden
         showStrengthTablesCheckBox.setSelected(false); showStrengthTablesCheckBoxActionPerformed(null); // Start hidden

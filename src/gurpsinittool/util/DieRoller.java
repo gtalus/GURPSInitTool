@@ -8,7 +8,6 @@ import java.util.Random;
  *
  */
 public final class DieRoller {
-
 	/**
 	 * Random number generator
 	 */
@@ -19,16 +18,13 @@ public final class DieRoller {
 	/**
 	 * Roll some dice
 	 * @param dice - the number of d6 to roll
-	 * @param adds - modifier to the roll
 	 * @return the random value resulting from the roll
 	 */
-	public static int rollDiceAdds(int dice, final int adds) {
-		//String type = matcher.group(3);
+	public static int rollDice(int dice) {
 		int result = 0;
 		for(;dice>0;--dice) {
 			result+=rolld6();
 		}
-		result+=adds;
 		return result;
 	}
 	
@@ -37,7 +33,7 @@ public final class DieRoller {
 	 * @return the random result from the roll
 	 */
 	public static int roll3d6() {
-		return rolld6() + rolld6() + rolld6();
+		return rollDice(3);
 	}
 	
 	/**

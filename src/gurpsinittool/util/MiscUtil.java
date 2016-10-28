@@ -33,6 +33,12 @@ public final class MiscUtil {
 	
 	private MiscUtil() {} // Utility Class
 	
+	public static String formatDoubleNicely(Double doub) {
+		String output = String.valueOf(doub);
+		output = output.replaceAll("0+$", ""); // must have the decimal point, otherwise will take 10 => 1
+		output = output.replaceAll("\\.$", "");
+		return output;
+	}
 	/**
 	 * Convert an RTF string into a raw text string
 	 * @param rtfString - RTF-encoded string

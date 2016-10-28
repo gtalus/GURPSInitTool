@@ -85,7 +85,7 @@ Attacks
 
 Multiple attacks can be listed for each creature. The default attack, used when the 'Attack' button is pressed or the auto-attack is triggered, is shown in bold and set by selecting a row and pressing the wrench icon. Each attack is defined through a name (not required to be unique), skill (integer value enforced), damage, and unbalanced indicator.
 
-- **Damage**: Accepts most damage formats. '1d', '1d+2 cr', '5', '1d-1 (2) pi+ ex' are all recognized. The default damage type is cutting. The general form is "XdY+Z [(<div>)] [<type>] [ex]". Type must be in the shortened form (cr/cut/imp/burn/etc.). As with other fields, the text will turn red if the program does not recognize the string entered as a valid damage expression. Note that 'ex' damage only currently impacts injury to Diffuse creatures (see the Injury Tolerance trait, below).
+- **Damage**: Accepts most damage formats, including 'thr' and 'sw' special values. '1d', 'thr+2 cr', '5', 'sw+1d-1(2) pi+ ex' are all recognized. . The default damage type is cutting. The general form is "XdY+Z [(<div>)] [<type>] [ex]". Type must be in the shortened form (cr/cut/imp/burn/etc.). As with other fields, the text will turn red if the program does not recognize the string entered as a valid damage expression. Note that 'ex' damage only currently impacts injury to Diffuse creatures (see the Injury Tolerance trait, below).
 - **Unbalanced**: If an unbalanced attack is used, it counts towards the number of parries done this turn, impacting the parry defense.
 
 .. _trait-aliases:

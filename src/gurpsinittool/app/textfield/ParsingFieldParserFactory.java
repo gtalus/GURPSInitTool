@@ -1,9 +1,11 @@
 package gurpsinittool.app.textfield;
 
 import java.text.ParseException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import gurpsinittool.data.DR;
-import gurpsinittool.data.Damage;
+import gurpsinittool.data.DamageExpression;
 
 /**
  * Factory class to generate AbstractParsingFieldParser object
@@ -11,6 +13,11 @@ import gurpsinittool.data.Damage;
  *
  */
 public final class ParsingFieldParserFactory {
+	/**
+	 * Logger
+	 */
+	private final static Logger LOG = Logger.getLogger(ParsingFieldParserFactory.class.getName());
+	
 	private ParsingFieldParserFactory() {}; // Utility class
 	
 	/**
@@ -76,7 +83,8 @@ public final class ParsingFieldParserFactory {
 				try {
 					DR.parseDR(text);
 					return true;
-				} catch (ParseException e) {
+				} catch (ParseException ex) {
+					if (LOG.isLoggable(Level.FINER)) {LOG.finer(ex.getMessage());}
 					return false;
 				}
 			}
@@ -85,7 +93,8 @@ public final class ParsingFieldParserFactory {
 			public Object parseText(final String text) {
 				try {					
 					return DR.parseDR(text);
-				} catch (ParseException e) {
+				} catch (ParseException ex) {
+					if (LOG.isLoggable(Level.FINER)) {LOG.finer(ex.getMessage());}
 					return null;
 				}
 			}
@@ -95,14 +104,15 @@ public final class ParsingFieldParserFactory {
 	 * Damage string parser
 	 * @return
 	 */
-	public static AbstractParsingFieldParser DamageParser() {
+	public static AbstractParsingFieldParser DamageExpressionParser() {
 		return new AbstractParsingFieldParser() {
 			@Override
 			public boolean parseIsValid(final String text) {
 				try {
-					Damage.parseDamage(text);
+					DamageExpression.parseDamageExpression(text);
 					return true;
-				} catch (ParseException e) {
+				} catch (ParseException ex) {
+					if (LOG.isLoggable(Level.FINER)) {LOG.finer(ex.getMessage());}
 					return false;
 				}
 			}
@@ -110,8 +120,9 @@ public final class ParsingFieldParserFactory {
 			@Override
 			public Object parseText(final String text) {
 				try {					
-					return Damage.parseDamage(text);
-				} catch (ParseException e) {
+					return DamageExpression.parseDamageExpression(text);
+				} catch (ParseException ex) {
+					if (LOG.isLoggable(Level.FINER)) {LOG.finer(ex.getMessage());}
 					return null;
 				}
 			}

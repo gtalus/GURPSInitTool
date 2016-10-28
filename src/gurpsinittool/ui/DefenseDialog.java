@@ -23,6 +23,7 @@ import javax.swing.text.DefaultFormatter;
 
 import gurpsinittool.data.Actor;
 import gurpsinittool.data.Damage;
+import gurpsinittool.data.DamageExpression;
 import gurpsinittool.data.Defense;
 import gurpsinittool.data.Defense.DefenseResult;
 import gurpsinittool.data.Defense.DefenseType;
@@ -845,7 +846,7 @@ public class DefenseDialog extends javax.swing.JDialog {
     		rollTextField.setForeground(Color.RED);
     		if (LOG.isLoggable(Level.FINE)) {LOG.fine("Failed to parse roll field! '" + rollTextField.getText() + "': " + e.getMessage());}
     		parseSuccess = false;
-    	}    
+    	}
     	try { // Get dr- set text to red and print error message if fails
     		defense.overrideDR = DR.parseDR(drTextField.getText());
     		drTextField.setForeground(Color.BLACK);
@@ -853,9 +854,10 @@ public class DefenseDialog extends javax.swing.JDialog {
     		drTextField.setForeground(Color.RED);
     		if (LOG.isLoggable(Level.FINE)) {LOG.fine("Failed to parse dr field! '" + drTextField.getText() + "': " + e.getMessage());}
     		parseSuccess = false;
-    	}    	
+    	}
     	try { // Get damage- set text to red and print error message if fails
-    		defense.damage = Damage.parseDamage(damageTextField.getText());
+    		DamageExpression expression = DamageExpression.parseDamageExpression(damageTextField.getText());
+    		defense.damage = expression.getDamage(null);
     		damageTextField.setForeground(Color.BLACK);
     	} catch (Exception e) {
    			damageTextField.setForeground(Color.RED);

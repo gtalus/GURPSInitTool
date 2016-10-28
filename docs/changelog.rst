@@ -7,6 +7,7 @@ v1.7.0 (UNRELEASED)
 **Bug Fixes:**
 
 - Automations applied in Groups Manager and when loading groups
+- Default attacks applied properly when loading groups file
 
 **Features:**
 
@@ -15,6 +16,7 @@ v1.7.0 (UNRELEASED)
 - Fatigue incapacitation check automation
 - Option: auto-attack delay
 - Icons for CurrHP/CurrFP
+- Attack damage expressions can use 'thr' and 'sw'
 
 v1.6.0
 ------

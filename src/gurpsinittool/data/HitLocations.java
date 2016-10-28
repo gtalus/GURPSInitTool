@@ -1,6 +1,6 @@
 package gurpsinittool.data;
 
-import gurpsinittool.data.Damage.DamageType;
+import gurpsinittool.data.DamageExpression.DamageType;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;

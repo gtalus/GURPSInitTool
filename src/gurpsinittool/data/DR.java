@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import gurpsinittool.data.Damage.DamageType;
+import gurpsinittool.data.DamageExpression.DamageType;
 
 public class DR {
 	/**

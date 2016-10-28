@@ -284,7 +284,7 @@ public class ActorGroupFile {
 					currentActor.setType(ActorType.valueOf(matcher.group(4)));
 					currentActor.setTrait(BasicTrait.Name, matcher.group(1));
 					currentActor.setAllStatuses(parseState(matcher.group(3)));
-					currentActor.setDefaultAttack(Integer.parseInt(matcher.group(2)));
+					int defaultAttack = Integer.parseInt(matcher.group(2)); // set this after attacks loaded
 					String aName = currentActor.getTraitValue(BasicTrait.Name);
 					ArrayList<Actor> actorList = currentNode.getActorList();
 					actorList.add(actorList.size()-1, currentActor);
@@ -330,6 +330,8 @@ public class ActorGroupFile {
 						}
 						else { if (LOG.isLoggable(Level.INFO)) {LOG.info("Cannot parse line inside Actor: " + line);} }   	
 					}
+					// After rest of actor has been loaded
+					currentActor.setDefaultAttack(defaultAttack);
 				}
 				else if ((matcher = endFolder.matcher(line)).matches()) {
 					currentNode = (GroupTreeNode) currentNode.getParent();

@@ -52,7 +52,7 @@ Pressing the shield button or selecting the 'defend' right-click menu option bri
 
 The top half of the dialog handles defense evaluation. Each defense is calculated based on the base value and how many times it has been used this turn (for Parry and Block) or the current injury/fatigue level (for Dodge) with the best defense initially selected. Defense options and modifiers are on the left side. The current posture is selected and the 'Shield' option is initially selected if its DB is greater than 0.
 
-The bottom section deals with damage and injury. Damage is accepted in many forms: '9', '12 (2) pi', or a die expression like '2d+2 cr'. Note that the damage type is assumed to be 'cut' if not specified. DR is copied from the main sheet. All basic hit locations and some extended locations are available and fully modeled.
+The bottom section deals with damage and injury. Damage is accepted in many forms: '9', '12 (2) pi', or a die expression like '2d+2 cr' which is evaluated immediately and refreshed every time the expression changes. Note that the damage type is assumed to be 'cut' if not specified. DR is copied from the main sheet. All basic hit locations and some extended locations are available and fully modeled.
 
 .. image:: _static/22_defense_damage.png
    :align: left

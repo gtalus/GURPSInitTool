@@ -2,6 +2,7 @@ package gurpsinittool.app;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -13,9 +14,9 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 import gurpsinittool.app.textfield.ParsingField;
 import gurpsinittool.app.textfield.AbstractParsingFieldParser;
-import gurpsinittool.app.textfield.ParsingFieldParserFactory;
 import gurpsinittool.data.Actor;
 import gurpsinittool.data.Attack;
+import gurpsinittool.data.DamageExpression;
 import gurpsinittool.util.MiscUtil;
 
 @SuppressWarnings("serial")
@@ -202,12 +203,23 @@ public class AttackTableModel extends AbstractTableModel {
 			if (table.getRowSorter().convertRowIndexToModel(row) == currentActor.getDefaultAttack()) {
 				MiscUtil.setLabelBold(c);
 			}
+			c.setForeground(Color.black);
+			c.setToolTipText(null);
+			
 			// Check parsing: at some point may want to create 'ParsingComponent' which has label and textfield versions
 			AttackTableModel.columns col = AttackTableModel.columns.valueOf(table.getColumnName(column));		
-			if (col == columns.Damage && !ParsingFieldParserFactory.DamageParser().parseIsValid(c.getText()))
-				c.setForeground(Color.red);
-			else
-				c.setForeground(Color.black);
+			if (col == columns.Damage) {
+				DamageExpression exp;
+				try {
+					exp = DamageExpression.parseDamageExpression(c.getText()).simplify(currentActor);
+					String tooltip = exp.toString();
+					c.setToolTipText(tooltip);
+					c.setForeground(Color.black);
+				} catch (ParseException e) {
+					c.setForeground(Color.red);
+				}
+			}
+				
 			return c;
 		}
 	}

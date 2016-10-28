@@ -12,11 +12,6 @@ public class Attack implements Serializable {
 	public String damage; // Ex: 2d+2 cut, 2d(2) pi-
 	public boolean unbalanced;
 	
-	//public DiceAdds Damage;
-	// _ => -
-	// 4 => +
-	//public enum DamageType {aff, burn, cor, cr, cut, fat, imp, pi_, pi, pi4, pi44, spec, tox};
-
 	// Other? Reach, ready, unbalanced
 	
 	/**

@@ -20,8 +20,6 @@ import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.AbstractUndoableEdit;
 import javax.swing.undo.UndoableEditSupport;
 
-import gurpsinittool.data.ActorBase.ActorStatus;
-import gurpsinittool.util.DieRoller;
 import gurpsinittool.util.EncounterLogEvent;
 import gurpsinittool.util.EncounterLogListener;
 import gurpsinittool.util.EncounterLogSupport;
@@ -366,7 +364,7 @@ public class ActorBase implements Serializable {
 			if (!undoRedoInProgress)
 				mUes.postEdit(new DefaultAttackEdit(oldDefault, index));
 		} else if (defaultAttack != index) {
-			if (LOG.isLoggable(Level.INFO)) {LOG.info("Attempted to set invalid attack id # " + index);}
+			if (LOG.isLoggable(Level.INFO)) {LOG.info("Actor '" + getTraitValue(BasicTrait.Name) + "': Attempted to set invalid attack id # " + index);}
 		}
 	}
 	/**

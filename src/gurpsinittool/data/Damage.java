@@ -1,12 +1,9 @@
 package gurpsinittool.data;
 
+import gurpsinittool.data.DamageExpression.DamageType;
 import gurpsinittool.data.HitLocations.HitLocation;
-import gurpsinittool.util.DieRoller;
-import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Damage {
 	/**
@@ -17,10 +14,6 @@ public class Damage {
 	public int basicDamage;
 	public double armorDivisor;
 	public boolean explosive; // 'ex' keyword. Only used for diffuse max damage currently. Stand-in for Explosive, Wide Area and Cone attacks
-
-	// _ => -
-	// 4 => +
-	public enum DamageType {aff, burn, cor, cr, cut, fat, imp, pi_, pi, pi4, pi44, spec, tbb, tox};
 	public DamageType type;
 	
 	public Damage(int basic, DamageType type) {
@@ -36,36 +29,6 @@ public class Damage {
 		// Apply minimum damage based on type
 		int minDamage = (type==DamageType.cr)?0:1;
 		basicDamage = (basicDamage < minDamage)?minDamage:basicDamage;
-	}
-	
-	public static Damage parseDamage(String damage) throws ParseException {
-		Matcher matcher;
-		Pattern empty = Pattern.compile("^$");
-		Pattern numdivtype = Pattern.compile("^(\\d+)\\s*(\\(([\\d\\.]+)\\))?\\s*([^d\\d\\s]+)?\\s*(ex)?$"); // x (2) cr 
-		Pattern dicedivtype = Pattern.compile("^(\\d+)d[+]?([-]?\\d+)?\\s*(\\(([\\d\\.]+)\\))?\\s*([^d\\d\\s]+)?\\s*(ex)?$");
-
-		if ((matcher = empty.matcher(damage)).matches()) {
-			return new Damage(0, DamageType.cr);
-		}
-		else if ((matcher = numdivtype.matcher(damage)).matches()) {
-			int num = Integer.parseInt(matcher.group(1));
-			double div = (matcher.group(3) != null)?Double.parseDouble(matcher.group(3)):1;
-			DamageType type = (matcher.group(4) != null)?parseType(matcher.group(4)):DamageType.cut;
-			boolean explosive = (matcher.group(5) != null)?true:false;
-			return new Damage(num, div, type, explosive);
-		}
-		else if ((matcher = dicedivtype.matcher(damage)).matches()) {
-			int dice = Integer.parseInt(matcher.group(1));
-			int adds = (matcher.group(2)==null)?0:Integer.parseInt(matcher.group(2));
-			double div = (matcher.group(4) != null)?Double.parseDouble(matcher.group(4)):1;
-			DamageType type = (matcher.group(5) != null)?parseType(matcher.group(5)):DamageType.cut;
-			boolean explosive = (matcher.group(6) != null)?true:false;
-			return new Damage(DieRoller.rollDiceAdds(dice, adds), div, type, explosive);
-		}
-		else {
-			//System.out.println("-W- Damage:ParseDamage: unable to parse string! " + damage);
-			throw new ParseException("ParseDamage: Unable to parse string: " + damage, 0);
-		}
 	}
 	
 	public double damageMultiplier() {
@@ -100,17 +63,7 @@ public class Damage {
 			return damageMaxDiffuse(type);
 	}
 	
-	public static DamageType parseType(String type) throws ParseException {
-		type = type.replace('-', '_');
-		type = type.replace('+', '4');
 
-		try {
-			return DamageType.valueOf(type);
-		} catch (Exception e) {
-			//System.out.println("-W- ParseType: unable to parse string! " + type);
-			throw new ParseException("ParseType: Unable to parse string: " + type, 0);
-		}
-	}	
 	
 	public static double damageMultiplier(DamageType type) {
 		switch (type) {

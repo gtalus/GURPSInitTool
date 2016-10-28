@@ -221,7 +221,8 @@ public class Actor extends ActorBase {
 
 		String damageStr;
 		try {
-			Damage damage = Damage.parseDamage(attack.damage);
+			final DamageExpression damageExpression = DamageExpression.parseDamageExpression(attack.damage);
+			Damage damage = damageExpression.getDamage(this);
 			String armorDivStr = "";
 			if (damage.armorDivisor != 1) {
 				if (damage.armorDivisor == (int) damage.armorDivisor)
