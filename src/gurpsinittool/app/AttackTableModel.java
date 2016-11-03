@@ -211,7 +211,7 @@ public class AttackTableModel extends AbstractTableModel {
 			if (col == columns.Damage) {
 				DamageExpression exp;
 				try {
-					exp = DamageExpression.parseDamageExpression(c.getText()).simplify(currentActor);
+					exp = DamageExpression.parseDamageExpression(c.getText()).convertBasicDamage(currentActor);
 					String tooltip = exp.toString();
 					c.setToolTipText(tooltip);
 					c.setForeground(Color.black);

@@ -56,7 +56,7 @@ public final class DamageExpression {
 	 * or 'sw' and the actor is null
 	 */
 	public Damage getDamage(Actor attacker) throws ParseException {
-		DamageExpression simplified = simplify(attacker); // get rid of basicThrust/swing
+		DamageExpression simplified = convertBasicDamage(attacker); // get rid of basicThrust/swing
 		return new Damage(simplified.diceAdds.roll(), simplified.divisor, simplified.type, simplified.explosive);
 	}
 	/**
@@ -83,36 +83,40 @@ public final class DamageExpression {
 		return output;
 	}
 	/**
-	 * Provide a simplified DamageExpression for the particular Actor
-	 * @param attacker
-	 * @return
-	 * @throws ParseException 
+	 * Converts basic damage (thr/sw) into actual damage, and adjusts Dice+adds 
+	 * if that was done. No change is made if there is no basic damage to convert.
+	 * @param attacker - the attacker who's basic damage values to use
+	 * @return A new DamageExpression with the basic damage converted
+	 * @throws ParseException if the attacker is null and basicDamage information 
+	 * is required
 	 */
-	public DamageExpression simplify(Actor attacker) throws ParseException {
+	public DamageExpression convertBasicDamage(Actor attacker) throws ParseException {
 		DamageExpression simplified = new DamageExpression(this);
-		if (attacker == null && (addBasicThrust || addBasicSwing)) {
-			ParseException ex = new ParseException("Can't simplify expression with thr/sw and null attacker!", 0);
-			if (LOG.isLoggable(Level.WARNING)) {LOG.log(Level.WARNING,ex.getMessage(), ex);}
-			throw ex;
-		}
-		try {
-			if (addBasicThrust) {
-				simplified.addBasicThrust = false;
-				String thrustString = attacker.getTraitValue(CalculatedTrait.BasicThrust.toString());
-				DamageExpression thrust = parseDamageExpression(thrustString);
-				simplified.diceAdds.add(thrust.diceAdds);
-			} 
-			if (addBasicSwing) {
-				simplified.addBasicSwing = false;
-				String swingString = attacker.getTraitValue(CalculatedTrait.BasicSwing.toString());
-				DamageExpression swing = parseDamageExpression(swingString);
-				simplified.diceAdds.add(swing.diceAdds);
+		if (addBasicThrust || addBasicSwing) { // Only go through this if we have to 
+			if (attacker == null) {
+				ParseException ex = new ParseException("Can't simplify expression with thr/sw and null attacker!", 0);
+				if (LOG.isLoggable(Level.WARNING)) {LOG.log(Level.WARNING,ex.getMessage(), ex);}
+				throw ex;
 			}
-		} catch (ParseException ex) {
-			if (LOG.isLoggable(Level.WARNING)) {LOG.log(Level.WARNING, "Unexpected parser error while evaluating basic damage! " + ex.getMessage(), ex);}
-			throw ex;
+			try {
+				if (addBasicThrust) {
+					simplified.addBasicThrust = false;
+					String thrustString = attacker.getTraitValue(CalculatedTrait.BasicThrust.toString());
+					DamageExpression thrust = parseDamageExpression(thrustString);
+					simplified.diceAdds.add(thrust.diceAdds);
+				}
+				if (addBasicSwing) {
+					simplified.addBasicSwing = false;
+					String swingString = attacker.getTraitValue(CalculatedTrait.BasicSwing.toString());
+					DamageExpression swing = parseDamageExpression(swingString);
+					simplified.diceAdds.add(swing.diceAdds);
+				}
+			} catch (ParseException ex) {
+				if (LOG.isLoggable(Level.WARNING)) {LOG.log(Level.WARNING, "Unexpected parser error while evaluating basic damage! " + ex.getMessage(), ex);}
+				throw ex;
+			}
+			simplified.diceAdds.simplify();
 		}
-		simplified.diceAdds.simplify();
 		return simplified;
 	}
 	
