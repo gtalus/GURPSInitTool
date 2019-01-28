@@ -17,6 +17,7 @@ v1.7.0 (UNRELEASED)
 - Option: auto-attack delay
 - Icons for CurrHP/CurrFP
 - Attack damage expressions can use 'thr' and 'sw'
+- Trait: Vulnerability
 
 v1.6.0
 ------
