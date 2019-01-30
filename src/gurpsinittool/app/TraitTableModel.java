@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 
 import javax.swing.table.AbstractTableModel;
 import gurpsinittool.data.*;
+import gurpsinittool.data.traits.SpecialTraits;
 
 @SuppressWarnings("serial")
 public class TraitTableModel extends AbstractTableModel implements PropertyChangeListener {
@@ -138,6 +139,8 @@ public class TraitTableModel extends AbstractTableModel implements PropertyChang
 	public void rebuildTable() {
 		// Build initial displayedTraits list
 		displayedTraitKeys.clear();
+		if (currentActor != null && isTemp) // Refresh debug info
+			SpecialTraits.reportDebugTraits(currentActor);
 		displayedTraitKeys.addAll(getTraitNames());		
 		fireTableDataChanged();
 	}

@@ -2,6 +2,8 @@ package gurpsinittool.data;
 
 import gurpsinittool.data.DamageExpression.DamageType;
 import gurpsinittool.data.HitLocations.HitLocation;
+import gurpsinittool.data.traits.InjuryTolerance;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,51 +33,11 @@ public class Damage {
 		basicDamage = (basicDamage < minDamage)?minDamage:basicDamage;
 	}
 	
-	public double damageMultiplier() {
-		return damageMultiplier(type);
-	}
-	public double damageMultiplier(HitLocation location) {
-		return location.damageMultiplier(type);
-	}
-	public double damageMultiplierHomogenous() {
-		return damageMultiplierHomogenous(type);
-	}
-	public double damageMultiplierHomogenous(HitLocation location) {
-		double locmult = location.damageMultiplier(type);
-		if (locmult > damageMultiplier()) // If the hit location increases the multiplier, use it
-			return locmult;
-		return damageMultiplierHomogenous();
-	}
-	public double damageMultiplierUnliving() {
-		return damageMultiplierUnliving(type);
-	}
-	public double damageMultiplierUnliving(HitLocation location) {
-		double locmult = location.damageMultiplier(type);
-		if (locmult > damageMultiplier()) // If the hit location increases the multiplier, use it
-			return locmult;
-		return damageMultiplierUnliving();
-	}
-	public int damageMaxDiffuse() {
-		// TODO: support ex/cone/wide area attacks
-		if (explosive)
-			return Integer.MAX_VALUE;
-		else 
-			return damageMaxDiffuse(type);
+	public double getWoundingModifier() {
+		return getWoundingModifier(type);
 	}
 	
-	/**
-	 * Determine whether the named vulnerability class applies to this damage
-	 * @param vulnName - the name of the vulnerability to check
-	 * @return true if the vulnerability applies
-	 */
-	public boolean checkVulnApplies(final String vulnName) {
-		String damageType = DamageExpression.damageTypeToString(type);
-		if (damageType.equals(vulnName.toLowerCase()))
-			return true;
-		return false;
-	}
-	
-	public static double damageMultiplier(DamageType type) {
+	public static double getWoundingModifier(DamageType type) {
 		switch (type) {
 		case pi_:
 			return 0.5;
@@ -97,87 +59,7 @@ public class Damage {
 		case aff:
 			return 0; // Fatigue, Special, Affliction not current supported
 		}
-		if (LOG.isLoggable(Level.SEVERE)) {LOG.severe("Unhandled type! " + type.toString());}
-		return 0;
-	}
-	
-	public static double damageMultiplierUnliving(DamageType type) {
-		switch (type) {
-		case pi_:
-			return 0.2;
-		case pi:
-			return 0.334;
-		case pi4:
-			return 0.5;
-		case pi44:
-		case imp:
-			return 1;	
-		case burn:
-		case tbb:
-		case cor:
-		case tox:
-		case cr:
-			return 1;
-		case cut:
-			return 1.5;
-		case fat:
-		case spec:
-		case aff:
-			return 0; // Fatigue, Special, Affliction not current supported
-		}
-		if (LOG.isLoggable(Level.SEVERE)) {LOG.severe("Unhandled type! " + type.toString());}
-		return 0;
-	}
-	
-	public static double damageMultiplierHomogenous(DamageType type) {
-		switch (type) {
-		case pi_:
-			return 0.1;
-		case pi:
-			return 0.2;
-		case pi4:
-			return 0.334;
-		case pi44:
-		case imp:
-			return 0.5;	
-		case burn:
-		case tbb:
-		case cor:
-		case tox:
-		case cr:
-			return 1;
-		case cut:
-			return 1.5;
-		case fat:
-		case spec:
-		case aff:
-			return 0; // Fatigue, Special, Affliction not current supported
-		}
-		if (LOG.isLoggable(Level.SEVERE)) {LOG.severe("Unhandled type! " + type.toString());}
-		return 0;
-	}
-	
-	public static int damageMaxDiffuse(DamageType type) {
-		switch (type) {
-		case pi_:
-		case pi:
-		case pi4:
-		case pi44:
-		case imp:
-			return 1;	
-		case burn:
-		case tbb:
-		case cor:
-		case tox:
-		case cr:
-		case cut:
-			return 2;
-		case fat:
-		case spec:
-		case aff:
-			return 0; // Fatigue, Special, Affliction not current supported
-		}
-		if (LOG.isLoggable(Level.SEVERE)) {LOG.severe("Unhandled type! " + type.toString());}
+		if (LOG.isLoggable(Level.SEVERE)) {LOG.severe("getWoundingModifier: Unhandled type! " + type.toString());}
 		return 0;
 	}
 }

@@ -10,6 +10,8 @@ import gurpsinittool.data.ActorBase.ActorStatus;
 import gurpsinittool.data.ActorBase.BasicTrait;
 import gurpsinittool.data.HitLocations.HitLocation;
 import gurpsinittool.data.HitLocations.LocationType;
+import gurpsinittool.data.traits.InjuryTolerance;
+import gurpsinittool.data.traits.Vulnerability;
 import gurpsinittool.util.DieRoller;
 
 public class Defense {
@@ -90,7 +92,7 @@ public class Defense {
 	public void calcDefenseResults(final Actor actor) {
 		calcEffectiveDefense(actor); // Calculate effectiveDefense
 		calcDefenseResult(actor); // Calcuate the 'result'
-		validateLocation(actor); // correct location for any Injury Tolerances
+		location = InjuryTolerance.getAdjustedLocation(actor, location); // correct location for any Injury Tolerances
 		determineImpact(actor); // Figure out all the injury items: injury, shieldDamage, cripplingInjury, and majorWound
 	}
 	
@@ -147,44 +149,6 @@ public class Defense {
 			result = DefenseResult.Success;
 		}
 	}
-
-    /**
-     * Check if location is valid for this actor and adjust if necessary
-     * @param actor
-     */
-    private void validateLocation(final Actor actor) {
-      	if (actor.hasTrait("Injury Tolerance")) {
-    		final ArrayList<String> tolerances = actor.getTraitValueArray("Injury Tolerance");
-    		// No Blood - nothing currently (also Diffuse and Homogenous)
-    		// No Brain
-    		if (tolerances.contains("no brain") || tolerances.contains("diffuse") || tolerances.contains("homogenous")) {
-    			// "a blow to the skull or eye is treated no differently than a blow to the face (except that an eye injury can still cripple that eye)"
-    			// This program currently doesn't track crippling for eyes, so this is the same in every way
-    			if (location.type == LocationType.Skull || location.type == LocationType.Eye)
-    				location = HitLocations.getLocation(LocationType.Face);
-    		}
-    		// No Eyes
-    		if (tolerances.contains("no eyes")) {
-    			if (location.type == LocationType.Eye)
-    				location = HitLocations.getLocation(LocationType.Face);
-    		}
-    		// No Head
-    		if (tolerances.contains("no head")) {
-    			if (location.type == LocationType.Face || location.type == LocationType.Skull)
-    				location = HitLocations.getLocation(LocationType.Torso);
-    		}
-    		// No Neck
-    		if (tolerances.contains("no neck")) {
-    			if (location.type == LocationType.Neck)
-    				location = HitLocations.getLocation(LocationType.Torso);
-    		}
-    		// No Vitals
-    		if (tolerances.contains("no vitals") || tolerances.contains("diffuse") || tolerances.contains("homogenous")) {
-    			if (location.type == LocationType.Vitals || location.type == LocationType.Groin)
-    				location = HitLocations.getLocation(LocationType.Torso);
-    		}
-    	}
-    }
     
 	/** 
      * Calculate values for injury, shieldDamage, cripplingInjury, and majorWound
@@ -213,7 +177,7 @@ public class Defense {
     		// Apply min/max values
     		shieldBasicDamage = Math.min((int)Math.ceil(shieldHP/4), shieldBasicDamage);
     		shieldBasicDamage = Math.max(0, shieldBasicDamage);
-    		shieldDamage = (int) (Math.floor(shieldBasicDamage*damage.damageMultiplierHomogenous()));
+    		shieldDamage = (int) (Math.floor(shieldBasicDamage*InjuryTolerance.woundingModifierHomogenous(damage.type)));
     		// Min damage 1 if any got through DR
     		shieldDamage = (shieldDamage <= 0 && shieldBasicDamage > 0)?1:shieldDamage; 
     		// Calculate total cover DR provided (including armor divisor)
@@ -222,10 +186,10 @@ public class Defense {
     	case CritFailure:
     		// Calculate actual basic damage to the target, including any cover DR
 			int totalDR = overrideDR.getDRforType(damage.type) + location.extraDR;
-    		int basicDamage = (int) (damage.basicDamage - coverDR - Math.floor(totalDR/damage.armorDivisor));
-			basicDamage = Math.max(0, basicDamage);
+    		int penetratingDamage = (int) (damage.basicDamage - coverDR - Math.floor(totalDR/damage.armorDivisor));
+    		penetratingDamage = Math.max(0,penetratingDamage);
 			// Calculate injury to the target
-			calculateInjury(actor, basicDamage);
+			calculateInjury(actor, penetratingDamage);
     		
     		// Check for crippling
     		if (location.cripplingThreshold != 0) {
@@ -246,49 +210,37 @@ public class Defense {
     }
     
     /**
-     * Figure the injury of the specified basicDamage to the actor, including Injury Tolerance and other factors
+     * Determine the injury to the actor resulting from the specified penetrating damage, including Injury Tolerance and other factors
      * @param actor - the actor to use when calculating injury
-     * @param basicDamage - the amount of basic damage applied
+     * @param penetratingDamage - the amount of damage that penetrated DR
      */
-    private void calculateInjury(final Actor actor, int basicDamage) {
-    	final ArrayList<String> tolerances = actor.getTraitValueArray("Injury Tolerance"); // Empty array if actor does not have this trait
+    private void calculateInjury(final Actor actor, int penetratingDamage) {
+    	// Use double for calculations
+    	Double calcInjury = (double) penetratingDamage;
     	
-    	// Vulnerability
-    	basicDamage = applyVulnerability(actor, basicDamage);
+    	// Apply any vulnerability's wounding multiplier
+    	calcInjury *= Vulnerability.getVulnerabilityMultiplier(actor, damage.type);
 		
-		double damageMultiplier = damage.damageMultiplier(location);
-		if (tolerances.contains("homogenous"))
-			damageMultiplier = damage.damageMultiplierHomogenous(location);
-		else if (tolerances.contains("unliving"))
-			damageMultiplier = damage.damageMultiplierUnliving(location);
-		injury = (int) (basicDamage*damageMultiplier); 
-		injury = (injury <= 0 && basicDamage > 0)?1:injury; // Min damage 1 if any got through DR
-		// Diffuse
-		if(tolerances.contains("diffuse")) {
-			final int maxDamage = damage.damageMaxDiffuse();
-			injury = (injury > maxDamage)?maxDamage:injury;
-		}
+    	// Apply wounding modifier based on hit location, damage type, and any injury tolerances
+		calcInjury *= getWoundingModifier(actor);
+		
+		// Apply damage reduction if present
+		calcInjury /= InjuryTolerance.getDamageReduction(actor);
+		
+		// Apply injury limit based on injury tolerance (diffuse)
+		calcInjury = Math.min(calcInjury, InjuryTolerance.getInjuryLimit(actor, damage));
+		
+		// Convert to integer, enforce minimum damage (1 if any got through DR)
+		injury = (calcInjury <= 1 && penetratingDamage > 0)?1:calcInjury.intValue();
     }
     
     /**
-     * Apply any vulnerabilities to the damage sustained
-     * @param actor - the actor who's vulnerabilities to use
+     * Get the wounding modifier based on location and injury tolerances
+     * @param actor - the actor to use
+     * @return the calculated wounding modifier
      */
-    private int applyVulnerability(final Actor actor, final int basicDamage) {
-    	final ArrayList<String> vulnerabilities = actor.getTraitValueArray("Vulnerability"); // Empty array if actor does not have this trait
-    	Matcher matcher;
-    	// TODO: support other types? with spaces in the name?
-    	Pattern vulnPattern = Pattern.compile("^([\\w\\+-]+)\\s*(?:\\*|x)(\\d+)$");
-    	int vulnFinalMult = 1;
-    	for (String vuln : vulnerabilities) {
-    		if ((matcher = vulnPattern.matcher(vuln)).matches()) {
-    			String vulnName = matcher.group(1);
-    			int vulnValue = Integer.valueOf(matcher.group(2));
-    			if (damage.checkVulnApplies(vulnName)) {
-    				vulnFinalMult *= vulnValue;
-    			}
-    		} else if(LOG.isLoggable(Level.INFO)) {LOG.info("Unable to break down vulnerability: '" + vuln + "'"); }
-    	}
-    	return basicDamage*vulnFinalMult;
+    private double getWoundingModifier(final Actor actor) {
+    	Double woundingModifier = location.getWoundingModifier(damage.type);
+    	return InjuryTolerance.getWoundingModifier(actor, damage.type, woundingModifier);
     }
 }

@@ -37,7 +37,7 @@ public class HitLocations {
 				+ "The skull gets an extra DR 2. Wounding modifier is ×4. "
 				+ "Knockdown rolls are at -10. Critical hits use the Critical Head Blow Table (B556). "
 				+ "Exception: These special effects do not apply to tox damage.", -10, true, 2) {
-			public double damageMultiplier(DamageType type) {
+			public double getWoundingModifier(DamageType type) {
 				return 4;
 			}
 		});
@@ -46,54 +46,54 @@ public class HitLocations {
 				+ "Critical hits use the Critical Head Blow Table (B556). "
 				+ "Cor damage gets a ×1.5 wounding modifier, and if it inflicts a major wound, it also blinds one eye (both eyes on damage over full HP).",
 				-5, true) {
-			public double damageMultiplier(DamageType type) {
+			public double getWoundingModifier(DamageType type) {
 				switch (type) {
 				case cor:
 					return 1.5;
 				default:
-					return super.damageMultiplier(type);
+					return super.getWoundingModifier(type);
 				}
 			}
 		});
 		addLocation(new HitLocation(LocationType.Leg, -2, "Reduce the wounding multiplier of large pi, huge pi and imp damage to ×1. "
 				+ "Any major wound (loss of over 1/2 HP from one blow) cripples the limb. "
 				+ "Damage beyond that threshold is lost. Crit hits a joint.", 0, 1.0/2)  {
-			public double damageMultiplier(DamageType type) {
+			public double getWoundingModifier(DamageType type) {
 				switch (type) {
 				case pi4:
 				case pi44:
 				case imp:
 					return 1;
 				default:
-					return super.damageMultiplier(type);
+					return super.getWoundingModifier(type);
 				}
 			}
 		});
 		addLocation(new HitLocation(LocationType.Knee, -5, "Reduce the wounding multiplier of large pi, huge pi and imp damage to ×1. "
 				+ "Any major wound (loss of over 1/3 HP from one blow) cripples the limb. HT rolls to recover from crippling are at -2. "
 				+ "Damage beyond that threshold is lost. Dismemberment requires same amount as Leg. Miss by 1 hits the leg.", 0, 1.0/3)  {
-			public double damageMultiplier(DamageType type) {
+			public double getWoundingModifier(DamageType type) {
 				switch (type) {
 				case pi4:
 				case pi44:
 				case imp:
 					return 1;
 				default:
-					return super.damageMultiplier(type);
+					return super.getWoundingModifier(type);
 				}
 			}
 		});
 		addLocation(new HitLocation(LocationType.Arm, -2, "If holding a shield, double the penalty to hit. Reduce the wounding multiplier of large pi, huge pi and imp damage to ×1. "
 				+ "Any major wound (loss of over 1/2 HP from one blow) cripples the limb. "
 				+ "Damage beyond that threshold is lost. Crit hits a joint.", 0, 1.0/2) {
-			public double damageMultiplier(DamageType type) {
+			public double getWoundingModifier(DamageType type) {
 				switch (type) {
 				case pi4:
 				case pi44:
 				case imp:
 					return 1;
 				default:
-					return super.damageMultiplier(type);
+					return super.getWoundingModifier(type);
 				}
 			}
 		});
@@ -101,35 +101,35 @@ public class HitLocations {
 		addLocation(new HitLocation(LocationType.Hand, -4, "If holding a shield, double the penalty to hit. Reduce the wounding multiplier of large pi, huge pi and imp damage to ×1. "
 				+ "Any major wound (loss of over 1/3 HP from one blow) cripples the extremity. "
 				+ "Damage beyond that threshold is lost. Crit hits a joint.", 0, 1.0/3) {
-			public double damageMultiplier(DamageType type) {
+			public double getWoundingModifier(DamageType type) {
 				switch (type) {
 				case pi4:
 				case pi44:
 				case imp:
 					return 1;
 				default:
-					return super.damageMultiplier(type);
+					return super.getWoundingModifier(type);
 				}
 			}
 		});
 		addLocation(new HitLocation(LocationType.Foot, -4, "Reduce the wounding multiplier of large pi, huge pi and imp damage to ×1. "
 				+ "Any major wound (loss of over 1/3 HP from one blow) cripples the extremity. "
 				+ "Damage beyond that threshold is lost. Crit hits a joint.", 0, 1.0/3) {
-			public double damageMultiplier(DamageType type) {
+			public double getWoundingModifier(DamageType type) {
 				switch (type) {
 				case pi4:
 				case pi44:
 				case imp:
 					return 1;
 				default:
-					return super.damageMultiplier(type);
+					return super.getWoundingModifier(type);
 				}
 			}
 		});
 		addLocation(new HitLocation(LocationType.Neck, -5, "Attack that misses by 1 hits the torso instead. "
 				+ "Increase the wounding multiplier of cr and cor attacks to ×1.5, and that of cutting damage to ×2. "
 				+ "At the GM’s option, anyone killed by a cutting blow to the neck is decapitated!") {
-			public double damageMultiplier(DamageType type) {
+			public double getWoundingModifier(DamageType type) {
 				switch (type) {
 				case cr:
 				case cor:
@@ -137,7 +137,7 @@ public class HitLocations {
 				case cut:
 					return 2;
 				default:
-					return super.damageMultiplier(type);
+					return super.getWoundingModifier(type);
 				}
 			}
 		});
@@ -145,7 +145,7 @@ public class HitLocations {
 				+ "Heart, lungs, kidneys, etc. Increase wounding modifier for imp or pi attack to ×3. "
 				+ "Increase wounding modifier for tbb attack to ×2. cr is only ×1. "
 				+ "If caused shock roll vs. knockdown, -5 if major wound, other attacks cannot target the vitals.", -5) {
-			public double damageMultiplier(DamageType type) {
+			public double getWoundingModifier(DamageType type) {
 				switch (type) {
 				case imp:
 				case pi:
@@ -153,7 +153,7 @@ public class HitLocations {
 				case tbb:
 					return 2;
 				default:
-					return super.damageMultiplier(type);
+					return super.getWoundingModifier(type);
 				}
 			}
 		});
@@ -162,7 +162,7 @@ public class HitLocations {
 				+ "Injury over HP/10 blinds the eye. Wounding modifier is ×4. "
 				+ "Knockdown rolls are at -10. Critical hits use the Critical Head Blow Table (B556). "
 				+ "Exception: These special effects do not apply to tox damage.", -10, true) {
-			public double damageMultiplier(DamageType type) {
+			public double getWoundingModifier(DamageType type) {
 				return 4;
 			}
 		});
@@ -213,10 +213,8 @@ public class HitLocations {
 			this.extraDR = extraDR;
 		}
 		
-		public double damageMultiplier(DamageType type) {
-			return Damage.damageMultiplier(type);
+		public double getWoundingModifier(DamageType type) {
+			return Damage.getWoundingModifier(type);
 		}
-		
 	}
-
 }
