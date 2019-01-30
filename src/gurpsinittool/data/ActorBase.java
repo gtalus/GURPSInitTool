@@ -96,6 +96,8 @@ public class ActorBase implements Serializable {
 		ArrayList<ArrayList<String>> aliases = new ArrayList<ArrayList<String>>();
 		aliases.add(new ArrayList<String>(Arrays.asList("Combat Reflexes", "CR")));
 		aliases.add(new ArrayList<String>(Arrays.asList("High Pain Threshold", "HPT")));
+		aliases.add(new ArrayList<String>(Arrays.asList("Hard To Kill", "HtK")));
+		aliases.add(new ArrayList<String>(Arrays.asList("Hard To Subdue", "HtS")));
 		aliases.add(new ArrayList<String>(Arrays.asList("Low Pain Threshold", "LPT")));
 		aliases.add(new ArrayList<String>(Arrays.asList("Injury Tolerance", "IT")));
 		aliases.add(new ArrayList<String>(Arrays.asList("Immunity to Metabolic Hazards", "IMH")));

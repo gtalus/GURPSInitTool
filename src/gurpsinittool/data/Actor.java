@@ -9,6 +9,8 @@ import java.util.logging.Logger;
 
 import gurpsinittool.data.Defense.DefenseResult;
 import gurpsinittool.data.Defense.DefenseType;
+import gurpsinittool.data.traits.HardToKill;
+import gurpsinittool.data.traits.HardToSubdue;
 import gurpsinittool.util.DieRoller;
 
 /** 
@@ -81,8 +83,9 @@ public class Actor extends ActorBase {
 			if (settings.autoUnconscious.isSet() && injury >= hitPoints) { 
 				int penalty = (int) (-1*(Math.floor((double)injury/hitPoints)-1));
 				int result = DieRoller.roll3d6();
-				String details = "(HT: " + health + ", penalty: " + penalty + ", roll: " + result + ")";
-				if (DieRoller.isFailure(result, health+penalty)) {
+				int effHT = health + HardToSubdue.getHardToSubdue(this);
+				String details = "(effHT: " + effHT + ", penalty: " + penalty + ", roll: " + result + ")";
+				if (DieRoller.isFailure(result, effHT+penalty)) {
 					logEventTypeName("<b><font color=red>failed</font></b> consciousness roll " + details);
 					setAllStatuses(new HashSet<ActorStatus>(Arrays.asList(ActorStatus.Unconscious, ActorStatus.Prone, ActorStatus.Disarmed)));
 				} else {
@@ -571,27 +574,36 @@ public class Actor extends ActorBase {
     					} else {
     						for (int i = previousMultiple+1; i <= newMultiple; i++) {
     							String logPrefix = "reached <b><font color=red>-" + (i-1) + "xHP</font></b>: ";
+    							final int HT = getTraitValueInt(BasicTrait.HT);
+    							final int HtK = HardToKill.getHardToKill(this);
+    							final int effHT = HT + HtK;
+    							String details = "HT: " + HT;
+    							if (HtK > 0) {
+    								details += ", Hard To Kill: " + HtK;
+    							}
     							if (isTypeAutomated() && settings.autoDeath.isSet()) {
     								// Perform death check
-    								final int health = getTraitValueInt(BasicTrait.HT);
     								final int result = DieRoller.roll3d6();
-    								String details = "(HT: " + health + ", roll: " + result + ")";
-    								if (DieRoller.isFailure(result, health)) {
-    									// TODO: determine whether mortally wounded or not!
-    									if (result - health < 3) {
+    								details += ", roll: " + result;
+    								if (DieRoller.isFailure(result, effHT)) {
+    									if (result - effHT < 3) {
     										addStatus(ActorStatus.Disabled);
-    										details = "<b>mortally wounded.</b> " + details;
+    										details = "<b>mortally wounded.</b> (" + details + ")";
     									} else {
     										addStatus(ActorStatus.Dead);
-    										details = "<b>died.</b> " + details;
+    										details = "<b>died.</b> (" + details + ")";
     										i = newMultiple; // don't make any more checks
     									}
     									logEventTypeName(logPrefix + "<b><font color=red>failed</font></b> death check, " + details);
+    								} else if (DieRoller.isFailure(result, HT)) { // Failed based on raw HT
+    									addStatus(ActorStatus.Disabled);
+    									details = "<b>collapsed.</b> (" + details + ")";
+    									logEventTypeName(logPrefix + "<b><font color=red>apparently failed</font></b> death check, " + details);
     								} else {
-    									logEventTypeName(logPrefix + "passed death check " + details);
+    									logEventTypeName(logPrefix + "passed death check (" + details + ")");
     								}
     							} else {
-    								logEventTypeName(logPrefix + ": <b>death check required!</b>");
+    								logEventTypeName(logPrefix + ": <b>death check required! " + details + "</b>");
     							}
     						}
     					}

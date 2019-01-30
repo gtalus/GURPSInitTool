@@ -19,6 +19,8 @@ public abstract class SpecialTraits {
 	public static void reportDebugTraits(Actor actor) {
 		Vulnerability.reportDebugTrait(actor);
 		InjuryTolerance.reportDebugTrait(actor);
+		HardToKill.reportDebugTrait(actor);
+		HardToSubdue.reportDebugTrait(actor);
 		reportOtherDebugTraits(actor);
 	}
 
