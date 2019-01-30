@@ -11,6 +11,7 @@ import gurpsinittool.data.ActorBase.BasicTrait;
 import gurpsinittool.data.HitLocations.HitLocation;
 import gurpsinittool.data.HitLocations.LocationType;
 import gurpsinittool.data.traits.InjuryTolerance;
+import gurpsinittool.data.traits.SupernaturalDurability;
 import gurpsinittool.data.traits.Vulnerability;
 import gurpsinittool.util.DieRoller;
 
@@ -196,7 +197,7 @@ public class Defense {
     			int cripplingThreshold = (int) Math.floor(hitPoints * location.cripplingThreshold + 1.00001);
     			if (injury >= cripplingThreshold) {
     				injury = cripplingThreshold;
-    				cripplingInjury = true;
+    				cripplingInjury = SupernaturalDurability.canCripple(actor);
     				majorWound = true;
     			}
     		} 

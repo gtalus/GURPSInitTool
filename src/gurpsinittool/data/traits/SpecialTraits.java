@@ -21,6 +21,8 @@ public abstract class SpecialTraits {
 		InjuryTolerance.reportDebugTrait(actor);
 		HardToKill.reportDebugTrait(actor);
 		HardToSubdue.reportDebugTrait(actor);
+		HighPainThreshold.reportDebugTrait(actor);
+		SupernaturalDurability.reportDebugTrait(actor);
 		reportOtherDebugTraits(actor);
 	}
 
@@ -30,7 +32,6 @@ public abstract class SpecialTraits {
 	 */
 	private static void reportOtherDebugTraits(Actor actor) {
 		actor.setTemp("_CombatReflexes", actor.hasTrait("Combat Reflexes")?"true":"false");
-		actor.setTemp("_HighPainThreshold", actor.hasTrait("High Pain Threshold")?"true":"false");
 		actor.setTemp("_LowPainThreshold", actor.hasTrait("Low Pain Threshold")?"true":"false");
 	}
 }

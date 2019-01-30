@@ -101,6 +101,7 @@ public class ActorBase implements Serializable {
 		aliases.add(new ArrayList<String>(Arrays.asList("Low Pain Threshold", "LPT")));
 		aliases.add(new ArrayList<String>(Arrays.asList("Injury Tolerance", "IT")));
 		aliases.add(new ArrayList<String>(Arrays.asList("Immunity to Metabolic Hazards", "IMH")));
+		aliases.add(new ArrayList<String>(Arrays.asList("Supernatural Durability", "SD")));
 		aliases.add(new ArrayList<String>(Arrays.asList("Vulnerability", "Vuln")));
 		
 		Map<String, ArrayList<String>> aMap = new HashMap<String, ArrayList<String>>();

@@ -11,6 +11,8 @@ import gurpsinittool.data.Defense.DefenseResult;
 import gurpsinittool.data.Defense.DefenseType;
 import gurpsinittool.data.traits.HardToKill;
 import gurpsinittool.data.traits.HardToSubdue;
+import gurpsinittool.data.traits.HighPainThreshold;
+import gurpsinittool.data.traits.SupernaturalDurability;
 import gurpsinittool.util.DieRoller;
 
 /** 
@@ -63,7 +65,7 @@ public class Actor extends ActorBase {
 			int injury =  getTempInt("shock.next");
 			int injuryPerShock = (int) getTraitValueInt(BasicTrait.HP) / 10;
 			injuryPerShock = (injuryPerShock==0)?1:injuryPerShock; // Minimum 1
-			int shockMultiplier = hasTrait("High Pain Threshold")?0:(hasTrait("Low Pain Threshold")?2:1);
+			int shockMultiplier = HighPainThreshold.hasTrait(this)?0:(hasTrait("Low Pain Threshold")?2:1);
 			setTemp("shock", shockMultiplier * Math.min((int)injury/injuryPerShock,4));
 		}
 		setTemp("shock.next", 0);
@@ -80,10 +82,10 @@ public class Actor extends ActorBase {
 				|| hasStatus(ActorStatus.Dead)
 				|| hasStatus(ActorStatus.Waiting))) { // Do AUTO actions
 			// Check for unconsciousness when HP <= 0
-			if (settings.autoUnconscious.isSet() && injury >= hitPoints) { 
+			if (settings.autoUnconscious.isSet() && injury >= hitPoints && !SupernaturalDurability.hasTrait(this)) { 
 				int penalty = (int) (-1*(Math.floor((double)injury/hitPoints)-1));
 				int result = DieRoller.roll3d6();
-				int effHT = health + HardToSubdue.getHardToSubdue(this);
+				int effHT = health + HardToSubdue.getValue(this);
 				String details = "(effHT: " + effHT + ", penalty: " + penalty + ", roll: " + result + ")";
 				if (DieRoller.isFailure(result, effHT+penalty)) {
 					logEventTypeName("<b><font color=red>failed</font></b> consciousness roll " + details);
@@ -445,15 +447,17 @@ public class Actor extends ActorBase {
  				knockdownDescription = " for major wound";
  			}
 				
- 			if (hasTrait("High Pain Threshold")) effHT += 3;
+ 			if (HighPainThreshold.hasTrait(this)) effHT += 3;
  			if (hasTrait("Low Pain Threshold")) effHT -= 4;
  			int roll = DieRoller.roll3d6();
  			boolean success = DieRoller.isSuccess(roll, effHT);
  			logEventTypeName("Knockdown/Stunning check" + knockdownDescription + ": rolled " + roll + " against " + effHT + " => " + (!success?"<b>failed</b>":"succeeded"));
  			if (isTypeAutomated() && settings.autoKnockdownStun.isSet()) {
  				if (!success) {
- 					addStatus(ActorStatus.StunPhys); // Check for mental stun and don't add this in that case?
- 					removeStatus(ActorStatus.StunRecovr);
+ 					if (!SupernaturalDurability.hasTrait(this)) {
+ 						addStatus(ActorStatus.StunPhys); // Check for mental stun and don't add this in that case?
+ 						removeStatus(ActorStatus.StunRecovr);
+ 					}
  					setPosture(ActorStatus.Prone);
  					addStatus(ActorStatus.Disarmed);
  				}
@@ -468,6 +472,7 @@ public class Actor extends ActorBase {
      */
     public int getCurrentDefenseValue(DefenseType type) {
     	int currentDefense = 0;
+
     	switch (type) {
     	case Parry:
     		currentDefense = getTraitValueInt(BasicTrait.Parry) - getTempInt("numParry") * 4;
@@ -476,15 +481,28 @@ public class Actor extends ActorBase {
     		currentDefense = getTraitValueInt(BasicTrait.Block) - getTempInt("numBlock") * 5;
     		break;
     	case Dodge:
-    		currentDefense = getTraitValueInt(BasicTrait.Dodge);   
-    		if (getTraitValueInt(BasicTrait.Injury) > 2*getTraitValueInt(BasicTrait.HP)/3)
-    			currentDefense = (int) Math.ceil(currentDefense/2.0);
-        	if (getTraitValueInt(BasicTrait.Fatigue) > 2*getTraitValueInt(BasicTrait.FP)/3)
-        		currentDefense = (int) Math.ceil(currentDefense/2.0);
+    		currentDefense = (int)Math.ceil(getTraitValueInt(BasicTrait.Dodge)*getMoveDodgeMultiplier());
 		default:
 			break;
     	}
     	return currentDefense;
+    }
+    
+    /**
+     * Get the current multiplier for move & dodge based on injury, fatigue, and traits
+     * @return the current multiplier for move/dodge: round up to get effective value after multiplying
+     */
+    public double getMoveDodgeMultiplier() {
+    	double HTThresh = 2*getTraitValueInt(BasicTrait.HP)/3;
+    	double multiplier = 1;
+		if (SupernaturalDurability.hasTrait(this)) {
+			HTThresh = getTraitValueInt(BasicTrait.HP); 
+		} 
+		if (getTraitValueInt(BasicTrait.Injury) > HTThresh)
+			multiplier /= 2;
+    	if (getTraitValueInt(BasicTrait.Fatigue) > 2*getTraitValueInt(BasicTrait.FP)/3)
+			multiplier /= 2;
+    	return multiplier;
     }
     
 	/**
@@ -575,7 +593,7 @@ public class Actor extends ActorBase {
     						for (int i = previousMultiple+1; i <= newMultiple; i++) {
     							String logPrefix = "reached <b><font color=red>-" + (i-1) + "xHP</font></b>: ";
     							final int HT = getTraitValueInt(BasicTrait.HT);
-    							final int HtK = HardToKill.getHardToKill(this);
+    							final int HtK = HardToKill.getValue(this);
     							final int effHT = HT + HtK;
     							String details = "HT: " + HT;
     							if (HtK > 0) {

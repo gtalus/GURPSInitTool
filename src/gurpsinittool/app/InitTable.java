@@ -68,6 +68,7 @@ import gurpsinittool.data.Actor;
 import gurpsinittool.data.ActorBase.ActorStatus;
 import gurpsinittool.data.ActorBase.ActorType;
 import gurpsinittool.data.ActorBase.BasicTrait;
+import gurpsinittool.data.Defense.DefenseType;
 import gurpsinittool.data.GameMaster;
 import gurpsinittool.ui.ColumnCustomizer;
 import gurpsinittool.util.AbstractGAction;
@@ -631,27 +632,19 @@ public class InitTable extends BasicTable {
 			
 			// Special formatting
 			// Custom rendering for various columns
-			if (columnName.equals("Move") || columnName.equals("Dodge")) {				
-				int injury = a.getTraitValueInt(BasicTrait.Injury);
-				int fatigue = a.getTraitValueInt(BasicTrait.Fatigue);
-				int hitPoints = a.getTraitValueInt(BasicTrait.HP);
-				int fatiguePoints = a.getTraitValueInt(BasicTrait.FP);
-				
-				if (injury > 2*hitPoints/3 || fatigue > 2*fatiguePoints/3) {					
-					int currentValue = a.getTraitValueInt(columnName);
-					int newValue;
-					if (injury > 2*hitPoints/3 && fatigue > 2*fatiguePoints/3) {
-						newValue = (int) Math.ceil((double)currentValue/4);
-						c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/exclamation.png")));
-						c.setToolTipText("Greatly reduced from injury and fatigue");
-					} else {
-						newValue = (int) Math.ceil((double)currentValue/2);
-						c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png")));
-						c.setToolTipText("Reduced from injury or fatigue");
-					}
-					c.setText(newValue + " (" + c.getText() + ")");
-					MiscUtil.setLabelBold(c);
+			if (columnName.equals("Move") || columnName.equals("Dodge")) {
+				int newValue = a.getTraitValueInt(columnName);
+				double multiplier = a.getMoveDodgeMultiplier();
+				newValue = (int) Math.ceil(newValue*a.getMoveDodgeMultiplier());
+				if (multiplier < 1/2) {
+					c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/exclamation.png")));
+					c.setToolTipText("Greatly reduced from injury and fatigue");
+				} else if (multiplier < 1) {
+					c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png")));
+					c.setToolTipText("Reduced from injury or fatigue");
 				}
+				c.setText(newValue + " (" + c.getText() + ")");
+				MiscUtil.setLabelBold(c);
 			} else if ("HT".equals(columnName) | "CurrHP".equals(columnName)) {
 				int injury = a.getTraitValueInt(BasicTrait.Injury);
 				int hitPoints = a.getTraitValueInt(BasicTrait.HP);

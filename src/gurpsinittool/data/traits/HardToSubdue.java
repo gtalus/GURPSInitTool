@@ -15,10 +15,10 @@ public class HardToSubdue {
 	 * @param actor
 	 */
 	public static void reportDebugTrait(Actor actor) {
-		actor.setTemp("_HardToSubdue", getHardToSubdue(actor));
+		actor.setTemp("_HardToSubdue", getValue(actor));
 	}
 
-	public static int getHardToSubdue(Actor actor) {
+	public static int getValue(Actor actor) {
 		if (actor.hasTrait("Hard To Subdue")) {
 			return actor.getTraitValueInt("Hard To Subdue");
 		} else 

@@ -14,10 +14,10 @@ public class HardToKill {
 	 * @param actor
 	 */
 	public static void reportDebugTrait(Actor actor) {
-		actor.setTemp("_HardToKill", getHardToKill(actor));
+		actor.setTemp("_HardToKill", getValue(actor));
 	}
 
-	public static int getHardToKill(Actor actor) {
+	public static int getValue(Actor actor) {
 		if (actor.hasTrait("Hard To Kill")) {
 			return actor.getTraitValueInt("Hard To Kill");
 		} else 

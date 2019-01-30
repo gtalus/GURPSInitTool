@@ -101,6 +101,7 @@ Any other traits can be specified in the Traits table. This can be used for Skil
 - **High Pain Threshold** (HPT): Knockdown/stunning checks and shock calculation. (Note: value is not used)
 - **Injury Tolerance** (IT): Injury calculation in Defense dialog. Value is a ';' separated list and can include all the options from the Basic Set: No Brain; No Eyes; No Head; No Neck; No Vitals; Diffuse; Homogenous; Undead. 'Damage Reduction 2'/3/4 is also supported. Value is case-insensitive.
 - **Low Pain Threshold** (LPT): Knockdown/stunning checks and shock calculation. (Note: value is not used)
+- **Supernatural Durability** (SD): Support has **substantial limitations**. Includes High Pain Threshold, immunity to physical stun and immunity to unconsciousness due to injury. Full move and dodge and immune to crippling while at 0 HP or above. Does not handle special death immunity or vulnerability.
 - **Vulnerability** (Vuln): Injury calculation for basic damage types only (cr/pi+/etc). Value must be in the form 'cr *2' or 'cr x2', with only whole multipliers allowd. Separate multiple vulnerabilities with ';'.
 
 Strength Tables
