@@ -10,7 +10,7 @@ This mode is activated either by pressing the Command Mode button (which also do
 Main Window
 ~~~~~~~~~~~
 
-Editing of Injury and Fatigue columns is not automatically started by pressing a number key while in command mode. Only the '+/=' or '-' keys activate the quick delta function.
+Editing of Injury and Fatigue columns is not automatically started by pressing a number key while in command mode. Only the ``+/=`` or ``-`` keys activate the quick delta function.
 
 Initiative Control:
 
@@ -21,6 +21,8 @@ Initiative Control:
 Search:
 
 - **/**: Start/End search. While search is active, command mode is suspended.
+- **[**: Start search with character '['. Ex. typing ``[r1]`` will activate search, enter '[r1]' and then end the search.
+- **]**: End the search with character ']'.
 - **.** or **>**: Next search result
 - **,** or **<**: Previous search result
 
@@ -28,12 +30,15 @@ General Functions:
 
 - **d**: Top selected row defends
 - **t**: Refresh tags for all rows
+- **z**: Resize table columns
 - **g**: Open Group Manager
   
 All selected rows:
 
 - **k**: Attack using default attack
-- **1** to **0**: Attack using specified attack #, if it exists (0 is 10). Ex: 2 will trigger the second attack in each combatant's attack table.
+- **1** to **0**: Attack using specified attack #, if it exists (0 is 10). Ex: hitting ``2`` will trigger the second attack in each combatant's attack table.
+- **Shift+<num>**: Set default attack to attack #<num>, if it exists (0 is attack #10).
+- **Shift+[s|n|a|p|e]**: Set combatant type to Special, Neutral, Ally, PC, or Enemy.
 - **s**: Set posture to standing (remove Kneeling/Prone)
 - **n**: Set posture to Kneeling
 - **p**: Set posture to Prone
