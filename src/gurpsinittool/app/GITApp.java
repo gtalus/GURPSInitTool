@@ -46,16 +46,16 @@ import gurpsinittool.util.MiscUtil;
 import gurpsinittool.util.SearchSupport;
 
 @SuppressWarnings("serial")
-public class GITApp extends JFrame 
+public class GITApp extends JFrame
 	implements PropertyChangeListener, EncounterLogListener, ListSelectionListener, TableModelListener {
 	/**
 	 * Logger
 	 */
 	private final static Logger LOG = Logger.getLogger(GITApp.class.getName());
 	private static DebugLog debugLogWindow = new DebugLog();
-	
-	public static final String GIT_VERSION = "1.7.0 PRERELEASE";
-	
+
+	public static final String GIT_VERSION = "1.7.0";
+
 	private InitTable initTable;
 	private JTextPane logTextArea;
 	private HTMLDocument logTextDocument;
@@ -69,17 +69,17 @@ public class GITApp extends JFrame
 	private JLabel roundCounter;
 	private JSplitPane jSplitPaneVertical;
 	private JSplitPane jSplitPaneHorizontal;
-	
+
 	// Search support
 	private SearchSupport searchSupport;
-	
+
 	// Command mode
 	private JToggleButton commandModeButton;
 	private CommandMode commandMode;
 
 	// GameMaster logic
 	private GameMaster gameMaster;
-	
+
 	// Actions
 	public Action actionOptions;
 	public Action actionSizeColumns; // but this applies to the initTable, not sure if it has to be in the GameMaster class
@@ -88,7 +88,7 @@ public class GITApp extends JFrame
 	public Action actionOpenDebugLog;
 	public Action actionAbout;
 	public Action actionToggleCommandMode;
-	
+
 	/**
 	 * Entry point to the main program
 	 * @param args
@@ -113,14 +113,14 @@ public class GITApp extends JFrame
         //Schedule a job for the event-dispatching thread:
         //creating and showing this application's GUI.
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {  
+            public void run() {
             	initializeLogging();
                 createAndShowGUI();
                 //testRig();
             }
         });
     }
-    
+
     /**
      * Initialize logging routines
      */
@@ -142,7 +142,7 @@ public class GITApp extends JFrame
     	    }
     	}
     }
-    
+
     /**
      * Placeholder for testing operations
      */
@@ -154,14 +154,14 @@ public class GITApp extends JFrame
 //		} catch (FileNotFoundException e) {
 //			e.printStackTrace();
 //		}
-//      
+//
     }
-    
+
     /**
      * Create the GUI and show it.  For thread safety,
      * this method should be invoked from the
      * event-dispatching thread.
-     */   
+     */
     private static void createAndShowGUI() {
         //Create and set up the window.
     	if(LOG.isLoggable(Level.INFO)) {LOG.info("Starting GURPS Initiative Tool");}
@@ -174,9 +174,9 @@ public class GITApp extends JFrame
         mainApp.initializeActions();
         mainApp.setAccelerators();
         mainApp.addComponentsToPane();
-        
+
         mainApp.groupManager.loadDefaultGroupFile(); // Load the group file
-        
+
         //Display the window.
         if (Boolean.valueOf(mainApp.propertyBag.getProperty("GITApp.Manager.visible"))) {
         	mainApp.groupManager.setVisible(true); }
@@ -184,10 +184,10 @@ public class GITApp extends JFrame
         	mainApp.debugLogWindow.setVisible(true); }
         mainApp.setVisible(true);
         if(LOG.isLoggable(Level.INFO)) {LOG.info("Tool Started");}
-   
+
 
     }
-    
+
     private GITApp(String name) {
     	super(name);
         gameMaster = new GameMaster(true);
@@ -201,15 +201,15 @@ public class GITApp extends JFrame
         detailsPanel = new ActorDetailsPanel_v2(true);
         kit = new HTMLEditorKit();
         commandMode = new CommandMode(this, defenseDialog, searchSupport, gameMaster);
-        commandMode.attachCommandMode(this);     
-        
+        commandMode.attachCommandMode(this);
+
         // Game Master
         gameMaster.initTable = initTable;
         gameMaster.detailsPanel = detailsPanel;
         gameMaster.defenseDialog = defenseDialog;
         gameMaster.addPropertyChangeListener(this);
         initTable.getActorTableModel().addUndoableEditListener(gameMaster);
-        
+
         // Encounter Logging
         logTextDocument = new HTMLDocument();
         logTextArea = new JTextPane();
@@ -223,13 +223,13 @@ public class GITApp extends JFrame
 
         // Defense Dialog
         defenseDialog.setLocation(Integer.valueOf(propertyBag.getProperty("GITApp.defense.location.x")),
-				 Integer.valueOf(propertyBag.getProperty("GITApp.defense.location.y")));		 
-		 
+				 Integer.valueOf(propertyBag.getProperty("GITApp.defense.location.y")));
+
     	// Options window
       	optionsWindow = new OptionsWindow(propertyBag);
         optionsWindow.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE); // Don't close the program when closing the options window
       	Actor.settings = optionsWindow.currentSettings;
-    	
+
         // The group Manager
         groupManager = new GroupManager(propertyBag);
         criticalTables = new CriticalTablesDialog(this, false);
@@ -237,21 +237,21 @@ public class GITApp extends JFrame
                 Integer.valueOf(propertyBag.getProperty("GITApp.crittables.location.y")));
         criticalTables.setSize(Integer.valueOf(propertyBag.getProperty("GITApp.crittables.size.width")),
         		Integer.valueOf(propertyBag.getProperty("GITApp.crittables.size.height")));
-        
+
         // Debug Log Window
         debugLogWindow.Initialize(propertyBag);
-        
+
         addMenuBar();
         addToolBar();
-             
+
         // The actor table
         initTable.getSelectionModel().addListSelectionListener(this);
         initTable.getActorTableModel().addTableModelListener(this);
-        
+
         // Connect Details Panel to the table/tableModel
-        JScrollPane tableScrollPane = new JScrollPane(initTable); 
+        JScrollPane tableScrollPane = new JScrollPane(initTable);
         JScrollPane logScrollPane = new JScrollPane(logTextArea);
-        
+
         // The actor info pane
         JScrollPane actorDetailsPane = new JScrollPane(detailsPanel);
         actorDetailsPane.setMinimumSize(new Dimension(detailsPanel.getPreferredSize().width+21,0));
@@ -260,17 +260,17 @@ public class GITApp extends JFrame
         jSplitPaneVertical = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tableScrollPane, logScrollPane);
         jSplitPaneVertical.setDividerLocation(Integer.valueOf(propertyBag.getProperty("GITApp.splitVertical.dividerLocation")));
         jSplitPaneVertical.setResizeWeight(.8);
- 
+
         jSplitPaneHorizontal = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, jSplitPaneVertical, actorDetailsPane);
         jSplitPaneHorizontal.setDividerLocation(Integer.valueOf(propertyBag.getProperty("GITApp.splitHorizontal.dividerLocation")));
         jSplitPaneHorizontal.setResizeWeight(.95);
 
         getContentPane().add(jSplitPaneHorizontal, BorderLayout.CENTER);
-       
+
         // Undo support
         //undoManager = new UndoManager();
         //refreshUndoRedo();
-              
+
         //Display the window.
         setLocation(Integer.valueOf(propertyBag.getProperty("GITApp.location.x")),
                 Integer.valueOf(propertyBag.getProperty("GITApp.location.y")));
@@ -279,7 +279,7 @@ public class GITApp extends JFrame
         MiscUtil.validateOnScreen(this); // Make sure it's on the screen!
         addWindowListener(new GITAppWindowListener());
     }
-   
+
     private void initializeActions() {
     	actionSizeColumns = new AbstractGAction("Auto-size columns", "Auto re-size the table columns to best fit (Alt+A)", new ImageIcon(GITApp.class.getResource("/resources/images/script_code.png"))) {
     		public void actionPerformed(ActionEvent arg0) {	initTable.autoSizeColumns(); }
@@ -291,25 +291,25 @@ public class GITApp extends JFrame
     		public void actionPerformed(ActionEvent arg0) { showAboutDialog(); }
     	};
     	actionOpenCriticalTables = new AbstractGAction("Critical Tables", "Open Critical Tables (Alt+C)", new ImageIcon(GITApp.class.getResource("/resources/images/table_error.png"))) {
-    		public void actionPerformed(ActionEvent arg0) { 
+    		public void actionPerformed(ActionEvent arg0) {
     			MiscUtil.validateOnScreen(criticalTables);
         		criticalTables.setVisible(true);
     		}
     	};
     	actionOpenGroupManager = new AbstractGAction("Groups Manager", "Open Groups Manager (Alt+G)", new ImageIcon(GITApp.class.getResource("/resources/images/group.png"))) {
-    		public void actionPerformed(ActionEvent arg0) { 
+    		public void actionPerformed(ActionEvent arg0) {
     			MiscUtil.validateOnScreen(groupManager);
         		groupManager.setVisible(true);
     		}
-    	};  
+    	};
     	actionOpenDebugLog = new AbstractGAction("Debug Log", "Open Debug Log (Alt+D)", new ImageIcon(GITApp.class.getResource("/resources/images/page_white_text.png"))) {
-    		public void actionPerformed(ActionEvent arg0) { 
+    		public void actionPerformed(ActionEvent arg0) {
     			MiscUtil.validateOnScreen(debugLogWindow);
     			debugLogWindow.setVisible(true);
     		}
-    	};  
+    	};
     	actionToggleCommandMode = new AbstractGAction("Command Mode: Off", "Toggle Command Mode (Ctrl+Q)", null) {
-			public void actionPerformed(ActionEvent arg0) { 
+			public void actionPerformed(ActionEvent arg0) {
 				commandModeButton.setSelected(!(commandMode.getModeEnabled()));
 				commandMode.setModeEnabled(commandModeButton.isSelected());
 				if (commandModeButton.isSelected()) {
@@ -320,7 +320,7 @@ public class GITApp extends JFrame
 			}
 		};
     }
-    
+
     private void setAccelerators() {
 //        getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control Z"), "actionUndo");
 //        getRootPane().getActionMap().put("actionUndo", gameMaster.actionUndo);
@@ -349,21 +349,21 @@ public class GITApp extends JFrame
         getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("control Q"), "actionToggleCommandMode");
         getRootPane().getActionMap().put("actionToggleCommandMode", actionToggleCommandMode);
      }
-    
+
     private void addMenuBar() {
         // The main menu bar
         JMenuBar menubar = new JMenuBar();
         // Edit menu
         JMenu menuFile = new JMenu("Edit");
         menuFile.setMnemonic(KeyEvent.VK_E);
-        
+
         JMenuItem menuItem = new JMenuItem(gameMaster.actionUndo);
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK));
         menuFile.add(menuItem);
         menuItem = new JMenuItem(gameMaster.actionRedo);
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, ActionEvent.CTRL_MASK));
         menuFile.add(menuItem);
-            
+
         menuItem = new JMenuItem(new DefaultEditorKit.CutAction());
         menuItem.setText("Cut");
         menuItem.setMnemonic(KeyEvent.VK_T);
@@ -388,9 +388,9 @@ public class GITApp extends JFrame
         menuItem = new JMenuItem(actionOptions);
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
         menuFile.add(menuItem);
- 
+
         menubar.add(menuFile);
-        
+
         // View Menu
         menuFile = new JMenu("View");
         menuFile.setMnemonic(KeyEvent.VK_V);
@@ -407,15 +407,15 @@ public class GITApp extends JFrame
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, ActionEvent.CTRL_MASK));
         menuFile.add(menuItem);
         menubar.add(menuFile);
-        
+
         // 'Window' Menu
         menuFile = new JMenu("Window");
-        menuFile.setMnemonic(KeyEvent.VK_W);    
+        menuFile.setMnemonic(KeyEvent.VK_W);
         menuItem = new JMenuItem(actionOpenGroupManager);
         menuItem.setMnemonic(KeyEvent.VK_G);
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_G, ActionEvent.ALT_MASK));
         menuFile.add(menuItem);
-        menuFile.setMnemonic(KeyEvent.VK_W);    
+        menuFile.setMnemonic(KeyEvent.VK_W);
         menuItem = new JMenuItem(actionOpenCriticalTables);
         menuItem.setMnemonic(KeyEvent.VK_C);
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.ALT_MASK));
@@ -425,9 +425,9 @@ public class GITApp extends JFrame
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, ActionEvent.ALT_MASK));
         menuFile.add(menuItem);
         menubar.add(menuFile);
-        
+
         menubar.add(Box.createHorizontalGlue());
-        
+
         // About menu button
         JButton menuButton = new JButton(actionAbout);
         menuButton.setOpaque(true);
@@ -435,10 +435,10 @@ public class GITApp extends JFrame
         menuButton.setBorderPainted(false);
         menuButton.setFocusable(false);
         menubar.add(menuButton);
-        
+
         setJMenuBar(menubar);
     }
-    
+
     private void addToolBar() {
     	// The top tool bar
         JToolBar toolbar = new JToolBar("Encounter Control Toolbar");
@@ -458,47 +458,47 @@ public class GITApp extends JFrame
         // Reset round counter buffer
         toolbar.add(roundCounter);
         toolbar.add(MiscUtil.noTextButton(gameMaster.actionResetRound));
-        
+
         // Auto-resize table columns
         toolbar.addSeparator();
-        toolbar.add(MiscUtil.noTextButton(actionSizeColumns)); 
-        toolbar.add(MiscUtil.noTextButton(gameMaster.actionTagActors)); 
-        
+        toolbar.add(MiscUtil.noTextButton(actionSizeColumns));
+        toolbar.add(MiscUtil.noTextButton(gameMaster.actionTagActors));
+
         // Attack / Defend
         toolbar.addSeparator();
-        toolbar.add(MiscUtil.noTextButton(gameMaster.actionAttack)); 
-        toolbar.add(MiscUtil.noTextButton(gameMaster.actionDefend)); 
+        toolbar.add(MiscUtil.noTextButton(gameMaster.actionAttack));
+        toolbar.add(MiscUtil.noTextButton(gameMaster.actionDefend));
 
         // Posture settings
         toolbar.addSeparator();
-        toolbar.add(MiscUtil.noTextButton(gameMaster.actionPostureStanding)); 
-        toolbar.add(MiscUtil.noTextButton(gameMaster.actionPostureKneeling)); 
-        toolbar.add(MiscUtil.noTextButton(gameMaster.actionPostureProne)); 
-        
+        toolbar.add(MiscUtil.noTextButton(gameMaster.actionPostureStanding));
+        toolbar.add(MiscUtil.noTextButton(gameMaster.actionPostureKneeling));
+        toolbar.add(MiscUtil.noTextButton(gameMaster.actionPostureProne));
+
         // Statuses
         toolbar.addSeparator();
-        toolbar.add(MiscUtil.noTextButton(gameMaster.actionStatusTogglePhysicalStun)); 
-        toolbar.add(MiscUtil.noTextButton(gameMaster.actionStatusToggleMentalStun)); 
-        toolbar.add(MiscUtil.noTextButton(gameMaster.actionStatusToggleRecoveringStun)); 
-        toolbar.add(MiscUtil.noTextButton(gameMaster.actionStatusToggleAttacking)); 
-        toolbar.add(MiscUtil.noTextButton(gameMaster.actionStatusToggleDisarmed)); 
-        toolbar.add(MiscUtil.noTextButton(gameMaster.actionStatusToggleUnconscious)); 
-        toolbar.add(MiscUtil.noTextButton(gameMaster.actionStatusToggleDead)); 
-              
+        toolbar.add(MiscUtil.noTextButton(gameMaster.actionStatusTogglePhysicalStun));
+        toolbar.add(MiscUtil.noTextButton(gameMaster.actionStatusToggleMentalStun));
+        toolbar.add(MiscUtil.noTextButton(gameMaster.actionStatusToggleRecoveringStun));
+        toolbar.add(MiscUtil.noTextButton(gameMaster.actionStatusToggleAttacking));
+        toolbar.add(MiscUtil.noTextButton(gameMaster.actionStatusToggleDisarmed));
+        toolbar.add(MiscUtil.noTextButton(gameMaster.actionStatusToggleUnconscious));
+        toolbar.add(MiscUtil.noTextButton(gameMaster.actionStatusToggleDead));
+
         // Command Mode
         toolbar.addSeparator();
         toolbar.add(commandModeButton = new JToggleButton(actionToggleCommandMode));
-        
+
         // Search Bar
         toolbar.addSeparator();
         toolbar.add(searchSupport.getSearchToolBar());
-        
+
         // Group manager button & horizontal glue
         toolbar.add(Box.createHorizontalGlue());
         toolbar.addSeparator();
         toolbar.add(MiscUtil.noTextButton(actionOpenCriticalTables));
         toolbar.add(MiscUtil.noTextButton(actionOpenGroupManager));
-	
+
         toolbar.setRollover(true);
         getContentPane().add(toolbar, BorderLayout.PAGE_START);
     }
@@ -512,7 +512,7 @@ public class GITApp extends JFrame
     }
 
     /**
-     * Save the propertyBag to a settings file. 
+     * Save the propertyBag to a settings file.
      * @return - Whether the operation succeeded or not.
      */
     private void loadProperties() {
@@ -522,7 +522,7 @@ public class GITApp extends JFrame
     		if (propertyFile.exists()) {
     			if(LOG.isLoggable(Level.INFO)) {LOG.info("Loading properties from file " + propertyFile.getAbsolutePath()); }
     			final InputStream propIn = new FileInputStream(propertyFile);
-    			propertyBag.load(propIn);    			
+    			propertyBag.load(propIn);
      		} else {
        			if(LOG.isLoggable(Level.INFO)) {LOG.info("Properties file does not exist " + propertyFile.getAbsolutePath());}
     		}
@@ -532,9 +532,9 @@ public class GITApp extends JFrame
 			if(LOG.isLoggable(Level.SEVERE)) {LOG.log(Level.SEVERE, "Caught exception: Error reading file! " + e.toString(),e);}
 		}
     }
-    
+
     /**
-     * Save the propertyBag to a settings file. 
+     * Save the propertyBag to a settings file.
      * @return - Whether the operation succeeded or not.
      */
     private boolean saveProperties() {
@@ -553,7 +553,7 @@ public class GITApp extends JFrame
 		}
     	return true;
     }
-    
+
 
 	 /**
 	  * Set default properties if they are not already defined.
@@ -590,7 +590,7 @@ public class GITApp extends JFrame
 		 if (!propertyBag.containsKey("GITApp.crittables.size.height")) {
 			 propertyBag.setProperty("GITApp.crittables.size.height",  String.valueOf(new CriticalTablesDialog(this, false).getPreferredSize().height)); }
 	 }
-	 
+
 	 /**
 	  * Update all the store-able properties to their current values
 	  */
@@ -614,7 +614,7 @@ public class GITApp extends JFrame
 		// if (saveAsFile != null) { propertyBag.setProperty("GITApp.currentLoadedFile", saveAsFile.getAbsolutePath());}
 		 //else { propertyBag.remove("GITApp.currentLoadedFile");}
 	 }
-	 
+
 	 private void showAboutDialog() {
 		 String famfamcredit = "<a href=\"http://www.famfamfam.com/lab/icons/silk/\">Silk</a> icons by <a href=\"http://www.famfamfam.com/\">Mark James</a> licensed under <a href=\"http://creativecommons.org/licenses/by/2.5/\">CC BY 2.5</a> / used with minor changes.";
 		 String policy = "GURPS is a trademark of Steve Jackson Games, and its rules and art are copyrighted by Steve Jackson Games. All rights are reserved by Steve Jackson Games. This game aid is the original creation of Damian Small and is released for free distribution, and not for resale, under the permissions granted in the <a href=\"http://www.sjgames.com/general/online_policy.html\">Steve Jackson Games Online Policy</a>.";
@@ -628,7 +628,7 @@ public class GITApp extends JFrame
 		 style.append("font-size:" + font.getSize() + "pt;");
 
 		 JEditorPane ep = new JEditorPane("text/html","<html><body style=\"" + style + "\"><b>GURPS Initiative Tool</b><br>Version: " + GIT_VERSION + "<br><p style='width: 300px;'>" + policy + "</p><p style='width: 300px;'>" + famfamcredit + "</p><br></body></html>");
-		 ep.addHyperlinkListener(new HyperlinkListener() {       						
+		 ep.addHyperlinkListener(new HyperlinkListener() {
 			 @Override
 			 public void hyperlinkUpdate(HyperlinkEvent e) {
 				 if (e.getEventType().equals(HyperlinkEvent.EventType.ACTIVATED))
@@ -649,7 +649,7 @@ public class GITApp extends JFrame
 	  * Add a text line to the logTextArea
 	  * @param line
 	  */
-	 protected void addLogLine(final String line) {    	
+	 protected void addLogLine(final String line) {
 		 try {
 			 kit.insertHTML(logTextDocument, logTextDocument.getLength(), line, 0, 0, null);
 		 } catch (BadLocationException e) {
@@ -662,7 +662,7 @@ public class GITApp extends JFrame
 	 }
 
 	 @Override
-	 public void encounterLogMessageSent(EncounterLogEvent evt) {		 
+	 public void encounterLogMessageSent(EncounterLogEvent evt) {
 		 addLogLine(evt.getLogMsg());
 	 }
 
@@ -686,7 +686,7 @@ public class GITApp extends JFrame
 			detailsPanel.setActor(initTable.getSelectedActor());
 		}
 	}
-		
+
     /**
      * An Inner class to monitor the window events
      */

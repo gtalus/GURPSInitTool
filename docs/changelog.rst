@@ -1,7 +1,7 @@
 Changelog
 =========
 
-v1.7.0 (UNRELEASED)
+v1.7.0
 ------
 
 **Bug Fixes:**
