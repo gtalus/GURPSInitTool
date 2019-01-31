@@ -706,13 +706,16 @@ public class ActorBase implements Serializable {
 	public void setTemp(String name, String value) {
 		if (hasTemp(name)) {
 			Trait temp = getTemp(name);
-			String oldValue = temp.value;
-			temp.value = value;
-			if (!undoRedoInProgress)
-				mUes.postEdit(new TempEdit(name, oldValue, value));
+			if (!temp.value.equals(value)) { // Skip spurious edits
+				String oldValue = temp.value;
+				temp.value = value;
+				if (!undoRedoInProgress)
+					mUes.postEdit(new TempEdit(name, oldValue, value));
+			}
 		} else {
 			Trait newTrait = new Trait(name, value);
 			temps.put(name, newTrait);
+			// Don't post edits for debug values (start with '_')
 			if (!undoRedoInProgress)
 				mUes.postEdit(new TempEdit(name, "0", value)); // TODO: actual add/remove edit support for temps
 		}
@@ -911,7 +914,7 @@ public class ActorBase implements Serializable {
     		this.newValue = newValue;
     	}
     	public String getPresentationName() { return "TEMP"; }
-    	
+    	public boolean isSignificant() {return false;}
     	public void undo() {
 			super.undo();
 			undoRedoInProgress = true;

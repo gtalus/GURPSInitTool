@@ -179,8 +179,7 @@ public class GroupTree extends JTree implements ActionListener {
         if (currentSelection != null) {
             GroupTreeNode currentNode = (GroupTreeNode) (currentSelection.getLastPathComponent());
             removeNode(currentNode);
-           
-        } 
+        }
     }
     
     /**
@@ -286,7 +285,7 @@ public class GroupTree extends JTree implements ActionListener {
 				treeModel.insertNodeInto(node, parent, index);
 				scrollPathToVisible(new TreePath(node.getPath()));
 			}
-    	}    	
+    	}
     	public void redo() {
     		super.redo();
 			if (isInsert) {
@@ -296,7 +295,7 @@ public class GroupTree extends JTree implements ActionListener {
 				treeModel.removeNodeFromParent(node);
 				setDirty();
 			}
-    	}        	
+    	}
     }
     private class NodeRenameEdit extends AbstractUndoableEdit {
 		private static final long serialVersionUID = 1L;
