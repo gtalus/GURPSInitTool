@@ -417,10 +417,11 @@ public class ActorBase implements Serializable {
 	public void removeAttack(final int index) {
 		if (index < attacks.size()) {
 			startCompoundEdit();
-			if (index < defaultAttack)
+			if (index < defaultAttack) {
 				setDefaultAttack(defaultAttack-1);
-			if (index == defaultAttack)
+			} else if (index == defaultAttack) {
 				setDefaultAttack(0);
+			}
 			final Attack attack = attacks.get(index);
 			attacks.remove(index);
 			mPcs.firePropertyChange("Attacks", attacks.size()+1, attacks.size());
