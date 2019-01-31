@@ -299,7 +299,7 @@
           <Properties>
             <Property name="text" type="java.lang.String" value="Defense Details"/>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-              <Connection code="currentSettings.logStatusChanges.getDescription()" type="code"/>
+              <Connection code="currentSettings.logDefenseDetails.getDescription()" type="code"/>
             </Property>
           </Properties>
         </Component>

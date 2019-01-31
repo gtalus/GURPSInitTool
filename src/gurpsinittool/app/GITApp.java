@@ -52,8 +52,9 @@ public class GITApp extends JFrame
 	 * Logger
 	 */
 	private final static Logger LOG = Logger.getLogger(GITApp.class.getName());
+	private static DebugLog debugLogWindow = new DebugLog();
 	
-	public static final String GIT_VERSION = "1.6.0";
+	public static final String GIT_VERSION = "1.7.0 PRERELEASE";
 	
 	private InitTable initTable;
 	private JTextPane logTextArea;
@@ -84,6 +85,7 @@ public class GITApp extends JFrame
 	public Action actionSizeColumns; // but this applies to the initTable, not sure if it has to be in the GameMaster class
 	public Action actionOpenCriticalTables;
 	public Action actionOpenGroupManager;
+	public Action actionOpenDebugLog;
 	public Action actionAbout;
 	public Action actionToggleCommandMode;
 	
@@ -112,12 +114,47 @@ public class GITApp extends JFrame
         //creating and showing this application's GUI.
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {  
-            	// Setup logging format 	
-            	//System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tF %1$tT %4$s %2$s %5$s%6$s%n");
-            	System.setProperty("java.util.logging.SimpleFormatter.format", "%4$s %2$s: %5$s%6$s%n");            
-                createAndShowGUI();                
+            	initializeLogging();
+                createAndShowGUI();
+                //testRig();
             }
         });
+    }
+    
+    /**
+     * Initialize logging routines
+     */
+    private static void initializeLogging() {
+    	// Setup logging format
+    	//System.setProperty("java.util.logging.SimpleFormatter.format", "%1$t %1$tT %4$s %2$s %5$s%6$s%n");
+    	System.setProperty("java.util.logging.SimpleFormatter.format", "%4$s %2$s: %5$s%6$s%n");
+    	// Setup logging levels
+    	// This has massive problems related to the non-persistence of Logger instances.
+    	// I can't figure out how to adjust the log manager base configuration which would apply to newly created logger objects
+    	// If I want to specify logging levels, then I have to keep a static reference I think
+    	// I might be able to get away with a higher-level logger though (like 'gurpsinittool'
+    	//Logger.getLogger("gurpsinittool").setLevel(Level.FINE);
+    	//Logger.getLogger("gurpsinittool.data").setLevel(Level.FINER);
+    	//Logger.getLogger("gurpsinittool.app.textfield").setLevel(Level.FINER);
+    	for(Handler h : Logger.getLogger("").getHandlers()) {
+    	    if(h instanceof ConsoleHandler){
+    	        h.setLevel(Level.ALL); // Force enable console logger
+    	    }
+    	}
+    }
+    
+    /**
+     * Placeholder for testing operations
+     */
+    @SuppressWarnings("unused")
+	private static void testRig() {
+//		try {
+//			final Actor importActor = GCAImporter.importActor(new File("C:\\Repos\\GURPS\\character assistant\\characters\\test.gca4"));
+//			mainApp.initTable.getActorTableModel().addActor(importActor, 0);
+//		} catch (FileNotFoundException e) {
+//			e.printStackTrace();
+//		}
+//      
     }
     
     /**
@@ -143,31 +180,11 @@ public class GITApp extends JFrame
         //Display the window.
         if (Boolean.valueOf(mainApp.propertyBag.getProperty("GITApp.Manager.visible"))) {
         	mainApp.groupManager.setVisible(true); }
+        if (Boolean.valueOf(mainApp.propertyBag.getProperty("GITApp.DebugLog.visible"))) {
+        	mainApp.debugLogWindow.setVisible(true); }
         mainApp.setVisible(true);
         if(LOG.isLoggable(Level.INFO)) {LOG.info("Tool Started");}
-    	
-    	// Setup logging levels    	
-    	// This has massive problems related to the non-persistence of Logger instances. 
-    	// I can't figure out how to adjust the log manager base configuration which would apply to newly created logger objects
-    	// If I want to specify logging levels, then I have to keep a static reference I think 
-    	// I might be able to get away with a higher-level logger though (like 'gurpsinittool'    	
-    	//Logger.getLogger("gurpsinittool").setLevel(Level.FINE);
-    	//Logger.getLogger("gurpsinittool.data").setLevel(Level.FINER); 
-    	//Logger.getLogger("gurpsinittool.app.textfield").setLevel(Level.FINER); 
-    	for(Handler h : Logger.getLogger("").getHandlers()) {
-    	    if(h instanceof ConsoleHandler){
-    	        h.setLevel(Level.ALL);
-    	    }
-    	}
-    	
-//        // Test rig
-//		try {
-//			final Actor importActor = GCAImporter.importActor(new File("C:\\Repos\\GURPS\\character assistant\\characters\\test.gca4"));
-//			mainApp.initTable.getActorTableModel().addActor(importActor, 0);
-//		} catch (FileNotFoundException e) {
-//			e.printStackTrace();
-//		}
-//        
+   
 
     }
     
@@ -220,6 +237,9 @@ public class GITApp extends JFrame
                 Integer.valueOf(propertyBag.getProperty("GITApp.crittables.location.y")));
         criticalTables.setSize(Integer.valueOf(propertyBag.getProperty("GITApp.crittables.size.width")),
         		Integer.valueOf(propertyBag.getProperty("GITApp.crittables.size.height")));
+        
+        // Debug Log Window
+        debugLogWindow.Initialize(propertyBag);
         
         addMenuBar();
         addToolBar();
@@ -280,6 +300,12 @@ public class GITApp extends JFrame
     		public void actionPerformed(ActionEvent arg0) { 
     			MiscUtil.validateOnScreen(groupManager);
         		groupManager.setVisible(true);
+    		}
+    	};  
+    	actionOpenDebugLog = new AbstractGAction("Debug Log", "Open Debug Log (Alt+D)", new ImageIcon(GITApp.class.getResource("/resources/images/page_white_text.png"))) {
+    		public void actionPerformed(ActionEvent arg0) { 
+    			MiscUtil.validateOnScreen(debugLogWindow);
+    			debugLogWindow.setVisible(true);
     		}
     	};  
     	actionToggleCommandMode = new AbstractGAction("Command Mode: Off", "Toggle Command Mode (Ctrl+Q)", null) {
@@ -393,6 +419,10 @@ public class GITApp extends JFrame
         menuItem = new JMenuItem(actionOpenCriticalTables);
         menuItem.setMnemonic(KeyEvent.VK_C);
         menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.ALT_MASK));
+        menuFile.add(menuItem);
+        menuItem = new JMenuItem(actionOpenDebugLog);
+        menuItem.setMnemonic(KeyEvent.VK_D);
+        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, ActionEvent.ALT_MASK));
         menuFile.add(menuItem);
         menubar.add(menuFile);
         
@@ -531,6 +561,8 @@ public class GITApp extends JFrame
 	 private void setDefaultProperties() {
 		 if (!propertyBag.containsKey("GITApp.Manager.visible")) {
 			 propertyBag.setProperty("GITApp.Manager.visible", "false"); }
+		 if (!propertyBag.containsKey("GITApp.DebugLog.visible")) {
+			 propertyBag.setProperty("GITApp.DebugLog.visible", "false"); }
 		 if (!propertyBag.containsKey("GITApp.splitHorizontal.dividerLocation")) {
 			 propertyBag.setProperty("GITApp.splitHorizontal.dividerLocation", "580"); }
 		 if (!propertyBag.containsKey("GITApp.splitVertical.dividerLocation")) {
@@ -567,6 +599,7 @@ public class GITApp extends JFrame
 		 propertyBag.setProperty("GITApp.defense.location.x", String.valueOf(defenseDialog.getLocation().x));
 		 propertyBag.setProperty("GITApp.defense.location.y", String.valueOf(defenseDialog.getLocation().y));
 		 propertyBag.setProperty("GITApp.Manager.visible", String.valueOf(groupManager.isVisible()));
+		 propertyBag.setProperty("GITApp.DebugLog.visible", String.valueOf(debugLogWindow.isVisible()));
 		 propertyBag.setProperty("GITApp.splitHorizontal.dividerLocation", String.valueOf(jSplitPaneHorizontal.getDividerLocation()));
 		 propertyBag.setProperty("GITApp.splitVertical.dividerLocation", String.valueOf(jSplitPaneVertical.getDividerLocation()));
 		 propertyBag.setProperty("GITApp.location.x", String.valueOf(getLocation().x));
@@ -672,6 +705,7 @@ public class GITApp extends JFrame
 			initTable.updateProperties();
 			groupManager.updateProperties();
 			optionsWindow.updateProperties();
+			debugLogWindow.updateProperties();
 			// Check to make sure everything is clean
 			if(groupManager.querySaveChanges()) {
 				saveProperties();

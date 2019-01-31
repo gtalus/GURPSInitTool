@@ -267,7 +267,7 @@ public class OptionsWindow extends javax.swing.JFrame {
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Logging"));
 
         logDefenseDetails.setText("Defense Details");
-        logDefenseDetails.setToolTipText(currentSettings.logStatusChanges.getDescription());
+        logDefenseDetails.setToolTipText(currentSettings.logDefenseDetails.getDescription());
 
         logStatusChanges.setText("Verbose Status Changes");
         logStatusChanges.setToolTipText(currentSettings.logStatusChanges.getDescription());

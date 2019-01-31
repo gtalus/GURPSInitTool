@@ -22,8 +22,8 @@ public class GameSettings  {
 	public final GameSetting automateSpecial = new GameSetting(false, "AUTOMATE_SPECIAL", "Apply automations to Specials");
 
 	// Interface / Logging
-	public final GameSetting logStatusChanges = new GameSetting(false, "LOG_STATUSCHANGES", "Log defense details (retreat/EE/side/etc.)");
-	public final GameSetting logDefenseDetails = new GameSetting(false, "LOG_DEFENSEDETAILS", "Log all status/posture changes");	
+	public final GameSetting logStatusChanges = new GameSetting(false, "LOG_STATUSCHANGES", "Log all status/posture changes");
+	public final GameSetting logDefenseDetails = new GameSetting(false, "LOG_DEFENSEDETAILS", "Log defense details (retreat/EE/side/etc.)");	
 
 	/**
 	 * Encapsulation of a single boolean game setting
