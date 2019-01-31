@@ -4,6 +4,8 @@ import gurpsinittool.data.DamageExpression.DamageType;
 import gurpsinittool.data.HitLocations.HitLocation;
 import gurpsinittool.data.traits.InjuryTolerance;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,6 +19,9 @@ public class Damage {
 	public double armorDivisor;
 	public boolean explosive; // 'ex' keyword. Only used for diffuse max damage currently. Stand-in for Explosive, Wide Area and Cone attacks
 	public DamageType type;
+	
+	// Ordered list of valid armor divisor levels. Below these levels is '1' and above is 'ignores DR'. It's also legal for the divisor of a weapon to be less than one, but hardening cannot cause the divisor to drop below one.
+	public static ArrayList<Integer> armorDivisorLevels = new ArrayList<Integer>(Arrays.asList(2, 3, 5, 10, 100));
 	
 	public Damage(int basic, DamageType type) {
 		this(basic,1,type,false);

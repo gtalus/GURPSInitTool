@@ -155,7 +155,7 @@ public class Defense {
      * Calculate values for injury, shieldDamage, cripplingInjury, and majorWound
      */
     private void determineImpact(final Actor actor) {
-		int coverDR = 0;
+		int coverEffDR = 0;
 		
 		// Set defaults
     	injury = 0;
@@ -182,12 +182,13 @@ public class Defense {
     		// Min damage 1 if any got through DR
     		shieldDamage = (shieldDamage <= 0 && shieldBasicDamage > 0)?1:shieldDamage; 
     		// Calculate total cover DR provided (including armor divisor)
-    		coverDR = (int) (Math.floor((shieldDR + Math.ceil(shieldHP/4))/damage.armorDivisor));
+    		coverEffDR = (int) (Math.floor((shieldDR + Math.ceil(shieldHP/4))/damage.armorDivisor));
     	case Failure:
     	case CritFailure:
     		// Calculate actual basic damage to the target, including any cover DR
-			int totalDR = overrideDR.getDRforType(damage.type) + location.extraDR;
-    		int penetratingDamage = (int) (damage.basicDamage - coverDR - Math.floor(totalDR/damage.armorDivisor));
+			int armorEffDR = overrideDR.getDRforDamage(damage);
+			int locationEffDR = location.extraDR.getDRforDamage(damage);
+    		int penetratingDamage = (int) (damage.basicDamage - coverEffDR - armorEffDR - locationEffDR);
     		penetratingDamage = Math.max(0,penetratingDamage);
 			// Calculate injury to the target
 			calculateInjury(actor, penetratingDamage);

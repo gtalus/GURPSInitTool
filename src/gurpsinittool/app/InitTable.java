@@ -635,16 +635,18 @@ public class InitTable extends BasicTable {
 			if (columnName.equals("Move") || columnName.equals("Dodge")) {
 				int newValue = a.getTraitValueInt(columnName);
 				double multiplier = a.getMoveDodgeMultiplier();
-				newValue = (int) Math.ceil(newValue*a.getMoveDodgeMultiplier());
-				if (multiplier < 1/2) {
-					c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/exclamation.png")));
-					c.setToolTipText("Greatly reduced from injury and fatigue");
-				} else if (multiplier < 1) {
-					c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png")));
-					c.setToolTipText("Reduced from injury or fatigue");
+				if (multiplier < 1) {
+					newValue = (int) Math.ceil(newValue*a.getMoveDodgeMultiplier());
+					if (multiplier < 1/2) {
+						c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/exclamation.png")));
+						c.setToolTipText("Greatly reduced from injury and fatigue");
+					} else if (multiplier < 1) {
+						c.setIcon(new ImageIcon(GITApp.class.getResource("/resources/images/error.png")));
+						c.setToolTipText("Reduced from injury or fatigue");
+					}
+					c.setText(newValue + " (" + c.getText() + ")");
+					MiscUtil.setLabelBold(c);
 				}
-				c.setText(newValue + " (" + c.getText() + ")");
-				MiscUtil.setLabelBold(c);
 			} else if ("HT".equals(columnName) | "CurrHP".equals(columnName)) {
 				int injury = a.getTraitValueInt(BasicTrait.Injury);
 				int hitPoints = a.getTraitValueInt(BasicTrait.HP);

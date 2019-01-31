@@ -68,7 +68,7 @@ Basic Stats
 
 Some of the basic stats shown in the details panel are for reference only, and are not used by the program. These include ST, DX, Will, Per, Speed, and SM. The others are used as appropriate for calculating current move/dodge, shock, HT penalty for unconsciousness checks, and more.
 
-DR supports split stats for differing effectiveness vs. crushing damage. For example '4/2' for typical mail.
+**DR** supports split stats for differing effectiveness vs. crushing damage. For example '4/2' for typical mail. It also supports flexible notation (currently no impact on damage calculations) and bonus DR: 3/2*+2 indicates flexible DR which has 2+2=4 DR against crushing and 3+2=5 DR against everything else. Hardening levels are also supported, as '(x)' after the DR expression. '2(1)' indicates DR 2 armor with 1 level of hardening, which would fully negate armor divisor 2. '2(3)' indicates 3 levels of hardening which would negate armor divisor 5 (armor divisor levels are 2, 3, 5, 10, 100). Hardening will never reduce armor divisor below 1. 
 
 Any change to Injury and Fatigue during an encounter is also listed in the log. The value of these traits is not allowed to be less than 0.
 

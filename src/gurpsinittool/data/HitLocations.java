@@ -1,6 +1,8 @@
 package gurpsinittool.data;
 
 import gurpsinittool.data.DamageExpression.DamageType;
+
+import java.awt.Color;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,7 +38,7 @@ public class HitLocations {
 		addLocation(new HitLocation(LocationType.Skull, -7, "Penalty: -7(f)/-5(b). Attack that misses by 1 hits the torso instead. "
 				+ "The skull gets an extra DR 2. Wounding modifier is ×4. "
 				+ "Knockdown rolls are at -10. Critical hits use the Critical Head Blow Table (B556). "
-				+ "Exception: These special effects do not apply to tox damage.", -10, true, 2) {
+				+ "Exception: These special effects do not apply to tox damage.", -10, true, "2") {
 			public double getWoundingModifier(DamageType type) {
 				return 4;
 			}
@@ -179,7 +181,7 @@ public class HitLocations {
 		public int penalty;
 		public String notes;
 		
-		public int extraDR;
+		public DR extraDR;
 		public int knockdownPenalty;
 		public boolean headWound;
 		
@@ -187,30 +189,34 @@ public class HitLocations {
 		public double cripplingThreshold = 0;
 		
 		HitLocation(LocationType type, int penalty, String notes) {
-			this(type, penalty, notes, 0, false, 0);
+			this(type, penalty, notes, 0, false, "");
 		}
 
 		HitLocation(LocationType type, int penalty, String notes, int knockdownPenalty) {
-			this(type, penalty, notes, knockdownPenalty, false, 0);
+			this(type, penalty, notes, knockdownPenalty, false, "");
 		}
 
 		HitLocation(LocationType type, int penalty, String notes, int knockdownPenalty, double cripplingThreshold) {
-			this(type, penalty, notes, knockdownPenalty, false, 0);
+			this(type, penalty, notes, knockdownPenalty, false, "");
 			this.cripplingThreshold = cripplingThreshold;
 		}
 
 		HitLocation(LocationType type, int penalty, String notes, int knockdownPenalty, boolean headWound) {
-			this(type, penalty, notes, knockdownPenalty, headWound, 0);
+			this(type, penalty, notes, knockdownPenalty, headWound, "");
 		}
 		
-		HitLocation(LocationType type, int penalty, String notes, int knockdownPenalty, boolean headWound, int extraDR) {
+		HitLocation(LocationType type, int penalty, String notes, int knockdownPenalty, boolean headWound, String extraDR) {
 			//this.roll = roll;
 			this.type = type;
 			this.penalty = penalty;
 			this.notes = notes;
 			this.knockdownPenalty = knockdownPenalty;
 			this.headWound = headWound;
-			this.extraDR = extraDR;
+			try {
+				this.extraDR = DR.parseDR(extraDR);
+			} catch (Exception e) {
+	   			if (LOG.isLoggable(Level.SEVERE)) {LOG.severe("Failed to parse location DR field! '" + extraDR + "': " + e.getMessage());}
+			}
 		}
 		
 		public double getWoundingModifier(DamageType type) {
