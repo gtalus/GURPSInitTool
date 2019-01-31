@@ -11,6 +11,7 @@ public class Attack implements Serializable {
 	public int skill;
 	public String damage; // Ex: 2d+2 cut, 2d(2) pi-
 	public boolean unbalanced;
+	// TODO: public String shots??
 	
 	// Other? Reach, ready, unbalanced
 	

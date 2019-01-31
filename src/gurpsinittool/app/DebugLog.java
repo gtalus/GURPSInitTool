@@ -47,14 +47,10 @@ public class DebugLog  extends JFrame
 	public class TextAreaHandler extends Handler {
 
 		@Override
-		public void close() throws SecurityException {
-			// TODO Auto-generated method stub
-		}
+		public void close() throws SecurityException {}
 
 		@Override
-		public void flush() {
-			// TODO Auto-generated method stub
-		}
+		public void flush() {}
 
 		@Override
 		public void publish(final LogRecord record) {
