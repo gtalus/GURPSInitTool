@@ -54,7 +54,7 @@ public class GITApp extends JFrame
 	private final static Logger LOG = Logger.getLogger(GITApp.class.getName());
 	private static DebugLog debugLogWindow = new DebugLog();
 	
-	public static final String GIT_VERSION = "1.7.0 PRERELEASE";
+	public static final String GIT_VERSION = "1.7.0";
 	
 	private InitTable initTable;
 	private JTextPane logTextArea;
