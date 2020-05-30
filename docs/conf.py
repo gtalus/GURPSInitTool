@@ -49,7 +49,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'GURPSInitTool'
-copyright = u'2015, talus'
+copyright = u'2020, talus'
 author = u'talus'
 
 # The version info for the project you're documenting, acts as replacement for
